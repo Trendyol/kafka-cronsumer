@@ -26,7 +26,7 @@ func NewExceptionListenerScheduler() ExceptionListenerScheduler {
 	return &exceptionListenerScheduler{cron: gocron.New(), exceptionConsumers: make([]kafka.KafkaConsumer, 0), exceptionListeners: make(map[KafkaListener]processor.Processor)}
 }
 
-func (s *exceptionListenerScheduler) Register(exceptionConsumer kafka.KafkaConsumer, exceptionProcessor processor.Processor, producer kafka.KafkaProducer) {
+func (s *exceptionListenerScheduler) NewExceptionListenerScheduler(exceptionConsumer kafka.KafkaConsumer, exceptionProcessor processor.Processor, producer kafka.KafkaProducer) {
 	exceptionClient := NewKafkaListener(exceptionConsumer, producer)
 	s.exceptionListeners[exceptionClient] = exceptionProcessor
 	s.exceptionConsumers = append(s.exceptionConsumers, exceptionConsumer)
