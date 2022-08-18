@@ -9,8 +9,8 @@ import (
 
 //go:generate mockery --name=KafkaListener --output=../../mocks/kafkalistenermock
 type KafkaListener interface {
-	Listen(processor processor.Processor, concurrency int)
-	ListenException(processor processor.Processor, concurrency int)
+	Listen(consumeFn consumeExceptionFn, concurrency int)
+	ListenException(consumeFn consumeExceptionFn, concurrency int)
 	Pause()
 }
 
@@ -18,10 +18,10 @@ type kafkaListener struct {
 	paused           bool
 	quitChannel      chan bool
 	messageChannel   chan interface{}
-	exceptionManager exceptionManager
+	exceptionManager *exceptionManager
 }
 
-func NewKafkaListener(exceptionManager exceptionManager) KafkaListener {
+func NewKafkaListener(exceptionManager *exceptionManager) KafkaListener {
 	return &kafkaListener{false, make(chan bool), make(chan interface{}), exceptionManager}
 }
 
@@ -34,12 +34,12 @@ func (k *kafkaListener) Pause() {
 	k.quitChannel <- true
 }
 
-func (k *kafkaListener) Listen(processor processor.Processor, concurrency int) {
+func (k *kafkaListener) Listen(consumeFn consumeExceptionFn, concurrency int) {
 	k.Resume()
 	go k.listenMessage()
 
 	for i := 0; i < concurrency; i++ {
-		go k.processMessage(processor)
+		go k.processMessage(consumeFn)
 	}
 }
 
@@ -49,13 +49,13 @@ func (k *kafkaListener) Resume() {
 	k.quitChannel = make(chan bool)
 }
 
-func (k *kafkaListener) ListenException(processor processor.Processor, concurrency int) {
+func (k *kafkaListener) ListenException(consumeFn consumeExceptionFn, concurrency int) {
 	k.Resume()
 	startTime := time.Now()
 	go k.listenExceptionMessage(startTime)
 
 	for i := 0; i < concurrency; i++ {
-		go k.processMessage(processor)
+		go k.processMessage(consumeFn)
 	}
 }
 
@@ -66,7 +66,7 @@ func (k *kafkaListener) listenMessage() {
 			close(k.messageChannel)
 			return
 		default:
-			msg, err := k.exceptionManager.consumeExceptionFn()
+			msg, err := k.
 			if err == nil {
 				k.messageChannel <- msg
 			}
@@ -112,8 +112,8 @@ func (k *kafkaListener) recoverMessage(msg Message) {
 	}
 }
 
-func (k *kafkaListener) processMessage(processor processor.Processor) {
+func (k *kafkaListener) processMessage(consumeFn consumeExceptionFn) {
 	for record := range k.messageChannel {
-		processor.Process(record)
+		consumeFn(record)
 	}
 }

@@ -13,11 +13,11 @@ func main() {
 	var produceFn produceExceptionFn = func(message Message) error {
 		return nil
 	}
-	var consumeFn consumeExceptionFn = func() (Message, error) {
-
-		return sampleConsumer.ReadMessage
+	var consumeFn consumeExceptionFn = func(message Message) error {
+		return nil
 	}
 
 	manager := newExceptionManager(produceFn, consumeFn, applicationConfig.Kafka.Consumer.ExceptionTopic)
+	manager.Start()
 
 }

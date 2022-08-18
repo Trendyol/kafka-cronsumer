@@ -24,23 +24,21 @@ type Message struct {
 }
 
 type produceExceptionFn func(message Message) error
-type consumeExceptionFn func() (Message, error)
-type exceptionProcessorFn func(message Message) error
+type consumeExceptionFn func(message Message) error
 
 type exceptionManager struct {
-	produceExceptionFn   produceExceptionFn
-	consumeExceptionFn   consumeExceptionFn
-	exceptionProcessorFn exceptionProcessorFn
-	config               config.ExceptionTopic
+	produceExceptionFn produceExceptionFn
+	consumeExceptionFn consumeExceptionFn
+	config             config.ExceptionTopic
 }
 
-func newExceptionManager(produceExceptionFn produceExceptionFn, consumeExceptionFn consumeExceptionFn, exceptionProcessorFn exceptionProcessorFn, config config.ExceptionTopic) *exceptionManager {
-	return &exceptionManager{produceExceptionFn: produceExceptionFn, consumeExceptionFn: consumeExceptionFn, exceptionProcessorFn: exceptionProcessorFn, config: config}
+func newExceptionManager(produceExceptionFn produceExceptionFn, consumeExceptionFn consumeExceptionFn, config config.ExceptionTopic) *exceptionManager {
+	return &exceptionManager{produceExceptionFn: produceExceptionFn, consumeExceptionFn: consumeExceptionFn, config: config}
 }
 
 func (e *exceptionManager) Start() {
 	exceptionListenerScheduler := NewExceptionListenerScheduler(e)
-	exceptionListenerScheduler.StartScheduled(applicationConfig.Kafka.Consumer.ExceptionTopic)
+	exceptionListenerScheduler.StartScheduled(e.config)
 	consumeExceptionFn()
 }
 
