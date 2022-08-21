@@ -3,14 +3,14 @@ dev:
     port: ":8082"
   kafka:
     servers: "localhost:29092"
-    consumer:
-      consumerGroup: "sample-consumer"
+    consumers:
+    - consumerGroup: "sample-consumer"
       concurrency: 10
+      cron: "*/2 * * * *"
+      durationMinute: 1
+      maxRetry: 3
       topics:
         - "sample-topic"
       exceptionTopic:
         topic: "sample-exception-topic"
-        maxRetry: 3
-        cron: "*/2 * * * *"
-        durationMinute: 1
         concurrency: 1

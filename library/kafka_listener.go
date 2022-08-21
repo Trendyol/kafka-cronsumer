@@ -2,27 +2,27 @@ package library
 
 import (
 	"fmt"
-	"kafka-exception-iterator/pkg/processor"
+	"kafka-exception-iterator/library/model"
 	"kafka-exception-iterator/pkg/util/log"
 	"time"
 )
 
 //go:generate mockery --name=KafkaListener --output=../../mocks/kafkalistenermock
 type KafkaListener interface {
-	Listen(consumeFn consumeExceptionFn, concurrency int)
-	ListenException(consumeFn consumeExceptionFn, concurrency int)
+	Listen(consumeFn ConsumeFn, concurrency int)
+	ListenException(consumeFn ConsumeFn, concurrency int)
 	Pause()
 }
 
 type kafkaListener struct {
 	paused           bool
 	quitChannel      chan bool
-	messageChannel   chan interface{}
-	exceptionManager *exceptionManager
+	messageChannel   chan model.Message
+	exceptionManager *kafkaManager
 }
 
-func NewKafkaListener(exceptionManager *exceptionManager) KafkaListener {
-	return &kafkaListener{false, make(chan bool), make(chan interface{}), exceptionManager}
+func NewKafkaListener(exceptionManager *kafkaManager) KafkaListener {
+	return &kafkaListener{false, make(chan bool), make(chan model.Message), exceptionManager}
 }
 
 func (k *kafkaListener) Pause() {
@@ -34,7 +34,7 @@ func (k *kafkaListener) Pause() {
 	k.quitChannel <- true
 }
 
-func (k *kafkaListener) Listen(consumeFn consumeExceptionFn, concurrency int) {
+func (k *kafkaListener) Listen(consumeFn ConsumeFn, concurrency int) {
 	k.Resume()
 	go k.listenMessage()
 
@@ -44,12 +44,12 @@ func (k *kafkaListener) Listen(consumeFn consumeExceptionFn, concurrency int) {
 }
 
 func (k *kafkaListener) Resume() {
-	k.messageChannel = make(chan interface{})
+	k.messageChannel = make(chan model.Message)
 	k.paused = false
 	k.quitChannel = make(chan bool)
 }
 
-func (k *kafkaListener) ListenException(consumeFn consumeExceptionFn, concurrency int) {
+func (k *kafkaListener) ListenException(consumeFn ConsumeFn, concurrency int) {
 	k.Resume()
 	startTime := time.Now()
 	go k.listenExceptionMessage(startTime)
@@ -66,7 +66,7 @@ func (k *kafkaListener) listenMessage() {
 			close(k.messageChannel)
 			return
 		default:
-			msg, err := k.
+			msg, err := k.exceptionManager.kafkaConsumer.ReadMessage()
 			if err == nil {
 				k.messageChannel <- msg
 			}
@@ -83,13 +83,13 @@ func (k *kafkaListener) listenExceptionMessage(startTime time.Time) {
 			}
 		default:
 			{
-				msg, err := k.exceptionManager.consumeExceptionFn()
+				msg, err := k.exceptionManager.kafkaConsumer.ReadMessage()
 				if err == nil {
 					if msg.Time.Before(startTime) {
 						k.sendToMessageChannel(msg)
 					} else {
 						// iterate exception to next cron time if it already consumed&produced to exception topic
-						_ = k.exceptionManager.produceExceptionFn(msg)
+						_ = k.exceptionManager.produceFn(msg)
 						k.Pause()
 						return
 					}
@@ -99,20 +99,20 @@ func (k *kafkaListener) listenExceptionMessage(startTime time.Time) {
 	}
 }
 
-func (k *kafkaListener) sendToMessageChannel(msg Message) {
+func (k *kafkaListener) sendToMessageChannel(msg model.Message) {
 	defer k.recoverMessage(msg)
 	k.messageChannel <- msg
 }
 
-func (k *kafkaListener) recoverMessage(msg Message) {
+func (k *kafkaListener) recoverMessage(msg model.Message) {
 	// sending message to closed channel panic could be occurred cause of concurrency for exception topic listeners
 	if r := recover(); r != nil {
 		log.Logger().Warn(fmt.Sprintf("Recovered message: %v", string(msg.Value)))
-		_ = k.exceptionManager.produceExceptionFn(msg)
+		_ = k.exceptionManager.produceFn(msg)
 	}
 }
 
-func (k *kafkaListener) processMessage(consumeFn consumeExceptionFn) {
+func (k *kafkaListener) processMessage(consumeFn ConsumeFn) {
 	for record := range k.messageChannel {
 		consumeFn(record)
 	}

@@ -21,23 +21,23 @@ type ApplicationConfig struct {
 }
 
 type KafkaConfig struct {
-	Servers  string
-	Consumer ConsumerConfig
+	Servers   string
+	Consumers []ConsumerConfig
 }
 
 type ConsumerConfig struct {
 	ConsumerGroup  string
 	Concurrency    int
 	Topics         []string
+	MaxRetry       uint8
+	DurationMinute time.Duration
+	Cron           string
 	ExceptionTopic ExceptionTopic
 }
 
 type ExceptionTopic struct {
-	Topic          string
-	MaxRetry       uint8
-	DurationMinute time.Duration
-	Concurrency    int
-	Cron           string
+	Topic       string
+	Concurrency int
 }
 
 type config struct{}
