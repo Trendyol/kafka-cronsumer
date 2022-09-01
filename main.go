@@ -20,6 +20,7 @@ func main() {
 		log.Logger().Info("Produce message received")
 		return nil
 	}
+
 	var consumeFn library.ConsumeFn = func(message model.Message) error {
 		log.Logger().Info("Consume message received")
 		return nil

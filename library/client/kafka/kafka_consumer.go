@@ -55,12 +55,9 @@ func (k kafkaConsumer) ReadMessage() (model.Message, error) {
 	message, err := k.consumer.ReadMessage(context.Background())
 	if err != nil {
 		log.Logger().Error("Message not read {}", zap.Error(err))
+		return model.Message{}, nil
 	}
-	return convert(message), err
-}
-
-func convert(message kafka.Message) model.Message {
-	return model.Message{} //TODO
+	return model.Convert(message), err
 }
 
 func (k kafkaConsumer) Stop() {
