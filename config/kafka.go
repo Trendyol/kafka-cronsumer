@@ -3,12 +3,12 @@ package config
 import "time"
 
 type KafkaConfig struct {
-	Servers   string
-	Consumers ConsumerConfig
+	Servers  string
+	Consumer ConsumerConfig
 }
 
 type ConsumerConfig struct {
-	ConsumerGroup  string
+	Group          string
 	ExceptionTopic string
 	MaxRetry       uint8
 	Concurrency    int

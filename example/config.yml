@@ -1,8 +1,8 @@
 dev:
   kafka:
     servers: "localhost:9092"
-    consumers:
-      consumerGroup: "sample-consumer"
+    consumer:
+      group: "sample-consumer"
       exceptionTopic: "exception"
       maxRetry: 3
       concurrency: 1
