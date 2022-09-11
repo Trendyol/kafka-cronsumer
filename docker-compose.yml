@@ -1,5 +1,4 @@
----
-version: '3'
+version: '3.9'
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.0.1
@@ -25,14 +24,13 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
 
   kafka-ui:
-    image: provectuslabs/kafka-ui
+    image: quay.io/cloudhut/kowl:master
     container_name: kafka-ui
     depends_on:
+      - zookeeper
       - broker
     ports:
-      - "8080:8080"
-    restart: "no"
+      - 8080:8080
+    restart: always
     environment:
-      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=broker:29092
-      - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper:2181
-      - KAFKA_CLUSTERS_0_READONLY=false
+      KAFKA_BROKERS: broker:29092

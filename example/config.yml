@@ -1,0 +1,10 @@
+dev:
+  kafka:
+    servers: "localhost:9092"
+    consumers:
+      consumerGroup: "sample-consumer"
+      exceptionTopic: "exception"
+      maxRetry: 3
+      concurrency: 1
+      cron: "*/2 * * * *"
+      durationMinute: 1m
