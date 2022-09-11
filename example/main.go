@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/k0kubun/pp"
-	"kafka-exception-iterator/config"
+	"kafka-exception-iterator/internal/config"
 	"kafka-exception-iterator/internal/exception"
 	"kafka-exception-iterator/internal/message"
 	"kafka-exception-iterator/pkg/log"
@@ -30,7 +30,8 @@ func main() {
 	}
 
 	handler := exception.NewKafkaExceptionHandler(applicationConfig.Kafka, consumeFn, logger)
-	handler.Start(applicationConfig.Kafka.Consumer.Concurrency)
+	scheduler := exception.NewKafkaExceptionHandlerScheduler(handler, logger)
+	scheduler.StartScheduled(applicationConfig.Kafka)
 
 	select {}
 }

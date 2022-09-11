@@ -3,8 +3,7 @@ package exception
 import (
 	"fmt"
 	"go.uber.org/zap"
-	"kafka-exception-iterator/config"
-	"kafka-exception-iterator/internal/kafka"
+	"kafka-exception-iterator/internal/config"
 	"kafka-exception-iterator/internal/message"
 	"time"
 )
@@ -17,7 +16,8 @@ type kafkaExceptionHandler struct {
 	quitChannel    chan bool
 	messageChannel chan message.Message
 
-	kafkaConsumer kafka.Consumer
+	kafkaConsumer Consumer
+	kafkaProducer Producer
 
 	consumeFn ConsumeFn
 
@@ -25,14 +25,13 @@ type kafkaExceptionHandler struct {
 }
 
 func NewKafkaExceptionHandler(cfg config.KafkaConfig, c ConsumeFn, logger *zap.Logger) *kafkaExceptionHandler {
-	consumer := kafka.NewConsumer(cfg, logger)
-
 	return &kafkaExceptionHandler{
 		paused:         false,
 		quitChannel:    make(chan bool),
 		messageChannel: make(chan message.Message),
 
-		kafkaConsumer: consumer,
+		kafkaConsumer: NewConsumer(cfg, logger),
+		kafkaProducer: NewProducer(cfg, logger),
 
 		consumeFn: c,
 
@@ -72,8 +71,7 @@ func (k *kafkaExceptionHandler) Listen() {
 				k.sendToMessageChannel(msg)
 			} else {
 				// iterate exception to next cron time if it already consumed&produced to exception topic
-				// TODO: implement
-				// _ = k.exceptionManager.produceFn(msg)
+				k.kafkaProducer.Produce(msg)
 				k.Pause()
 				return
 			}
@@ -88,6 +86,10 @@ func (k *kafkaExceptionHandler) Pause() {
 	}
 	k.paused = true
 	k.quitChannel <- true
+}
+
+func (k *kafkaExceptionHandler) Stop() {
+	k.kafkaConsumer.Stop()
 }
 
 func (k *kafkaExceptionHandler) processMessage() {
@@ -105,6 +107,6 @@ func (k *kafkaExceptionHandler) recoverMessage(msg message.Message) {
 	// sending message to closed channel panic could be occurred cause of concurrency for exception topic listeners
 	if r := recover(); r != nil {
 		k.logger.Warn(fmt.Sprintf("Recovered message: %v", string(msg.Value)))
-		// TODO: _ = k.exceptionManager.produceFn(msg)
+		k.kafkaProducer.Produce(msg)
 	}
 }

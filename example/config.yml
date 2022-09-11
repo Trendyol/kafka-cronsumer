@@ -6,5 +6,5 @@ dev:
       exceptionTopic: "exception"
       maxRetry: 3
       concurrency: 1
-      cron: "*/2 * * * *"
-      durationMinute: 1m
+      cron: "*/1 * * * *"
+      duration: 20s

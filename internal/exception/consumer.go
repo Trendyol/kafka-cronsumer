@@ -1,10 +1,10 @@
-package kafka
+package exception
 
 import (
 	"context"
 	"github.com/segmentio/kafka-go"
 	"go.uber.org/zap"
-	"kafka-exception-iterator/config"
+	"kafka-exception-iterator/internal/config"
 	"kafka-exception-iterator/internal/message"
 	"strings"
 	"time"
@@ -44,7 +44,7 @@ func (k consumer) ReadMessage() (message.Message, error) {
 		return message.Message{}, err
 	}
 
-	return message.Convert(msg), err
+	return message.From(msg), err
 }
 
 func (k consumer) Stop() {

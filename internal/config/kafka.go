@@ -12,6 +12,6 @@ type ConsumerConfig struct {
 	ExceptionTopic string
 	MaxRetry       uint8
 	Concurrency    int
-	DurationMinute time.Duration
+	Duration       time.Duration
 	Cron           string
 }
