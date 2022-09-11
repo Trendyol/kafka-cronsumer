@@ -10,15 +10,21 @@ type ProduceFn func(message model.Message) error
 type ConsumeFn func(message model.Message) error
 
 type kafkaManager struct {
+	config        config.KafkaConfig
 	produceFn     ProduceFn
 	consumeFn     ConsumeFn
-	config        config.KafkaConfig
 	kafkaConsumer kafka.KafkaConsumer
 	kafkaProducer kafka.KafkaProducer
 }
 
-func NewKafkaManager(p ProduceFn, c ConsumeFn, co config.KafkaConfig) *kafkaManager {
-	return &kafkaManager{produceFn: p, consumeFn: c, config: co, kafkaConsumer: kafka.NewKafkaConsumer(co), kafkaProducer: kafka.NewProducer(co)}
+func NewKafkaManager(co config.KafkaConfig, p ProduceFn, c ConsumeFn) *kafkaManager {
+	return &kafkaManager{
+		config:        co,
+		produceFn:     p,
+		consumeFn:     c,
+		kafkaConsumer: kafka.NewKafkaConsumer(co),
+		kafkaProducer: kafka.NewProducer(co),
+	}
 }
 
 func (e *kafkaManager) Start() {

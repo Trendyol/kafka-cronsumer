@@ -22,7 +22,12 @@ type kafkaListener struct {
 }
 
 func NewKafkaListener(exceptionManager *kafkaManager) KafkaListener {
-	return &kafkaListener{false, make(chan bool), make(chan model.Message), exceptionManager}
+	return &kafkaListener{
+		false,
+		make(chan bool),
+		make(chan model.Message),
+		exceptionManager,
+	}
 }
 
 func (k *kafkaListener) Pause() {
