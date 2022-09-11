@@ -14,17 +14,17 @@ func main() {
 		panic("application config read failed: " + err.Error())
 	}
 
-	var produceFn library.ProduceFn = func(message model.Message) error {
+	var exceptionProduceFn library.ProduceFn = func(message model.Message) error {
 		log.Logger().Info("Produce message received")
 		return nil
 	}
 
-	var consumeFn library.ConsumeFn = func(message model.Message) error {
+	var exceptionConsumerFn library.ConsumeFn = func(message model.Message) error {
 		log.Logger().Info("Consume message received")
 		return nil
 	}
 
-	manager := library.NewKafkaManager(applicationConfig.Kafka, produceFn, consumeFn)
+	manager := library.NewExceptionManager(applicationConfig.Kafka, exceptionProduceFn, exceptionConsumerFn)
 	manager.Start()
 
 	select {}

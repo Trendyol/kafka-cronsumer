@@ -17,13 +17,16 @@ type kafkaManager struct {
 	kafkaProducer kafka.KafkaProducer
 }
 
-func NewKafkaManager(co config.KafkaConfig, p ProduceFn, c ConsumeFn) *kafkaManager {
+func NewExceptionManager(co config.KafkaConfig, p ProduceFn, c ConsumeFn) *kafkaManager {
+	exceptionConsumer := kafka.NewKafkaConsumer(co)
+	exceptionProducer := kafka.NewProducer(co)
+
 	return &kafkaManager{
 		config:        co,
 		produceFn:     p,
 		consumeFn:     c,
-		kafkaConsumer: kafka.NewKafkaConsumer(co),
-		kafkaProducer: kafka.NewProducer(co),
+		kafkaConsumer: exceptionConsumer,
+		kafkaProducer: exceptionProducer,
 	}
 }
 
@@ -31,9 +34,3 @@ func (e *kafkaManager) Start() {
 	scheduler := NewListenerScheduler(e)
 	scheduler.StartScheduled(e.config.Consumers[0]) // TODO
 }
-
-func NewExceptionManager(produceFn ProduceFn, consumeFn ConsumeFn, config config.ExceptionTopic) {
-
-}
-
-/// kafkaProducer.produce fn, kafkaConsumer.consume fn, cron schedule, concurrency, optional(retry count)
