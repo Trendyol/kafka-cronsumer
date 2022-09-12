@@ -11,21 +11,24 @@ type KafkaExceptionHandlerScheduler struct {
 	cron    *gocron.Cron
 	handler *kafkaExceptionHandler
 	logger  *zap.Logger
+	cfg     config.KafkaConfig
 }
 
-func NewKafkaExceptionHandlerScheduler(handler *kafkaExceptionHandler, logger *zap.Logger) *KafkaExceptionHandlerScheduler {
+func NewKafkaExceptionHandlerScheduler(handler *kafkaExceptionHandler, kafkaConfig config.KafkaConfig) *KafkaExceptionHandlerScheduler {
 	return &KafkaExceptionHandlerScheduler{
 		cron:    gocron.New(),
 		handler: handler,
-		logger:  logger,
+		logger:  handler.logger,
+		cfg:     kafkaConfig,
 	}
 }
 
-func (s *KafkaExceptionHandlerScheduler) StartScheduled(cfg config.KafkaConfig) {
-	s.cron.AddFunc(cfg.Consumer.Cron, func() {
+// TODO block process
+func (s *KafkaExceptionHandlerScheduler) StartScheduled() {
+	s.cron.AddFunc(s.cfg.Consumer.Cron, func() {
 		s.logger.Info("Exception Topic started at time: " + time.Now().String())
-		s.handler.Start(cfg.Consumer.Concurrency)
-		time.AfterFunc(cfg.Consumer.Duration, s.handler.Pause)
+		s.handler.Start(s.cfg.Consumer.Concurrency)
+		time.AfterFunc(s.cfg.Consumer.Duration, s.handler.Pause)
 	})
 	s.cron.Start()
 }

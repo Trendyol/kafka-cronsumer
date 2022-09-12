@@ -24,8 +24,9 @@ type kafkaExceptionHandler struct {
 	logger *zap.Logger
 }
 
-func NewKafkaExceptionHandler(cfg config.KafkaConfig, c ConsumeFn, logger *zap.Logger) *kafkaExceptionHandler {
-	return &kafkaExceptionHandler{
+// TODO logger could be optional field
+func NewKafkaExceptionHandler(cfg config.KafkaConfig, c ConsumeFn, logger *zap.Logger) *KafkaExceptionHandlerScheduler {
+	handler := &kafkaExceptionHandler{
 		paused:         false,
 		quitChannel:    make(chan bool),
 		messageChannel: make(chan message.Message),
@@ -37,6 +38,8 @@ func NewKafkaExceptionHandler(cfg config.KafkaConfig, c ConsumeFn, logger *zap.L
 
 		logger: logger,
 	}
+	return NewKafkaExceptionHandlerScheduler(handler, cfg)
+
 }
 
 func (k *kafkaExceptionHandler) Start(concurrency int) {

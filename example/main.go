@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/k0kubun/pp"
 	"kafka-exception-iterator/internal/config"
 	"kafka-exception-iterator/internal/exception"
@@ -25,13 +26,14 @@ func main() {
 	logger := log.Logger()
 
 	var consumeFn exception.ConsumeFn = func(message message.Message) error {
-		pp.Println("Gelen mesaj", message)
-		return nil
+		pp.Println(" Message received: ", message) // no more turkish jumping on the bed :D
+		pp.Println(" Value: ", string(message.Value))
+		pp.Println("Retry: ", string(message.Headers[0].Value))
+		return fmt.Errorf("may day may day !! ")
 	}
-
+	// error message should reproduce to topic for re consuming
 	handler := exception.NewKafkaExceptionHandler(applicationConfig.Kafka, consumeFn, logger)
-	scheduler := exception.NewKafkaExceptionHandlerScheduler(handler, logger)
-	scheduler.StartScheduled(applicationConfig.Kafka)
-
-	select {}
+	//TODO cron as a parameter
+	//TODO blocked or non-blocked functions
+	handler.StartScheduled()
 }
