@@ -10,7 +10,7 @@ type KafkaConfig struct {
 type ConsumerConfig struct {
 	Group          string
 	ExceptionTopic string
-	MaxRetry       uint8
+	MaxRetry       int
 	Concurrency    int
 	Duration       time.Duration
 	Cron           string

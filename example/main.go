@@ -26,14 +26,16 @@ func main() {
 	logger := log.Logger()
 
 	var consumeFn exception.ConsumeFn = func(message message.Message) error {
-		pp.Println(" Message received: ", message) // no more turkish jumping on the bed :D
-		pp.Println(" Value: ", string(message.Value))
+		pp.Println("Message received: ", message)
+		pp.Println("Value: ", string(message.Value))
 		pp.Println("Retry: ", string(message.Headers[0].Value))
 		return fmt.Errorf("may day may day !! ")
 	}
-	// error message should reproduce to topic for re consuming
+
 	handler := exception.NewKafkaExceptionHandler(applicationConfig.Kafka, consumeFn, logger)
 	//TODO cron as a parameter
 	//TODO blocked or non-blocked functions
 	handler.StartScheduled()
+
+	select {}
 }

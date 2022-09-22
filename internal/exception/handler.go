@@ -22,6 +22,8 @@ type kafkaExceptionHandler struct {
 	consumeFn ConsumeFn
 
 	logger *zap.Logger
+
+	maxRetry int
 }
 
 // TODO logger could be optional field
@@ -37,9 +39,11 @@ func NewKafkaExceptionHandler(cfg config.KafkaConfig, c ConsumeFn, logger *zap.L
 		consumeFn: c,
 
 		logger: logger,
-	}
-	return NewKafkaExceptionHandlerScheduler(handler, cfg)
 
+		maxRetry: cfg.Consumer.MaxRetry,
+	}
+
+	return NewKafkaExceptionHandlerScheduler(handler, cfg)
 }
 
 func (k *kafkaExceptionHandler) Start(concurrency int) {
@@ -74,7 +78,7 @@ func (k *kafkaExceptionHandler) Listen() {
 				k.sendToMessageChannel(msg)
 			} else {
 				// iterate exception to next cron time if it already consumed&produced to exception topic
-				k.kafkaProducer.Produce(msg)
+				k.kafkaProducer.Produce(msg) // TODO:
 				k.Pause()
 				return
 			}
@@ -97,7 +101,9 @@ func (k *kafkaExceptionHandler) Stop() {
 
 func (k *kafkaExceptionHandler) processMessage() {
 	for msg := range k.messageChannel {
-		k.consumeFn(msg)
+		if err := k.consumeFn(msg); err != nil {
+			k.produce(msg)
+		}
 	}
 }
 
@@ -110,6 +116,14 @@ func (k *kafkaExceptionHandler) recoverMessage(msg message.Message) {
 	// sending message to closed channel panic could be occurred cause of concurrency for exception topic listeners
 	if r := recover(); r != nil {
 		k.logger.Warn(fmt.Sprintf("Recovered message: %v", string(msg.Value)))
-		k.kafkaProducer.Produce(msg)
+		k.produce(msg)
 	}
+}
+
+func (k *kafkaExceptionHandler) produce(msg message.Message) {
+	if msg.RetryCount >= k.maxRetry {
+		k.logger.Error(fmt.Sprintf("Message exceeds to retry limit %d. message: %v", k.maxRetry, msg))
+		return
+	}
+	k.kafkaProducer.Produce(msg)
 }

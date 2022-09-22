@@ -10,8 +10,8 @@ import (
 const RetryHeaderKey = "x-retry-count"
 
 type Message struct {
-	Topic string
-
+	Topic         string
+	RetryCount    int
 	Partition     int
 	Offset        int64
 	HighWaterMark int64
@@ -23,10 +23,9 @@ type Message struct {
 }
 
 func From(message kafka.Message) Message {
-	putRetryCount(&message.Headers)
-
 	return Message{
 		Topic:         message.Topic,
+		RetryCount:    putRetryCount(message),
 		Partition:     message.Partition,
 		Offset:        message.Offset,
 		HighWaterMark: message.HighWaterMark,
@@ -38,42 +37,46 @@ func From(message kafka.Message) Message {
 }
 
 func (m *Message) To() kafka.Message {
-	setRetryCount(&m.Headers)
+	m.increaseRetryCount()
 
 	return kafka.Message{
 		Topic:   m.Topic,
 		Value:   m.Value,
 		Headers: m.Headers,
+		Time:    time.Now(),
 	}
 }
 
-func putRetryCount(headers *[]kafka.Header) {
-	retryVal := 0
+func putRetryCount(message kafka.Message) int {
+	retryCount := 0
+	isRetryHeaderKeyExist := false
+	for i := range message.Headers {
+		header := message.Headers[i]
 
-	for _, header := range *headers {
 		if header.Key != RetryHeaderKey {
 			continue
 		}
 
-		retryVal, _ = strconv.Atoi(string(header.Value))
-
+		isRetryHeaderKeyExist = true
+		retryCount, _ = strconv.Atoi(string(header.Value))
 		break
 	}
 
-	*headers = append(*headers, kafka.Header{
-		Key:   RetryHeaderKey,
-		Value: []byte(strconv.Itoa(retryVal)),
-	})
+	if !isRetryHeaderKeyExist {
+		message.Headers = append(message.Headers, kafka.Header{
+			Key:   RetryHeaderKey,
+			Value: []byte("0"),
+		})
+	}
+	return retryCount
 }
 
-func setRetryCount(headers *[]kafka.Header) {
-	for i := range *headers {
-		h := (*headers)[i]
-
-		if h.Key == RetryHeaderKey {
-			retry, _ := strconv.Atoi(string(h.Value))
-			h.Value = []byte(strconv.Itoa(retry + 1))
+func (m *Message) increaseRetryCount() {
+	for i := range m.Headers {
+		if m.Headers[i].Key == RetryHeaderKey {
+			retry, _ := strconv.Atoi(string(m.Headers[i].Value))
+			x := strconv.Itoa(retry + 1)
+			m.Headers[i].Value = []byte(x)
 		}
 	}
-
 }
