@@ -25,7 +25,7 @@ type Message struct {
 func From(message kafka.Message) Message {
 	return Message{
 		Topic:         message.Topic,
-		RetryCount:    putRetryCount(message),
+		RetryCount:    putRetryCount(&message),
 		Partition:     message.Partition,
 		Offset:        message.Offset,
 		HighWaterMark: message.HighWaterMark,
@@ -47,7 +47,7 @@ func (m *Message) To() kafka.Message {
 	}
 }
 
-func putRetryCount(message kafka.Message) int {
+func putRetryCount(message *kafka.Message) int {
 	retryCount := 0
 	isRetryHeaderKeyExist := false
 	for i := range message.Headers {

@@ -5,6 +5,7 @@ import (
 	"go.uber.org/zap"
 	"kafka-exception-iterator/internal/config"
 	"kafka-exception-iterator/internal/message"
+	"kafka-exception-iterator/pkg/log"
 	"time"
 )
 
@@ -12,6 +13,8 @@ type ProduceFn func(message message.Message) error
 type ConsumeFn func(message message.Message) error
 
 type kafkaExceptionHandler struct {
+	enableLogging bool
+
 	paused         bool
 	quitChannel    chan bool
 	messageChannel chan message.Message
@@ -19,15 +22,19 @@ type kafkaExceptionHandler struct {
 	kafkaConsumer Consumer
 	kafkaProducer Producer
 
-	consumeFn ConsumeFn
-
 	logger *zap.Logger
+
+	consumeFn ConsumeFn
 
 	maxRetry int
 }
 
-// TODO logger could be optional field
-func NewKafkaExceptionHandler(cfg config.KafkaConfig, c ConsumeFn, logger *zap.Logger) *KafkaExceptionHandlerScheduler {
+func NewKafkaExceptionHandler(cfg config.KafkaConfig, c ConsumeFn, enableLogging bool) *KafkaExceptionHandlerScheduler {
+	logger := log.NoLogger()
+	if enableLogging {
+		logger = log.Logger()
+	}
+
 	handler := &kafkaExceptionHandler{
 		paused:         false,
 		quitChannel:    make(chan bool),
@@ -78,7 +85,7 @@ func (k *kafkaExceptionHandler) Listen() {
 				k.sendToMessageChannel(msg)
 			} else {
 				// iterate exception to next cron time if it already consumed&produced to exception topic
-				k.kafkaProducer.Produce(msg) // TODO:
+				k.kafkaProducer.Produce(msg)
 				k.Pause()
 				return
 			}

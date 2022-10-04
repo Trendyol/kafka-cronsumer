@@ -8,12 +8,14 @@ import (
 
 const timeFormat string = "2006-01-02T15:04:05.999Z"
 
-var clusterName = os.Getenv("CLUSTER_NAME")
-
-var zapLogger, _ = newLogger()
-
 func Logger() *zap.Logger {
+	var zapLogger, _ = newLogger()
+
 	return zapLogger
+}
+
+func NoLogger() *zap.Logger {
+	return zap.NewNop()
 }
 
 func newLogger() (*zap.Logger, error) {
@@ -46,7 +48,6 @@ func newLogger() (*zap.Logger, error) {
 		EncoderConfig:    encoderConfig,
 		OutputPaths:      []string{"stdout"},
 		ErrorOutputPaths: []string{"stderr"},
-		InitialFields:    map[string]interface{}{"cluster": clusterName},
 	}
 	return config.Build(zap.AddStacktrace(zap.FatalLevel))
 }

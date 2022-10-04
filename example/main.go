@@ -6,7 +6,6 @@ import (
 	"kafka-exception-iterator/internal/config"
 	"kafka-exception-iterator/internal/exception"
 	"kafka-exception-iterator/internal/message"
-	"kafka-exception-iterator/pkg/log"
 	"os"
 )
 
@@ -23,19 +22,11 @@ func main() {
 
 	applicationConfig.Print()
 
-	logger := log.Logger()
-
 	var consumeFn exception.ConsumeFn = func(message message.Message) error {
-		pp.Println("Message received: ", message)
-		pp.Println("Value: ", string(message.Value))
-		pp.Println("Retry: ", string(message.Headers[0].Value))
+		pp.Printf("Message received: %#v \n", message)
 		return fmt.Errorf("may day may day !! ")
 	}
 
-	handler := exception.NewKafkaExceptionHandler(applicationConfig.Kafka, consumeFn, logger)
-	//TODO cron as a parameter
-	//TODO blocked or non-blocked functions
-	handler.StartScheduled()
-
-	select {}
+	handler := exception.NewKafkaExceptionHandler(applicationConfig.Kafka, consumeFn, true)
+	handler.Run(applicationConfig.Kafka.Consumer)
 }

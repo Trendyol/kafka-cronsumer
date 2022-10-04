@@ -30,7 +30,7 @@ services:
       - zookeeper
       - broker
     ports:
-      - 8080:8080
+      - "8080:8080"
     restart: always
     environment:
       KAFKA_BROKERS: broker:29092

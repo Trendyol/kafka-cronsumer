@@ -1,3 +1,9 @@
+# TODO: Genel projeyi anlat excalidrawda vs.
+# TODO: tests
+# TODO: example --> one, two consumer
+# TODO: example -> dead letter li vs.
+# TODO: integration test retry countlu countsuz vs.
+
 # kafka-exception-iterator
 Kafka exception management strategy that auto pause and iterate messages if message is processed in that iteration. 
 

@@ -20,6 +20,7 @@ type consumer struct {
 	logger   *zap.Logger
 }
 
+// TODO: reader config daha uygun alınma meselesi
 func NewConsumer(kafkaConfig config.KafkaConfig, logger *zap.Logger) Consumer {
 	readerConfig := kafka.ReaderConfig{
 		Brokers:        strings.Split(kafkaConfig.Servers, ","),
