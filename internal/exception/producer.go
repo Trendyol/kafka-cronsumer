@@ -17,10 +17,11 @@ type Producer struct {
 
 func NewProducer(kafkaConfig config.KafkaConfig, logger *zap.Logger) Producer {
 	newProducer := &kafka.Writer{
-		Addr:         kafka.TCP(strings.Split(kafkaConfig.Servers, ",")...),
-		Balancer:     &kafka.LeastBytes{},
-		BatchTimeout: 500 * time.Microsecond,
-		BatchSize:    100,
+		Addr:                   kafka.TCP(strings.Split(kafkaConfig.Servers, ",")...),
+		Balancer:               &kafka.LeastBytes{},
+		BatchTimeout:           500 * time.Microsecond,
+		BatchSize:              100,
+		AllowAutoTopicCreation: true,
 	}
 
 	return Producer{

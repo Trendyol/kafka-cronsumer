@@ -19,7 +19,6 @@ func main() {
 	if err != nil {
 		panic("application config read failed: " + err.Error())
 	}
-
 	applicationConfig.Print()
 
 	var consumeFn exception.ConsumeFn = func(message message.Message) error {
