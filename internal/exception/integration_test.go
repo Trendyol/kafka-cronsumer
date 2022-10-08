@@ -2,8 +2,10 @@ package exception_test
 
 import (
 	"context"
+	_ "embed"
 	"fmt"
 	"github.com/docker/go-connections/nat"
+	"github.com/segmentio/kafka-go/protocol"
 	"github.com/stretchr/testify/assert"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
@@ -16,6 +18,9 @@ import (
 	"time"
 )
 
+//go:embed testdata/message.json
+var MessageIn []byte
+
 type Container struct {
 	testcontainers.Container
 	MappedPort string
@@ -26,58 +31,74 @@ func TestIntegration(t *testing.T) {
 		t.Skip("skipping integration test")
 	}
 
-	ctx := context.Background()
-	kafkaC, err := setupKafka(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer kafkaC.Terminate(ctx)
+	kafkaC, cleanUp := setupKafka(t)
+	defer cleanUp()
 
-	kafkaConfig := config.KafkaConfig{
-		Servers: "127.0.0.1:" + kafkaC.MappedPort,
-		Consumer: config.ConsumerConfig{
-			Group:          "integration-consumer",
-			ExceptionTopic: "exception",
-			MaxRetry:       3,
-			Concurrency:    1,
-			Cron:           "*/1 * * * *",
-			Duration:       20 * time.Second,
-		},
-	}
-
-	t.Run("Consume first timer message", func(t *testing.T) {
+	t.Run("Should_Consume_Message_Successfully", func(t *testing.T) {
+		// Given
+		kafkaConfig := getKafkaConfig(kafkaC.MappedPort, "exceptionTopic1", "group1")
 		messageCh := make(chan message.Message)
-
 		var consumeFn exception.ConsumeFn = func(message message.Message) error {
 			messageCh <- message
 			return nil
 		}
-
 		handler := exception.NewKafkaExceptionHandler(kafkaConfig, consumeFn, true)
 		handler.Start(kafkaConfig.Consumer)
-
 		producer := exception.NewProducer(kafkaConfig, log.Logger())
-		expectedValue := []byte(`{"name": "Abdulsamet", "surname": "İleri"}`)
+
+		// When
 		err := producer.Produce(message.Message{
 			Topic: kafkaConfig.Consumer.ExceptionTopic,
-			Value: expectedValue,
+			Value: MessageIn,
 		})
 		if err != nil {
 			t.Fatal(err)
 		}
+
+		// Then
 		arrivedMsg := <-messageCh
-
 		assert.Equal(t, arrivedMsg.Headers[0].Key, message.RetryHeaderKey)
-		assert.Equal(t, arrivedMsg.Headers[0].Value, []byte("0"))
-		assert.Equal(t, arrivedMsg.Value, expectedValue)
+		assert.Equal(t, arrivedMsg.Headers[0].Value, []byte("1"))
+		assert.Equal(t, arrivedMsg.Value, MessageIn)
 	})
+	t.Run("Should_Consume_Same_Message_Successfully", func(t *testing.T) {
+		// Given
+		kafkaConfig := getKafkaConfig(kafkaC.MappedPort, "exceptionTopic2", "group2")
+		messageCh := make(chan message.Message)
+		var consumeFn exception.ConsumeFn = func(message message.Message) error {
+			messageCh <- message
+			return nil
+		}
+		handler := exception.NewKafkaExceptionHandler(kafkaConfig, consumeFn, true)
+		handler.Start(kafkaConfig.Consumer)
+		producer := exception.NewProducer(kafkaConfig, log.Logger())
 
+		// When
+		err := producer.Produce(message.Message{
+			Topic: kafkaConfig.Consumer.ExceptionTopic,
+			Headers: []protocol.Header{
+				{Key: message.RetryHeaderKey, Value: []byte("1")},
+			},
+			Value: MessageIn,
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		// Then
+		arrivedMsg := <-messageCh
+		assert.Equal(t, arrivedMsg.Headers[0].Key, message.RetryHeaderKey)
+		assert.Equal(t, arrivedMsg.Headers[0].Value, []byte("2"))
+		assert.Equal(t, arrivedMsg.Value, MessageIn)
+	})
 }
 
-func setupKafka(ctx context.Context) (Container, error) {
-	port, err := GetFreePort()
+func setupKafka(t *testing.T) (c Container, cleanUp func()) {
+	ctx := context.Background()
+
+	port, err := getFreePort()
 	if err != nil {
-		return Container{}, err
+		t.Fatal(err.Error())
 	}
 
 	req := testcontainers.ContainerRequest{
@@ -97,28 +118,45 @@ func setupKafka(ctx context.Context) (Container, error) {
 		},
 		WaitingFor: wait.ForLog("Started Kafka API server"),
 	}
-
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: req,
 		Started:          true,
 	})
 	if err != nil {
-		return Container{}, err
+		t.Fatal(err.Error())
 	}
 
 	mPort, err := container.MappedPort(ctx, nat.Port(fmt.Sprintf("%d", port)))
 	if err != nil {
-		return Container{}, err
+		t.Fatal(err.Error())
 	}
 
-	return Container{
+	c = Container{
 		Container:  container,
 		MappedPort: mPort.Port(),
-	}, nil
+	}
+	cleanUp = func() {
+		container.Terminate(ctx)
+	}
+
+	return c, cleanUp
 }
 
-// GetFreePort asks the kernel for a free open port that is ready to use.
-func GetFreePort() (int, error) {
+func getKafkaConfig(mappedPort, exceptionTopic, consumerGroup string) config.KafkaConfig {
+	return config.KafkaConfig{
+		Servers: "127.0.0.1" + ":" + mappedPort,
+		Consumer: config.ConsumerConfig{
+			Group:          consumerGroup,
+			ExceptionTopic: exceptionTopic,
+			MaxRetry:       3,
+			Concurrency:    1,
+			Cron:           "*/1 * * * *",
+			Duration:       20 * time.Second,
+		},
+	}
+}
+
+func getFreePort() (int, error) {
 	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
 	if err != nil {
 		return 0, err

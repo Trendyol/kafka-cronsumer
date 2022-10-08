@@ -47,6 +47,10 @@ func (m *Message) To() kafka.Message {
 	}
 }
 
+func (m *Message) IsExceedMaxRetryCount(maxRetry int) bool {
+	return m.RetryCount > maxRetry
+}
+
 func putRetryCount(message *kafka.Message) int {
 	retryCount := 0
 	isRetryHeaderKeyExist := false
@@ -65,7 +69,7 @@ func putRetryCount(message *kafka.Message) int {
 	if !isRetryHeaderKeyExist {
 		message.Headers = append(message.Headers, kafka.Header{
 			Key:   RetryHeaderKey,
-			Value: []byte("0"),
+			Value: []byte("1"),
 		})
 	}
 	return retryCount
@@ -74,6 +78,7 @@ func putRetryCount(message *kafka.Message) int {
 func (m *Message) increaseRetryCount() {
 	for i := range m.Headers {
 		if m.Headers[i].Key == RetryHeaderKey {
+			// TODO: UNSAFE CONVERT
 			retry, _ := strconv.Atoi(string(m.Headers[i].Value))
 			x := strconv.Itoa(retry + 1)
 			m.Headers[i].Value = []byte(x)

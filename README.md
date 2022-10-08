@@ -10,11 +10,11 @@ Kafka exception management strategy that auto pause and iterate messages if mess
 ### Produce without header
 
 ```shell
-jq -rc . internal/testdata/exceptionMsg.json | kafka-console-producer --bootstrap-server 127.0.0.1:9092 --topic exception
+jq -rc . internal/exception/testdata/message.json | kafka-console-producer --bootstrap-server 127.0.0.1:9092 --topic exception
 ```
 
 ### Produce with header
 
 ```shell
-jq -rc . internal/testdata/exceptionMsg.json | kcat -b 127.0.0.1:9092 -t exception -P -H x-retry-count=0
+jq -rc . internal/exception/testdata/message.json | kcat -b 127.0.0.1:9092 -t exception -P -H x-retry-count=0
 ```

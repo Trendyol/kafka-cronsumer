@@ -94,12 +94,12 @@ func (k *kafkaExceptionHandler) Listen() {
 }
 
 func (k *kafkaExceptionHandler) Pause() {
-	k.logger.Info("ProcessException topic PAUSED")
 	if !k.paused {
+		k.logger.Info("ProcessException topic PAUSED")
 		close(k.messageChannel)
+		k.paused = true
+		k.quitChannel <- true
 	}
-	k.paused = true
-	k.quitChannel <- true
 }
 
 func (k *kafkaExceptionHandler) Stop() {
@@ -128,7 +128,7 @@ func (k *kafkaExceptionHandler) recoverMessage(msg message.Message) {
 }
 
 func (k *kafkaExceptionHandler) produce(msg message.Message) {
-	if msg.RetryCount >= k.maxRetry {
+	if msg.IsExceedMaxRetryCount(k.maxRetry) {
 		k.logger.Error(fmt.Sprintf("Message exceeds to retry limit %d. message: %v", k.maxRetry, msg))
 		return
 	}
