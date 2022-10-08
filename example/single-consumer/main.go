@@ -16,7 +16,7 @@ func main() {
 		env = "dev"
 	}
 
-	applicationConfig, err := config.New("./example", "config", env)
+	applicationConfig, err := config.New("./example/single-consumer", "config", env)
 	if err != nil {
 		panic("application config read failed: " + err.Error())
 	}
