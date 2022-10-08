@@ -3,6 +3,7 @@ package message
 import (
 	"strconv"
 	"time"
+	"unsafe"
 
 	"github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/protocol"
@@ -79,8 +80,8 @@ func putRetryCount(message *kafka.Message) int {
 func (m *Message) increaseRetryCount() {
 	for i := range m.Headers {
 		if m.Headers[i].Key == RetryHeaderKey {
-			// TODO: UNSAFE CONVERT
-			retry, _ := strconv.Atoi(string(m.Headers[i].Value))
+			byteToStr := *((*string)(unsafe.Pointer(&m.Headers[i].Value)))
+			retry, _ := strconv.Atoi(byteToStr)
 			x := strconv.Itoa(retry + 1)
 			m.Headers[i].Value = []byte(x)
 		}
