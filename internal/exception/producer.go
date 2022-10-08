@@ -34,7 +34,6 @@ func NewProducer(kafkaConfig config.KafkaConfig, logger *zap.Logger) Producer {
 	}
 }
 
-// TODO: add unit test
 func (k *producer) Produce(message message.Message) error {
 	return k.w.WriteMessages(context.Background(), message.To())
 }

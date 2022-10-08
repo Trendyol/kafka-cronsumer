@@ -42,7 +42,6 @@ func NewConsumer(kafkaConfig config.KafkaConfig, logger *zap.Logger) Consumer {
 	}
 }
 
-// TODO: Add unit test
 func (k consumer) ReadMessage() (message.Message, error) {
 	msg, err := k.consumer.ReadMessage(context.Background())
 	if err != nil {

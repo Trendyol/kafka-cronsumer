@@ -27,7 +27,7 @@ type Message struct {
 func From(message kafka.Message) Message {
 	return Message{
 		Topic:         message.Topic,
-		RetryCount:    putRetryCount(&message),
+		RetryCount:    getRetryCount(&message),
 		Partition:     message.Partition,
 		Offset:        message.Offset,
 		HighWaterMark: message.HighWaterMark,
@@ -53,32 +53,24 @@ func (m *Message) IsExceedMaxRetryCount(maxRetry int) bool {
 	return m.RetryCount > maxRetry
 }
 
-// TODO: add unit test
-func putRetryCount(message *kafka.Message) int {
-	retryCount := 0
-	isRetryHeaderKeyExist := false
+func getRetryCount(message *kafka.Message) int {
 	for i := range message.Headers {
-		header := message.Headers[i]
-
-		if header.Key != RetryHeaderKey {
+		if message.Headers[i].Key != RetryHeaderKey {
 			continue
 		}
 
-		isRetryHeaderKeyExist = true
-		retryCount, _ = strconv.Atoi(string(header.Value))
-		break
+		retryCount, _ := strconv.Atoi(string(message.Headers[i].Value))
+		return retryCount
 	}
 
-	if !isRetryHeaderKeyExist {
-		message.Headers = append(message.Headers, kafka.Header{
-			Key:   RetryHeaderKey,
-			Value: []byte("1"),
-		})
-	}
-	return retryCount
+	message.Headers = append(message.Headers, kafka.Header{
+		Key:   RetryHeaderKey,
+		Value: []byte("0"),
+	})
+
+	return 0
 }
 
-// TODO: add unit test
 func (m *Message) increaseRetryCount() {
 	for i := range m.Headers {
 		if m.Headers[i].Key == RetryHeaderKey {
