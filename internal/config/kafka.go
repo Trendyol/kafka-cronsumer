@@ -5,6 +5,7 @@ import "time"
 type KafkaConfig struct {
 	Brokers  []string
 	Consumer ConsumerConfig
+	Producer ProducerConfig
 }
 
 type ConsumerConfig struct {
@@ -23,4 +24,9 @@ type ConsumerConfig struct {
 	Concurrency       int
 	Duration          time.Duration
 	Cron              string
+}
+
+type ProducerConfig struct {
+	BatchSize    int
+	BatchTimeout time.Duration
 }
