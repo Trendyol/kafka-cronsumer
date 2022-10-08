@@ -2,19 +2,18 @@ package exception
 
 import (
 	"fmt"
-	"go.uber.org/zap"
 	"kafka-exception-iterator/internal/config"
 	"kafka-exception-iterator/internal/message"
 	"kafka-exception-iterator/pkg/log"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 type ProduceFn func(message message.Message) error
 type ConsumeFn func(message message.Message) error
 
 type kafkaExceptionHandler struct {
-	enableLogging bool
-
 	paused         bool
 	quitChannel    chan bool
 	messageChannel chan message.Message

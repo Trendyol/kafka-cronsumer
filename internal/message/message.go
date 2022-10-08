@@ -1,10 +1,11 @@
 package message
 
 import (
-	"github.com/segmentio/kafka-go"
-	"github.com/segmentio/kafka-go/protocol"
 	"strconv"
 	"time"
+
+	"github.com/segmentio/kafka-go"
+	"github.com/segmentio/kafka-go/protocol"
 )
 
 const RetryHeaderKey = "x-retry-count"

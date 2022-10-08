@@ -1,9 +1,10 @@
 package log
 
 import (
+	"os"
+
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"os"
 )
 
 const timeFormat string = "2006-01-02T15:04:05.999Z"

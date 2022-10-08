@@ -1,10 +1,11 @@
 package exception
 
 import (
-	gocron "github.com/robfig/cron/v3"
-	"go.uber.org/zap"
 	"kafka-exception-iterator/internal/config"
 	"time"
+
+	gocron "github.com/robfig/cron/v3"
+	"go.uber.org/zap"
 )
 
 type KafkaExceptionHandlerScheduler struct {

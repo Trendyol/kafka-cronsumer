@@ -4,11 +4,6 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	"github.com/docker/go-connections/nat"
-	"github.com/segmentio/kafka-go/protocol"
-	"github.com/stretchr/testify/assert"
-	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/wait"
 	"kafka-exception-iterator/internal/config"
 	"kafka-exception-iterator/internal/exception"
 	"kafka-exception-iterator/internal/message"
@@ -16,6 +11,12 @@ import (
 	"net"
 	"testing"
 	"time"
+
+	"github.com/docker/go-connections/nat"
+	"github.com/segmentio/kafka-go/protocol"
+	"github.com/stretchr/testify/assert"
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 //go:embed testdata/message.json

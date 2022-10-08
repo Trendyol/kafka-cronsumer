@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/k0kubun/pp"
 	"kafka-exception-iterator/internal/config"
 	"kafka-exception-iterator/internal/exception"
 	"kafka-exception-iterator/internal/message"
 	"os"
+
+	"github.com/k0kubun/pp"
 )
 
 func main() {
