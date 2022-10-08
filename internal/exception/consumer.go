@@ -9,6 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
+//go:generate mockery --name=Consumer --output=./mocks
 type Consumer interface {
 	ReadMessage() (message.Message, error)
 	Stop()
@@ -41,6 +42,7 @@ func NewConsumer(kafkaConfig config.KafkaConfig, logger *zap.Logger) Consumer {
 	}
 }
 
+// TODO: Add unit test
 func (k consumer) ReadMessage() (message.Message, error) {
 	msg, err := k.consumer.ReadMessage(context.Background())
 	if err != nil {

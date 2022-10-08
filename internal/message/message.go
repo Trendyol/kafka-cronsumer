@@ -53,6 +53,7 @@ func (m *Message) IsExceedMaxRetryCount(maxRetry int) bool {
 	return m.RetryCount > maxRetry
 }
 
+// TODO: add unit test
 func putRetryCount(message *kafka.Message) int {
 	retryCount := 0
 	isRetryHeaderKeyExist := false
@@ -77,6 +78,7 @@ func putRetryCount(message *kafka.Message) int {
 	return retryCount
 }
 
+// TODO: add unit test
 func (m *Message) increaseRetryCount() {
 	for i := range m.Headers {
 		if m.Headers[i].Key == RetryHeaderKey {
