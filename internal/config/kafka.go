@@ -9,7 +9,7 @@ type KafkaConfig struct {
 }
 
 type ConsumerConfig struct {
-	GroupId           string
+	GroupID           string `yaml:"groupId"`
 	ExceptionTopic    string
 	MinBytes          int
 	MaxBytes          int

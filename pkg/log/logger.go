@@ -38,12 +38,13 @@ func newLogger() (*zap.Logger, error) {
 	level := zapcore.InfoLevel
 	_ = level.Set(os.Getenv("LOG_LEVEL"))
 
+	const initial = 100
 	config := zap.Config{
 		Level:       zap.NewAtomicLevelAt(level),
 		Development: false,
 		Sampling: &zap.SamplingConfig{
-			Initial:    100,
-			Thereafter: 100,
+			Initial:    initial,
+			Thereafter: initial,
 		},
 		Encoding:         "json",
 		EncoderConfig:    encoderConfig,

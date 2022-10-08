@@ -2,10 +2,11 @@ package exception
 
 import (
 	"context"
-	"github.com/segmentio/kafka-go"
-	"go.uber.org/zap"
 	"kafka-exception-iterator/internal/config"
 	"kafka-exception-iterator/internal/message"
+
+	"github.com/segmentio/kafka-go"
+	"go.uber.org/zap"
 )
 
 type Consumer interface {
@@ -21,7 +22,7 @@ type consumer struct {
 func NewConsumer(kafkaConfig config.KafkaConfig, logger *zap.Logger) Consumer {
 	readerConfig := kafka.ReaderConfig{
 		Brokers:           kafkaConfig.Brokers,
-		GroupID:           kafkaConfig.Consumer.GroupId,
+		GroupID:           kafkaConfig.Consumer.GroupID,
 		GroupTopics:       []string{kafkaConfig.Consumer.ExceptionTopic},
 		MinBytes:          kafkaConfig.Consumer.MinBytes,
 		MaxBytes:          kafkaConfig.Consumer.MaxBytes,

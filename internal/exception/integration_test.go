@@ -149,7 +149,7 @@ func getKafkaConfig(mappedPort, exceptionTopic, consumerGroup string) config.Kaf
 			"127.0.0.1" + ":" + mappedPort,
 		},
 		Consumer: config.ConsumerConfig{
-			GroupId:        consumerGroup,
+			GroupID:        consumerGroup,
 			ExceptionTopic: exceptionTopic,
 			MaxRetry:       3,
 			Concurrency:    1,

@@ -2,10 +2,11 @@ package exception
 
 import (
 	"context"
-	"github.com/segmentio/kafka-go"
-	"go.uber.org/zap"
 	"kafka-exception-iterator/internal/config"
 	"kafka-exception-iterator/internal/message"
+
+	"github.com/segmentio/kafka-go"
+	"go.uber.org/zap"
 )
 
 type Producer struct {
