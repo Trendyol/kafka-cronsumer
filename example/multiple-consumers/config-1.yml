@@ -3,8 +3,8 @@ dev:
     brokers:
       - "localhost:9092"
     consumer:
-      groupId: "sample-consumer"
-      exceptionTopic: "exception"
+      groupId: "sample-consumer-1"
+      exceptionTopic: "exception-1"
       deadLetterTopic: ""
       minBytes: 10e3
       maxBytes: 10e6

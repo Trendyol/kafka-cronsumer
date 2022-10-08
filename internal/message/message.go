@@ -53,6 +53,10 @@ func (m *Message) IsExceedMaxRetryCount(maxRetry int) bool {
 	return m.RetryCount > maxRetry
 }
 
+func (m *Message) ChangeMessageTopic(topic string) {
+	m.Topic = topic
+}
+
 func getRetryCount(message *kafka.Message) int {
 	for i := range message.Headers {
 		if message.Headers[i].Key != RetryHeaderKey {

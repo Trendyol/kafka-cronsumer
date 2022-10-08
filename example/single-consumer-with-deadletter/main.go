@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"kafka-exception-iterator/internal/config"
 	"kafka-exception-iterator/internal/exception"
 	"kafka-exception-iterator/internal/message"
@@ -15,7 +16,7 @@ func main() {
 		env = "dev"
 	}
 
-	applicationConfig, err := config.New("./example/single-consumer", "config", env)
+	applicationConfig, err := config.New("./example/single-consumer-with-deadletter", "config", env)
 	if err != nil {
 		panic("application config read failed: " + err.Error())
 	}
@@ -23,7 +24,7 @@ func main() {
 
 	var consumeFn exception.ConsumeFn = func(message message.Message) error {
 		pp.Printf("Consumer > Message received: %s\n", string(message.Value))
-		return nil
+		return errors.New("error occurred")
 	}
 
 	handler := exception.NewKafkaExceptionHandler(applicationConfig.Kafka, consumeFn, true)

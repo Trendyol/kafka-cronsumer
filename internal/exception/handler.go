@@ -25,7 +25,8 @@ type kafkaExceptionHandler struct {
 
 	consumeFn ConsumeFn
 
-	maxRetry int
+	maxRetry        int
+	deadLetterTopic string
 }
 
 func NewKafkaExceptionHandler(cfg config.KafkaConfig, c ConsumeFn, enableLogging bool) *KafkaExceptionHandlerScheduler {
@@ -46,7 +47,8 @@ func NewKafkaExceptionHandler(cfg config.KafkaConfig, c ConsumeFn, enableLogging
 
 		logger: logger,
 
-		maxRetry: cfg.Consumer.MaxRetry,
+		maxRetry:        cfg.Consumer.MaxRetry,
+		deadLetterTopic: cfg.Consumer.DeadLetterTopic,
 	}
 
 	return NewKafkaExceptionHandlerScheduler(handler, cfg)
@@ -129,7 +131,15 @@ func (k *kafkaExceptionHandler) recoverMessage(msg message.Message) {
 func (k *kafkaExceptionHandler) produce(msg message.Message) {
 	if msg.IsExceedMaxRetryCount(k.maxRetry) {
 		k.logger.Error(fmt.Sprintf("Message exceeds to retry limit %d. message: %v", k.maxRetry, msg))
+		if k.isDeadLetterTopicFeatureEnabled() {
+			msg.ChangeMessageTopic(k.deadLetterTopic)
+			k.kafkaProducer.Produce(msg)
+		}
 		return
 	}
 	k.kafkaProducer.Produce(msg)
+}
+
+func (k *kafkaExceptionHandler) isDeadLetterTopicFeatureEnabled() bool {
+	return k.deadLetterTopic != ""
 }

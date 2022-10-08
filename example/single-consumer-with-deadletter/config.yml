@@ -5,7 +5,7 @@ dev:
     consumer:
       groupId: "sample-consumer"
       exceptionTopic: "exception"
-      deadLetterTopic: ""
+      deadLetterTopic: "deadletter"
       minBytes: 10e3
       maxBytes: 10e6
       maxRetry: 3

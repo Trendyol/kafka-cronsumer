@@ -19,12 +19,14 @@ unit-coverage-html:
 	make test
 	go tool cover -html=unit_coverage.out -o unit_coverage.html
 
+exceptionTopicName = 'exception'
+
 ## produce: produce test message
 .PHONY: produce
 produce:
-	jq -rc . internal/exception/testdata/message.json | kafka-console-producer --bootstrap-server 127.0.0.1:9092 --topic exception
+	jq -rc . internal/exception/testdata/message.json | kafka-console-producer --bootstrap-server 127.0.0.1:9092 --topic ${exceptionTopicName}
 
 ## produce: produce test message with retry header
 .PHONY: produce-with-header
-produce:
-	jq -rc . internal/exception/testdata/message.json | kcat -b 127.0.0.1:9092 -t exception -P -H x-retry-count=0
+produce-with-header:
+	jq -rc . internal/exception/testdata/message.json | kcat -b 127.0.0.1:9092 -t ${exceptionTopicName} -P -H x-retry-count=1

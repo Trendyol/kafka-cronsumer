@@ -1,5 +1,4 @@
 # TODO: Genel projeyi anlat excalidrawda vs.
-# TODO: example --> one, two consumer
 # TODO: example -> dead letter li vs.
 
 # kafka-exception-iterator
