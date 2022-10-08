@@ -2,13 +2,10 @@ package exception
 
 import (
 	"context"
-	"kafka-exception-iterator/internal/config"
-	"kafka-exception-iterator/internal/message"
-	"strings"
-	"time"
-
 	"github.com/segmentio/kafka-go"
 	"go.uber.org/zap"
+	"kafka-exception-iterator/internal/config"
+	"kafka-exception-iterator/internal/message"
 )
 
 type Consumer interface {
@@ -21,16 +18,20 @@ type consumer struct {
 	logger   *zap.Logger
 }
 
-// TODO: reader config daha uygun alınma meselesi
 func NewConsumer(kafkaConfig config.KafkaConfig, logger *zap.Logger) Consumer {
 	readerConfig := kafka.ReaderConfig{
-		Brokers:        strings.Split(kafkaConfig.Servers, ","),
-		GroupID:        kafkaConfig.Consumer.Group,
-		GroupTopics:    []string{kafkaConfig.Consumer.ExceptionTopic},
-		MinBytes:       10e3, // 10KB
-		MaxBytes:       10e6, // 10MB
-		MaxWait:        2 * time.Second,
-		CommitInterval: time.Second,
+		Brokers:           kafkaConfig.Brokers,
+		GroupID:           kafkaConfig.Consumer.GroupId,
+		GroupTopics:       []string{kafkaConfig.Consumer.ExceptionTopic},
+		MinBytes:          kafkaConfig.Consumer.MinBytes,
+		MaxBytes:          kafkaConfig.Consumer.MaxBytes,
+		MaxWait:           kafkaConfig.Consumer.MaxWait,
+		CommitInterval:    kafkaConfig.Consumer.CommitInterval,
+		HeartbeatInterval: kafkaConfig.Consumer.HeartbeatInterval,
+		SessionTimeout:    kafkaConfig.Consumer.SessionTimeout,
+		RebalanceTimeout:  kafkaConfig.Consumer.RebalanceTimeout,
+		StartOffset:       kafkaConfig.Consumer.StartOffset,
+		RetentionTime:     kafkaConfig.Consumer.RetentionTime,
 	}
 
 	return consumer{

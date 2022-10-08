@@ -145,9 +145,11 @@ func setupKafka(t *testing.T) (c Container, cleanUp func()) {
 
 func getKafkaConfig(mappedPort, exceptionTopic, consumerGroup string) config.KafkaConfig {
 	return config.KafkaConfig{
-		Servers: "127.0.0.1" + ":" + mappedPort,
+		Brokers: []string{
+			"127.0.0.1" + ":" + mappedPort,
+		},
 		Consumer: config.ConsumerConfig{
-			Group:          consumerGroup,
+			GroupId:        consumerGroup,
 			ExceptionTopic: exceptionTopic,
 			MaxRetry:       3,
 			Concurrency:    1,

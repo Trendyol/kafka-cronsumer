@@ -3,15 +3,24 @@ package config
 import "time"
 
 type KafkaConfig struct {
-	Servers  string
+	Brokers  []string
 	Consumer ConsumerConfig
 }
 
 type ConsumerConfig struct {
-	Group          string
-	ExceptionTopic string
-	MaxRetry       int
-	Concurrency    int
-	Duration       time.Duration
-	Cron           string
+	GroupId           string
+	ExceptionTopic    string
+	MinBytes          int
+	MaxBytes          int
+	MaxRetry          int
+	MaxWait           time.Duration
+	CommitInterval    time.Duration
+	HeartbeatInterval time.Duration
+	SessionTimeout    time.Duration
+	RebalanceTimeout  time.Duration
+	StartOffset       int64
+	RetentionTime     time.Duration
+	Concurrency       int
+	Duration          time.Duration
+	Cron              string
 }

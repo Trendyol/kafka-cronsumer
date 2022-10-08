@@ -4,7 +4,6 @@ import (
 	"context"
 	"kafka-exception-iterator/internal/config"
 	"kafka-exception-iterator/internal/message"
-	"strings"
 	"time"
 
 	"github.com/segmentio/kafka-go"
@@ -18,7 +17,7 @@ type Producer struct {
 
 func NewProducer(kafkaConfig config.KafkaConfig, logger *zap.Logger) Producer {
 	newProducer := &kafka.Writer{
-		Addr:                   kafka.TCP(strings.Split(kafkaConfig.Servers, ",")...),
+		Addr:                   kafka.TCP(kafkaConfig.Brokers...),
 		Balancer:               &kafka.LeastBytes{},
 		BatchTimeout:           500 * time.Microsecond,
 		BatchSize:              100,
