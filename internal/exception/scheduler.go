@@ -14,7 +14,7 @@ type KafkaExceptionHandlerScheduler struct {
 	logger  *zap.Logger
 }
 
-func NewKafkaExceptionHandlerScheduler(handler *kafkaExceptionHandler, kafkaConfig config.KafkaConfig) *KafkaExceptionHandlerScheduler {
+func NewKafkaExceptionHandlerScheduler(handler *kafkaExceptionHandler) *KafkaExceptionHandlerScheduler {
 	return &KafkaExceptionHandlerScheduler{
 		cron:    gocron.New(),
 		handler: handler,
