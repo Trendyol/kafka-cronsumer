@@ -51,7 +51,7 @@ func NewKafkaExceptionHandler(cfg config.KafkaConfig, c ConsumeFn, enableLogging
 		deadLetterTopic: cfg.Consumer.DeadLetterTopic,
 	}
 
-	return NewKafkaExceptionHandlerScheduler(handler, cfg)
+	return NewKafkaExceptionHandlerScheduler(handler)
 }
 
 func (k *kafkaExceptionHandler) Start(concurrency int) {
