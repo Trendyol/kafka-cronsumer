@@ -1,5 +1,6 @@
 package main
 
+// TODO improvement point: could we reduce package imports
 import (
 	"kafka-exception-iterator/internal/config"
 	"kafka-exception-iterator/internal/exception"

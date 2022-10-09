@@ -11,6 +11,7 @@ import (
 )
 
 func main() {
+	//TODO we don't need multiple env config for consumer sample. we could remove it. for all samples.
 	env := os.Getenv("GO_ENV")
 	if env == "" {
 		env = "dev"
@@ -20,9 +21,12 @@ func main() {
 	if err != nil {
 		panic("application config read failed: " + err.Error())
 	}
+	//TODO this could be debugging purpose
 	applicationConfig.Print()
 
 	var consumeFn exception.ConsumeFn = func(message message.Message) error {
+		//TODO we could use fmt.println for simplifying
+		//TODO we could add description for this function
 		pp.Printf("Consumer > Message received: %s\n", string(message.Value))
 		return errors.New("error occurred")
 	}

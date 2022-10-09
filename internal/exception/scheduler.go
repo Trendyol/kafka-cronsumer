@@ -14,6 +14,7 @@ type KafkaExceptionHandlerScheduler struct {
 	logger  *zap.Logger
 }
 
+//TODO removing unused kafka config object
 func NewKafkaExceptionHandlerScheduler(handler *kafkaExceptionHandler, kafkaConfig config.KafkaConfig) *KafkaExceptionHandlerScheduler {
 	return &KafkaExceptionHandlerScheduler{
 		cron:    gocron.New(),

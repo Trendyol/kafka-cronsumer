@@ -4,6 +4,7 @@ help:
 	@sed -n 's/^##//p' ${MAKEFILE_LIST} | column -t -s ":" | sed -e 's/^/  /'
 
 ## lint: runs golangci lint based on .golangci.yml configuration
+## TODO we could add auto install for golangci-lint. assuming already installed is wrong. May be we could add make init and install all related tools.
 .PHONY: lint
 lint:
 	golangci-lint run -c .golangci.yml  --fix -v
@@ -22,6 +23,7 @@ unit-coverage-html:
 exceptionTopicName = 'exception'
 
 ## produce: produce test message
+## TODO jq and kafka console producer could not be installed. above TODO is valid for this one too.
 .PHONY: produce
 produce:
 	jq -rc . internal/exception/testdata/message.json | kafka-console-producer --bootstrap-server 127.0.0.1:9092 --topic ${exceptionTopicName}

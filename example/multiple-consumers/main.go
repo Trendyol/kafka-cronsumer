@@ -30,7 +30,7 @@ func main() {
 	}
 	secondHandler := exception.NewKafkaExceptionHandler(second.Kafka, secondConsumerFn, true)
 	secondHandler.Start(first.Kafka.Consumer)
-
+	//TODO do we still need this one ?
 	select {} // block main goroutine
 }
 
