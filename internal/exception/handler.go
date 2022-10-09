@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
-type ProduceFn func(message message.Message) error
+// ConsumeFn This function describes how to consume messages from exception topic
 type ConsumeFn func(message message.Message) error
 
 type kafkaExceptionHandler struct {

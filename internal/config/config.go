@@ -9,7 +9,7 @@ type ApplicationConfig struct {
 	Kafka KafkaConfig
 }
 
-func New(configPath, configName, env string) (*ApplicationConfig, error) {
+func New(configPath, configName string) (*ApplicationConfig, error) {
 	configuration := ApplicationConfig{}
 
 	v := viper.New()
@@ -20,7 +20,7 @@ func New(configPath, configName, env string) (*ApplicationConfig, error) {
 		return nil, err
 	}
 
-	if err := v.Sub(env).Unmarshal(&configuration); err != nil {
+	if err := v.Unmarshal(&configuration); err != nil {
 		return nil, err
 	}
 
