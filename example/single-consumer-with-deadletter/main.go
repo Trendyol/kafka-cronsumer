@@ -16,7 +16,7 @@ func main() {
 
 	var consumeFn kafka_cronsumer.ConsumeFn = func(message model.Message) error {
 		fmt.Printf("Consumer > Message received: %s\n", string(message.Value))
-		return errors.New("deneme")
+		return errors.New("error occurred")
 	}
 
 	handler := kafka_cronsumer.NewKafkaHandler(applicationConfig.Kafka, consumeFn, true)

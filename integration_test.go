@@ -56,7 +56,7 @@ func TestIntegration(t *testing.T) {
 		// Then
 		arrivedMsg := <-messageCh
 		assert.Equal(t, arrivedMsg.Headers[0].Key, model.RetryHeaderKey)
-		assert.Equal(t, arrivedMsg.Headers[0].Value, []byte("1"))
+		assert.Equal(t, arrivedMsg.Headers[0].Value, []byte("0"))
 		assert.Equal(t, arrivedMsg.Value, MessageIn)
 	})
 	t.Run("Should_Consume_Same_Message_Successfully", func(t *testing.T) {
