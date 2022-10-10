@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	model "kafka-exception-iterator/model"
+	model "kafka-exception-cronsumer/model"
 
 	mock "github.com/stretchr/testify/mock"
 )

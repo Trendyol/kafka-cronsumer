@@ -4,8 +4,8 @@ import (
 	"context"
 	"github.com/segmentio/kafka-go"
 	"go.uber.org/zap"
-	"kafka-exception-iterator/internal/config"
-	"kafka-exception-iterator/model"
+	"kafka-exception-cronsumer/internal/config"
+	"kafka-exception-cronsumer/model"
 )
 
 //go:generate mockery --name=Producer --output=./.mocks

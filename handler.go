@@ -1,11 +1,11 @@
-package kafka_consumer_template
+package kafka_exception_cronsumer
 
 import (
 	"fmt"
-	"kafka-exception-iterator/internal/config"
-	"kafka-exception-iterator/internal/kafka"
-	"kafka-exception-iterator/internal/log"
-	"kafka-exception-iterator/model"
+	"kafka-exception-cronsumer/internal/config"
+	"kafka-exception-cronsumer/internal/kafka"
+	"kafka-exception-cronsumer/internal/log"
+	"kafka-exception-cronsumer/model"
 	"time"
 
 	"go.uber.org/zap"
@@ -30,6 +30,10 @@ type kafkaExceptionHandler struct {
 	deadLetterTopic string
 }
 
+// NewKafkaExceptionHandler returns the newly created exception handler instance.
+// config.KafkaConfig specifies cron, duration and so many parameters.
+// ConsumeFn describes how to consume messages from exception topic.
+// enableLogging just for debugging/troubleshooting purpose if set to false no log messages appeared.
 func NewKafkaExceptionHandler(cfg config.KafkaConfig, c ConsumeFn, enableLogging bool) *KafkaExceptionHandlerScheduler {
 	logger := log.NoLogger()
 	if enableLogging {
@@ -52,7 +56,7 @@ func NewKafkaExceptionHandler(cfg config.KafkaConfig, c ConsumeFn, enableLogging
 		deadLetterTopic: cfg.Consumer.DeadLetterTopic,
 	}
 
-	return NewKafkaExceptionHandlerScheduler(handler)
+	return newKafkaExceptionHandlerScheduler(handler)
 }
 
 func (k *kafkaExceptionHandler) Start(concurrency int) {

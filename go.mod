@@ -1,4 +1,4 @@
-module kafka-exception-iterator
+module kafka-exception-cronsumer
 
 go 1.19
 

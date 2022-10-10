@@ -1,11 +1,11 @@
-package kafka_consumer_template
+package kafka_exception_cronsumer
 
 import (
 	_ "embed"
 	"errors"
-	mocks "kafka-exception-iterator/.mocks"
-	"kafka-exception-iterator/internal/log"
-	"kafka-exception-iterator/model"
+	mocks "kafka-exception-cronsumer/.mocks"
+	"kafka-exception-cronsumer/internal/log"
+	"kafka-exception-cronsumer/model"
 	"testing"
 	"time"
 

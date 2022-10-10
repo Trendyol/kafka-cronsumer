@@ -1,13 +1,13 @@
-package kafka_consumer_template
+package kafka_exception_cronsumer
 
 import (
 	"context"
 	_ "embed"
 	"fmt"
-	"kafka-exception-iterator/internal/config"
-	"kafka-exception-iterator/internal/kafka"
-	"kafka-exception-iterator/internal/log"
-	"kafka-exception-iterator/model"
+	"kafka-exception-cronsumer/internal/config"
+	"kafka-exception-cronsumer/internal/kafka"
+	"kafka-exception-cronsumer/internal/log"
+	"kafka-exception-cronsumer/model"
 	"net"
 	"testing"
 	"time"

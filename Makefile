@@ -24,7 +24,7 @@ unit-coverage-html:
 .PHONY: godoc
 godoc:
 	@if ! test -f `go env GOPATH`/bin/godoc; then go install golang.org/x/tools/cmd/godoc; fi
-	godoc -http=127.0.0.1:6060 -play
+	godoc -http=127.0.0.1:6060
 
 exceptionTopicName = 'exception'
 
