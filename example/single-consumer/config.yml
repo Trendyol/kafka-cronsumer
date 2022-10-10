@@ -1,0 +1,27 @@
+kafka:
+  brokers:
+    - "localhost:9092"
+  consumer:
+    groupId: "sample-consumer"
+    exceptionTopic: "exception"
+    deadLetterTopic: ""
+    minBytes: 10e3
+    maxBytes: 10e6
+    maxRetry: 3
+    maxWait: 2s
+    commitInterval: 1s
+    heartbeatInterval: 3s
+    sessionTimeout: 30s
+    rebalanceTimeout: 30s
+
+    # -1 The most recent offset available for a partition.
+    # -2 The least recent offset available for a partition.
+    StartOffset: -2
+
+    retentionTime: 24h
+    concurrency: 1
+    cron: "*/1 * * * *"
+    duration: 20s
+  producer:
+    batchSize: 100
+    batchTimeout: 500us

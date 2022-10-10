@@ -1,0 +1,37 @@
+package main
+
+import (
+	"github.com/k0kubun/pp"
+	kafka_exception_cronsumer "kafka-exception-cronsumer"
+	"kafka-exception-cronsumer/internal/config"
+	"kafka-exception-cronsumer/model"
+)
+
+func main() {
+	first := getConfig("config-1")
+	var firstConsumerFn kafka_exception_cronsumer.ConsumeFn = func(message model.Message) error {
+		pp.Printf("First Consumer > Message received: %s\n", string(message.Value))
+		return nil
+	}
+	firstHandler := kafka_exception_cronsumer.NewKafkaExceptionHandler(first.Kafka, firstConsumerFn, true)
+	firstHandler.Start(first.Kafka.Consumer)
+
+	second := getConfig("config-2")
+	var secondConsumerFn kafka_exception_cronsumer.ConsumeFn = func(message model.Message) error {
+		pp.Printf("Second Consumer > Message received: %s\n", string(message.Value))
+		return nil
+	}
+	secondHandler := kafka_exception_cronsumer.NewKafkaExceptionHandler(second.Kafka, secondConsumerFn, true)
+	secondHandler.Start(first.Kafka.Consumer)
+
+	select {} // block main goroutine (we did to show it by on purpose)
+}
+
+func getConfig(configName string) *config.ApplicationConfig {
+	cfg, err := config.New("./example/multiple-consumers", configName)
+	if err != nil {
+		panic("application config read failed: " + err.Error())
+	}
+	cfg.Print()
+	return cfg
+}
