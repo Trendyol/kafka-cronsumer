@@ -1,13 +1,13 @@
-package kafka_exception_cronsumer
+package kafka_cronsumer
 
 import (
 	"context"
 	_ "embed"
 	"fmt"
-	"kafka-exception-cronsumer/internal/config"
-	"kafka-exception-cronsumer/internal/kafka"
-	"kafka-exception-cronsumer/internal/log"
-	"kafka-exception-cronsumer/model"
+	"kafka-cronsumer/internal/config"
+	"kafka-cronsumer/internal/kafka"
+	"kafka-cronsumer/internal/log"
+	"kafka-cronsumer/model"
 	"net"
 	"testing"
 	"time"
@@ -34,19 +34,19 @@ func TestIntegration(t *testing.T) {
 
 	t.Run("Should_Consume_Message_Successfully", func(t *testing.T) {
 		// Given
-		kafkaConfig := getKafkaConfig(kafkaC.MappedPort, "exceptionTopic1", "group1")
+		kafkaConfig := getKafkaConfig(kafkaC.MappedPort, "topic1", "group1")
 		messageCh := make(chan model.Message)
 		var consumeFn ConsumeFn = func(message model.Message) error {
 			messageCh <- message
 			return nil
 		}
-		handler := NewKafkaExceptionHandler(kafkaConfig, consumeFn, true)
+		handler := NewKafkaHandler(kafkaConfig, consumeFn, true)
 		handler.Start(kafkaConfig.Consumer)
 		producer := kafka.NewProducer(kafkaConfig, log.Logger())
 
 		// When
 		err := producer.Produce(model.Message{
-			Topic: kafkaConfig.Consumer.ExceptionTopic,
+			Topic: kafkaConfig.Consumer.Topic,
 			Value: MessageIn,
 		})
 		if err != nil {
@@ -61,19 +61,19 @@ func TestIntegration(t *testing.T) {
 	})
 	t.Run("Should_Consume_Same_Message_Successfully", func(t *testing.T) {
 		// Given
-		kafkaConfig := getKafkaConfig(kafkaC.MappedPort, "exceptionTopic2", "group2")
+		kafkaConfig := getKafkaConfig(kafkaC.MappedPort, "topic2", "group2")
 		messageCh := make(chan model.Message)
 		var consumeFn ConsumeFn = func(message model.Message) error {
 			messageCh <- message
 			return nil
 		}
-		handler := NewKafkaExceptionHandler(kafkaConfig, consumeFn, true)
+		handler := NewKafkaHandler(kafkaConfig, consumeFn, true)
 		handler.Start(kafkaConfig.Consumer)
 		producer := kafka.NewProducer(kafkaConfig, log.Logger())
 
 		// When
 		err := producer.Produce(model.Message{
-			Topic: kafkaConfig.Consumer.ExceptionTopic,
+			Topic: kafkaConfig.Consumer.Topic,
 			Headers: []protocol.Header{
 				{Key: model.RetryHeaderKey, Value: []byte("1")},
 			},
@@ -140,18 +140,18 @@ func setupKafka(t *testing.T) (c Container, cleanUp func()) {
 	return c, cleanUp
 }
 
-func getKafkaConfig(mappedPort, exceptionTopic, consumerGroup string) config.KafkaConfig {
+func getKafkaConfig(mappedPort, topic, consumerGroup string) config.KafkaConfig {
 	return config.KafkaConfig{
 		Brokers: []string{
 			"127.0.0.1" + ":" + mappedPort,
 		},
 		Consumer: config.ConsumerConfig{
-			GroupID:        consumerGroup,
-			ExceptionTopic: exceptionTopic,
-			MaxRetry:       3,
-			Concurrency:    1,
-			Cron:           "*/1 * * * *",
-			Duration:       20 * time.Second,
+			GroupID:     consumerGroup,
+			Topic:       topic,
+			MaxRetry:    3,
+			Concurrency: 1,
+			Cron:        "*/1 * * * *",
+			Duration:    20 * time.Second,
 		},
 	}
 }

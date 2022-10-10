@@ -3,7 +3,7 @@ kafka:
     - "localhost:9092"
   consumer:
     groupId: "sample-consumer"
-    exceptionTopic: "exception"
+    topic: "exception"
     deadLetterTopic: ""
     minBytes: 10e3
     maxBytes: 10e6

@@ -1,6 +1,4 @@
-# 🔥 Kafka Exception C[r]onsumer 🔥
-  
-Kafka exception management strategy that auto pause and iterate messages if message is processed in that iteration.
+# 🔥 Kafka C[r]onsumer 🔥
 
 # Libraries Used For This Project
 

@@ -18,7 +18,7 @@ type KafkaConfig struct {
 
 type ConsumerConfig struct {
 	GroupID           string `yaml:"groupId"`
-	ExceptionTopic    string
+	Topic             string
 	DeadLetterTopic   string
 	MinBytes          int
 	MaxBytes          int

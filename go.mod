@@ -1,4 +1,4 @@
-module kafka-exception-cronsumer
+module kafka-cronsumer
 
 go 1.19
 
