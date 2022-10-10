@@ -1,20 +1,20 @@
-package kafka_exception_cronsumer
+package kafka_cronsumer
 
 import (
 	"fmt"
-	"kafka-exception-cronsumer/internal/config"
-	"kafka-exception-cronsumer/internal/kafka"
-	"kafka-exception-cronsumer/internal/log"
-	"kafka-exception-cronsumer/model"
+	"kafka-cronsumer/internal/config"
+	"kafka-cronsumer/internal/kafka"
+	"kafka-cronsumer/internal/log"
+	"kafka-cronsumer/model"
 	"time"
 
 	"go.uber.org/zap"
 )
 
-// ConsumeFn This function describes how to consume messages from exception topic
+// ConsumeFn This function describes how to consume messages from specified topic
 type ConsumeFn func(message model.Message) error
 
-type kafkaExceptionHandler struct {
+type kafkaHandler struct {
 	paused         bool
 	quitChannel    chan bool
 	messageChannel chan model.Message
@@ -30,17 +30,17 @@ type kafkaExceptionHandler struct {
 	deadLetterTopic string
 }
 
-// NewKafkaExceptionHandler returns the newly created exception handler instance.
+// NewKafkaHandler returns the newly created kafka handler instance.
 // config.KafkaConfig specifies cron, duration and so many parameters.
-// ConsumeFn describes how to consume messages from exception topic.
+// ConsumeFn describes how to consume messages from specified topic.
 // enableLogging just for debugging/troubleshooting purpose if set to false no log messages appeared.
-func NewKafkaExceptionHandler(cfg config.KafkaConfig, c ConsumeFn, enableLogging bool) *KafkaExceptionHandlerScheduler {
+func NewKafkaHandler(cfg config.KafkaConfig, c ConsumeFn, enableLogging bool) *KafkaHandlerScheduler {
 	logger := log.NoLogger()
 	if enableLogging {
 		logger = log.Logger()
 	}
 
-	handler := &kafkaExceptionHandler{
+	handler := &kafkaHandler{
 		paused:         false,
 		quitChannel:    make(chan bool),
 		messageChannel: make(chan model.Message),
@@ -56,10 +56,10 @@ func NewKafkaExceptionHandler(cfg config.KafkaConfig, c ConsumeFn, enableLogging
 		deadLetterTopic: cfg.Consumer.DeadLetterTopic,
 	}
 
-	return newKafkaExceptionHandlerScheduler(handler)
+	return newKafkaHandlerScheduler(handler)
 }
 
-func (k *kafkaExceptionHandler) Start(concurrency int) {
+func (k *kafkaHandler) Start(concurrency int) {
 	k.Resume()
 	go k.Listen()
 
@@ -68,13 +68,13 @@ func (k *kafkaExceptionHandler) Start(concurrency int) {
 	}
 }
 
-func (k *kafkaExceptionHandler) Resume() {
+func (k *kafkaHandler) Resume() {
 	k.messageChannel = make(chan model.Message)
 	k.paused = false
 	k.quitChannel = make(chan bool)
 }
 
-func (k *kafkaExceptionHandler) Listen() {
+func (k *kafkaHandler) Listen() {
 	startTime := time.Now()
 
 	for {
@@ -90,7 +90,7 @@ func (k *kafkaExceptionHandler) Listen() {
 			if msg.Time.Before(startTime) {
 				k.sendToMessageChannel(msg)
 			} else {
-				// iterate exception to next cron time if it already consumed&produced to exception topic
+				// iterate message to next cron time if it already consumed&produced to the topic
 				k.kafkaProducer.Produce(msg)
 				k.Pause()
 				return
@@ -99,20 +99,20 @@ func (k *kafkaExceptionHandler) Listen() {
 	}
 }
 
-func (k *kafkaExceptionHandler) Pause() {
+func (k *kafkaHandler) Pause() {
 	if !k.paused {
-		k.logger.Info("ProcessException topic PAUSED")
+		k.logger.Info("Process Topic PAUSED")
 		close(k.messageChannel)
 		k.paused = true
 		k.quitChannel <- true
 	}
 }
 
-func (k *kafkaExceptionHandler) Stop() {
+func (k *kafkaHandler) Stop() {
 	k.kafkaConsumer.Stop()
 }
 
-func (k *kafkaExceptionHandler) processMessage() {
+func (k *kafkaHandler) processMessage() {
 	for msg := range k.messageChannel {
 		if err := k.consumeFn(msg); err != nil {
 			k.produce(msg)
@@ -120,12 +120,12 @@ func (k *kafkaExceptionHandler) processMessage() {
 	}
 }
 
-func (k *kafkaExceptionHandler) sendToMessageChannel(msg model.Message) {
+func (k *kafkaHandler) sendToMessageChannel(msg model.Message) {
 	defer k.recoverMessage(msg)
 	k.messageChannel <- msg
 }
 
-func (k *kafkaExceptionHandler) recoverMessage(msg model.Message) {
+func (k *kafkaHandler) recoverMessage(msg model.Message) {
 	// sending message to closed channel panic could be occurred cause of concurrency for exception topic listeners
 	if r := recover(); r != nil {
 		k.logger.Warn(fmt.Sprintf("Recovered message: %v", string(msg.Value)))
@@ -133,18 +133,22 @@ func (k *kafkaExceptionHandler) recoverMessage(msg model.Message) {
 	}
 }
 
-func (k *kafkaExceptionHandler) produce(msg model.Message) {
+func (k *kafkaHandler) produce(msg model.Message) {
 	if msg.IsExceedMaxRetryCount(k.maxRetry) {
 		k.logger.Error(fmt.Sprintf("Message exceeds to retry limit %d. message: %v", k.maxRetry, msg))
 		if k.isDeadLetterTopicFeatureEnabled() {
 			msg.ChangeMessageTopic(k.deadLetterTopic)
-			k.kafkaProducer.Produce(msg)
+			if err := k.kafkaProducer.Produce(msg); err != nil {
+				k.logger.Error("Error sending message to dead letter topic", zap.Error(err))
+			}
 		}
 		return
 	}
-	k.kafkaProducer.Produce(msg)
+	if err := k.kafkaProducer.Produce(msg); err != nil {
+		k.logger.Error("Error sending message to topic", zap.Error(err))
+	}
 }
 
-func (k *kafkaExceptionHandler) isDeadLetterTopicFeatureEnabled() bool {
+func (k *kafkaHandler) isDeadLetterTopicFeatureEnabled() bool {
 	return k.deadLetterTopic != ""
 }

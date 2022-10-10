@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"kafka-exception-cronsumer"
-	"kafka-exception-cronsumer/internal/config"
-	"kafka-exception-cronsumer/model"
+	"kafka-cronsumer"
+	"kafka-cronsumer/internal/config"
+	"kafka-cronsumer/model"
 )
 
 func main() {
@@ -13,11 +13,11 @@ func main() {
 		panic("application config read failed: " + err.Error())
 	}
 
-	var consumeFn kafka_exception_cronsumer.ConsumeFn = func(message model.Message) error {
+	var consumeFn kafka_cronsumer.ConsumeFn = func(message model.Message) error {
 		fmt.Printf("Consumer > Message received: %s\n", string(message.Value))
 		return nil
 	}
 
-	handler := kafka_exception_cronsumer.NewKafkaExceptionHandler(applicationConfig.Kafka, consumeFn, true)
+	handler := kafka_cronsumer.NewKafkaHandler(applicationConfig.Kafka, consumeFn, true)
 	handler.Run(applicationConfig.Kafka.Consumer)
 }

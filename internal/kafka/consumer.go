@@ -4,8 +4,8 @@ import (
 	"context"
 	"github.com/segmentio/kafka-go"
 	"go.uber.org/zap"
-	"kafka-exception-cronsumer/internal/config"
-	"kafka-exception-cronsumer/model"
+	"kafka-cronsumer/internal/config"
+	"kafka-cronsumer/model"
 )
 
 //go:generate mockery --name=Consumer --output=./.mocks
@@ -23,7 +23,7 @@ func NewConsumer(kafkaConfig config.KafkaConfig, logger *zap.Logger) Consumer {
 	readerConfig := kafka.ReaderConfig{
 		Brokers:           kafkaConfig.Brokers,
 		GroupID:           kafkaConfig.Consumer.GroupID,
-		GroupTopics:       []string{kafkaConfig.Consumer.ExceptionTopic},
+		GroupTopics:       []string{kafkaConfig.Consumer.Topic},
 		MinBytes:          kafkaConfig.Consumer.MinBytes,
 		MaxBytes:          kafkaConfig.Consumer.MaxBytes,
 		MaxWait:           kafkaConfig.Consumer.MaxWait,

@@ -1,11 +1,11 @@
-package kafka_exception_cronsumer
+package kafka_cronsumer
 
 import (
 	_ "embed"
 	"errors"
-	mocks "kafka-exception-cronsumer/.mocks"
-	"kafka-exception-cronsumer/internal/log"
-	"kafka-exception-cronsumer/model"
+	mocks "kafka-cronsumer/.mocks"
+	"kafka-cronsumer/internal/log"
+	"kafka-cronsumer/model"
 	"testing"
 	"time"
 
@@ -27,7 +27,7 @@ func Test_Listen(t *testing.T) {
 		mConsumer := new(mocks.Consumer)
 		mConsumer.On("ReadMessage").Return(expectedMsg, nil)
 
-		handler := kafkaExceptionHandler{
+		handler := kafkaHandler{
 			paused:         false,
 			quitChannel:    make(chan bool),
 			messageChannel: messageCh,
@@ -52,7 +52,7 @@ func Test_Listen(t *testing.T) {
 		mProducer := new(mocks.Producer)
 		mProducer.On("Produce", expectedMsg).Return(nil)
 
-		handler := kafkaExceptionHandler{
+		handler := kafkaHandler{
 			paused:         false,
 			quitChannel:    make(chan bool),
 			messageChannel: messageCh,
@@ -77,7 +77,7 @@ func Test_ProcessMessage(t *testing.T) {
 		messageCh := make(chan model.Message)
 		consumeCh := make(chan model.Message)
 		expectedMsg := model.Message{Value: MessageIn}
-		handler := &kafkaExceptionHandler{
+		handler := &kafkaHandler{
 			messageChannel: messageCh,
 			logger:         zap.NewNop(),
 			consumeFn: func(message model.Message) error {
@@ -100,7 +100,7 @@ func Test_ProcessMessage(t *testing.T) {
 		expectedMsg := model.Message{Value: MessageIn}
 		mProducer := new(mocks.Producer)
 		mProducer.On("Produce", expectedMsg).Return(nil)
-		handler := &kafkaExceptionHandler{
+		handler := &kafkaHandler{
 			messageChannel: messageCh,
 			kafkaProducer:  mProducer,
 			maxRetry:       3,
@@ -124,7 +124,7 @@ func Test_ProcessMessage(t *testing.T) {
 		expectedMsg := model.Message{Value: MessageIn, RetryCount: 4}
 		mProducer := new(mocks.Producer)
 		mProducer.On("Produce", expectedMsg).Return(nil)
-		handler := &kafkaExceptionHandler{
+		handler := &kafkaHandler{
 			messageChannel: messageCh,
 			kafkaProducer:  mProducer,
 			logger:         zap.NewNop(),

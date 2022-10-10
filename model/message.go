@@ -69,7 +69,7 @@ func getRetryCount(message *kafka.Message) int {
 
 	message.Headers = append(message.Headers, kafka.Header{
 		Key:   RetryHeaderKey,
-		Value: []byte("0"),
+		Value: []byte("1"),
 	})
 
 	return 0

@@ -1,9 +1,9 @@
 kafka:
   brokers:
-    - "localhost:9092"
+    - "127.0.0.1:9092"
   consumer:
     groupId: "sample-consumer-1"
-    exceptionTopic: "exception-1"
+    topic: "exception-1"
     deadLetterTopic: ""
     minBytes: 10e3
     maxBytes: 10e6
