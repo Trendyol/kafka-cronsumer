@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/k0kubun/pp"
 	"kafka-exception-iterator"
+	"kafka-exception-iterator/internal/config"
 	"kafka-exception-iterator/model"
 )
 
@@ -26,8 +27,8 @@ func main() {
 	select {} // block main goroutine
 }
 
-func getConfig(configName string) *kafka_consumer_template.ApplicationConfig {
-	cfg, err := kafka_consumer_template.New("./example/multiple-consumers", configName)
+func getConfig(configName string) *config.ApplicationConfig {
+	cfg, err := config.New("./example/multiple-consumers", configName)
 	if err != nil {
 		panic("application config read failed: " + err.Error())
 	}

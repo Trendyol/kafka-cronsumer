@@ -1,9 +1,10 @@
-package kafka_consumer_template
+package kafka
 
 import (
 	"context"
 	"github.com/segmentio/kafka-go"
 	"go.uber.org/zap"
+	"kafka-exception-iterator/internal/config"
 	"kafka-exception-iterator/model"
 )
 
@@ -18,7 +19,7 @@ type consumer struct {
 	logger   *zap.Logger
 }
 
-func NewConsumer(kafkaConfig KafkaConfig, logger *zap.Logger) Consumer {
+func NewConsumer(kafkaConfig config.KafkaConfig, logger *zap.Logger) Consumer {
 	readerConfig := kafka.ReaderConfig{
 		Brokers:           kafkaConfig.Brokers,
 		GroupID:           kafkaConfig.Consumer.GroupID,

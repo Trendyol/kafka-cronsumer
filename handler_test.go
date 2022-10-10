@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"errors"
 	mocks "kafka-exception-iterator/.mocks"
+	"kafka-exception-iterator/internal/log"
 	"kafka-exception-iterator/model"
 	"testing"
 	"time"
@@ -31,7 +32,7 @@ func Test_Listen(t *testing.T) {
 			quitChannel:    make(chan bool),
 			messageChannel: messageCh,
 			kafkaConsumer:  mConsumer,
-			logger:         Logger(),
+			logger:         log.Logger(),
 		}
 
 		// When
@@ -57,7 +58,7 @@ func Test_Listen(t *testing.T) {
 			messageChannel: messageCh,
 			kafkaConsumer:  mConsumer,
 			kafkaProducer:  mProducer,
-			logger:         Logger(),
+			logger:         log.Logger(),
 		}
 
 		// When

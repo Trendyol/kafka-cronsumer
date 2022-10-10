@@ -2,6 +2,9 @@ package kafka_consumer_template
 
 import (
 	"fmt"
+	"kafka-exception-iterator/internal/config"
+	"kafka-exception-iterator/internal/kafka"
+	"kafka-exception-iterator/internal/log"
 	"kafka-exception-iterator/model"
 	"time"
 
@@ -16,8 +19,8 @@ type kafkaExceptionHandler struct {
 	quitChannel    chan bool
 	messageChannel chan model.Message
 
-	kafkaConsumer Consumer
-	kafkaProducer Producer
+	kafkaConsumer kafka.Consumer
+	kafkaProducer kafka.Producer
 
 	logger *zap.Logger
 
@@ -27,10 +30,10 @@ type kafkaExceptionHandler struct {
 	deadLetterTopic string
 }
 
-func NewKafkaExceptionHandler(cfg KafkaConfig, c ConsumeFn, enableLogging bool) *KafkaExceptionHandlerScheduler {
-	logger := NoLogger()
+func NewKafkaExceptionHandler(cfg config.KafkaConfig, c ConsumeFn, enableLogging bool) *KafkaExceptionHandlerScheduler {
+	logger := log.NoLogger()
 	if enableLogging {
-		logger = Logger()
+		logger = log.Logger()
 	}
 
 	handler := &kafkaExceptionHandler{
@@ -38,8 +41,8 @@ func NewKafkaExceptionHandler(cfg KafkaConfig, c ConsumeFn, enableLogging bool) 
 		quitChannel:    make(chan bool),
 		messageChannel: make(chan model.Message),
 
-		kafkaConsumer: NewConsumer(cfg, logger),
-		kafkaProducer: NewProducer(cfg, logger),
+		kafkaConsumer: kafka.NewConsumer(cfg, logger),
+		kafkaProducer: kafka.NewProducer(cfg, logger),
 
 		consumeFn: c,
 

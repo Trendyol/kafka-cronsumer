@@ -3,11 +3,12 @@ package main
 import (
 	"fmt"
 	"kafka-exception-iterator"
+	"kafka-exception-iterator/internal/config"
 	"kafka-exception-iterator/model"
 )
 
 func main() {
-	applicationConfig, err := kafka_consumer_template.New("./example/single-consumer", "config")
+	applicationConfig, err := config.New("./example/single-consumer", "config")
 	if err != nil {
 		panic("application config read failed: " + err.Error())
 	}

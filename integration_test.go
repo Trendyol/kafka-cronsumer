@@ -4,6 +4,9 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
+	"kafka-exception-iterator/internal/config"
+	"kafka-exception-iterator/internal/kafka"
+	"kafka-exception-iterator/internal/log"
 	"kafka-exception-iterator/model"
 	"net"
 	"testing"
@@ -39,7 +42,7 @@ func TestIntegration(t *testing.T) {
 		}
 		handler := NewKafkaExceptionHandler(kafkaConfig, consumeFn, true)
 		handler.Start(kafkaConfig.Consumer)
-		producer := NewProducer(kafkaConfig, Logger())
+		producer := kafka.NewProducer(kafkaConfig, log.Logger())
 
 		// When
 		err := producer.Produce(model.Message{
@@ -66,7 +69,7 @@ func TestIntegration(t *testing.T) {
 		}
 		handler := NewKafkaExceptionHandler(kafkaConfig, consumeFn, true)
 		handler.Start(kafkaConfig.Consumer)
-		producer := NewProducer(kafkaConfig, Logger())
+		producer := kafka.NewProducer(kafkaConfig, log.Logger())
 
 		// When
 		err := producer.Produce(model.Message{
@@ -137,12 +140,12 @@ func setupKafka(t *testing.T) (c Container, cleanUp func()) {
 	return c, cleanUp
 }
 
-func getKafkaConfig(mappedPort, exceptionTopic, consumerGroup string) KafkaConfig {
-	return KafkaConfig{
+func getKafkaConfig(mappedPort, exceptionTopic, consumerGroup string) config.KafkaConfig {
+	return config.KafkaConfig{
 		Brokers: []string{
 			"127.0.0.1" + ":" + mappedPort,
 		},
-		Consumer: ConsumerConfig{
+		Consumer: config.ConsumerConfig{
 			GroupID:        consumerGroup,
 			ExceptionTopic: exceptionTopic,
 			MaxRetry:       3,

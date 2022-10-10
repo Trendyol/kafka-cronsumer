@@ -1,4 +1,4 @@
-package kafka_consumer_template
+package log
 
 import (
 	"os"
@@ -11,7 +11,6 @@ const timeFormat string = "2006-01-02T15:04:05.999Z"
 
 func Logger() *zap.Logger {
 	var zapLogger, _ = newLogger()
-
 	return zapLogger
 }
 

@@ -1,6 +1,14 @@
-package kafka_consumer_template
+package config
 
-import "time"
+import (
+	"github.com/k0kubun/pp"
+	"github.com/spf13/viper"
+	"time"
+)
+
+type ApplicationConfig struct {
+	Kafka KafkaConfig
+}
 
 type KafkaConfig struct {
 	Brokers  []string
@@ -30,4 +38,26 @@ type ConsumerConfig struct {
 type ProducerConfig struct {
 	BatchSize    int
 	BatchTimeout time.Duration
+}
+
+func New(configPath, configName string) (*ApplicationConfig, error) {
+	configuration := ApplicationConfig{}
+
+	v := viper.New()
+	v.AddConfigPath(configPath)
+	v.SetConfigName(configName)
+
+	if err := v.ReadInConfig(); err != nil {
+		return nil, err
+	}
+
+	if err := v.Unmarshal(&configuration); err != nil {
+		return nil, err
+	}
+
+	return &configuration, nil
+}
+
+func (c *ApplicationConfig) Print() {
+	pp.Println(c)
 }

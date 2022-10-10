@@ -2,6 +2,7 @@
 package kafka_consumer_template
 
 import (
+	"kafka-exception-iterator/internal/config"
 	"time"
 
 	gocron "github.com/robfig/cron/v3"
@@ -22,7 +23,7 @@ func NewKafkaExceptionHandlerScheduler(handler *kafkaExceptionHandler) *KafkaExc
 	}
 }
 
-func (s *KafkaExceptionHandlerScheduler) Start(cfg ConsumerConfig) {
+func (s *KafkaExceptionHandlerScheduler) Start(cfg config.ConsumerConfig) {
 	s.cron.AddFunc(cfg.Cron, func() {
 		s.logger.Info("Exception Topic started at time: " + time.Now().String())
 		s.handler.Start(cfg.Concurrency)
@@ -31,7 +32,7 @@ func (s *KafkaExceptionHandlerScheduler) Start(cfg ConsumerConfig) {
 	s.cron.Start()
 }
 
-func (s *KafkaExceptionHandlerScheduler) Run(cfg ConsumerConfig) {
+func (s *KafkaExceptionHandlerScheduler) Run(cfg config.ConsumerConfig) {
 	s.cron.AddFunc(cfg.Cron, func() {
 		s.logger.Info("Exception Topic started at time: " + time.Now().String())
 		s.handler.Start(cfg.Concurrency)

@@ -1,9 +1,10 @@
-package kafka_consumer_template
+package kafka
 
 import (
 	"context"
 	"github.com/segmentio/kafka-go"
 	"go.uber.org/zap"
+	"kafka-exception-iterator/internal/config"
 	"kafka-exception-iterator/model"
 )
 
@@ -17,7 +18,7 @@ type producer struct {
 	logger *zap.Logger
 }
 
-func NewProducer(kafkaConfig KafkaConfig, logger *zap.Logger) Producer {
+func NewProducer(kafkaConfig config.KafkaConfig, logger *zap.Logger) Producer {
 	newProducer := &kafka.Writer{
 		Addr:                   kafka.TCP(kafkaConfig.Brokers...),
 		Balancer:               &kafka.LeastBytes{},
