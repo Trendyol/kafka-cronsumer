@@ -1,17 +1,15 @@
-package exception
+package kafka_consumer_template
 
 import (
 	"context"
-	"kafka-exception-iterator/internal/config"
-	"kafka-exception-iterator/internal/message"
-
 	"github.com/segmentio/kafka-go"
 	"go.uber.org/zap"
+	"kafka-exception-iterator/model"
 )
 
-//go:generate mockery --name=Producer --output=./mocks
+//go:generate mockery --name=Producer --output=./.mocks
 type Producer interface {
-	Produce(message message.Message) error
+	Produce(message model.Message) error
 }
 
 type producer struct {
@@ -19,7 +17,7 @@ type producer struct {
 	logger *zap.Logger
 }
 
-func NewProducer(kafkaConfig config.KafkaConfig, logger *zap.Logger) Producer {
+func NewProducer(kafkaConfig KafkaConfig, logger *zap.Logger) Producer {
 	newProducer := &kafka.Writer{
 		Addr:                   kafka.TCP(kafkaConfig.Brokers...),
 		Balancer:               &kafka.LeastBytes{},
@@ -34,6 +32,6 @@ func NewProducer(kafkaConfig config.KafkaConfig, logger *zap.Logger) Producer {
 	}
 }
 
-func (k *producer) Produce(message message.Message) error {
+func (k *producer) Produce(message model.Message) error {
 	return k.w.WriteMessages(context.Background(), message.To())
 }

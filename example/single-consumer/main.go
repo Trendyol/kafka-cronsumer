@@ -1,24 +1,22 @@
 package main
 
-// TODO improvement point: could we reduce package imports
 import (
 	"fmt"
-	"kafka-exception-iterator/internal/config"
-	"kafka-exception-iterator/internal/exception"
-	"kafka-exception-iterator/internal/message"
+	"kafka-exception-iterator"
+	"kafka-exception-iterator/model"
 )
 
 func main() {
-	applicationConfig, err := config.New("./example/single-consumer", "config")
+	applicationConfig, err := kafka_consumer_template.New("./example/single-consumer", "config")
 	if err != nil {
 		panic("application config read failed: " + err.Error())
 	}
 
-	var consumeFn exception.ConsumeFn = func(message message.Message) error {
+	var consumeFn kafka_consumer_template.ConsumeFn = func(message model.Message) error {
 		fmt.Printf("Consumer > Message received: %s\n", string(message.Value))
 		return nil
 	}
 
-	handler := exception.NewKafkaExceptionHandler(applicationConfig.Kafka, consumeFn, true)
+	handler := kafka_consumer_template.NewKafkaExceptionHandler(applicationConfig.Kafka, consumeFn, true)
 	handler.Run(applicationConfig.Kafka.Consumer)
 }

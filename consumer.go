@@ -1,17 +1,15 @@
-package exception
+package kafka_consumer_template
 
 import (
 	"context"
-	"kafka-exception-iterator/internal/config"
-	"kafka-exception-iterator/internal/message"
-
 	"github.com/segmentio/kafka-go"
 	"go.uber.org/zap"
+	"kafka-exception-iterator/model"
 )
 
-//go:generate mockery --name=Consumer --output=./mocks
+//go:generate mockery --name=Consumer --output=./.mocks
 type Consumer interface {
-	ReadMessage() (message.Message, error)
+	ReadMessage() (model.Message, error)
 	Stop()
 }
 
@@ -20,7 +18,7 @@ type consumer struct {
 	logger   *zap.Logger
 }
 
-func NewConsumer(kafkaConfig config.KafkaConfig, logger *zap.Logger) Consumer {
+func NewConsumer(kafkaConfig KafkaConfig, logger *zap.Logger) Consumer {
 	readerConfig := kafka.ReaderConfig{
 		Brokers:           kafkaConfig.Brokers,
 		GroupID:           kafkaConfig.Consumer.GroupID,
@@ -42,14 +40,14 @@ func NewConsumer(kafkaConfig config.KafkaConfig, logger *zap.Logger) Consumer {
 	}
 }
 
-func (k consumer) ReadMessage() (message.Message, error) {
+func (k consumer) ReadMessage() (model.Message, error) {
 	msg, err := k.consumer.ReadMessage(context.Background())
 	if err != nil {
 		k.logger.Error("Message not read", zap.Error(err))
-		return message.Message{}, err
+		return model.Message{}, err
 	}
 
-	return message.From(msg), err
+	return model.From(msg), err
 }
 
 func (k consumer) Stop() {

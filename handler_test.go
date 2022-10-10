@@ -1,11 +1,10 @@
-package exception
+package kafka_consumer_template
 
 import (
 	_ "embed"
 	"errors"
-	"kafka-exception-iterator/internal/exception/mocks"
-	"kafka-exception-iterator/internal/message"
-	"kafka-exception-iterator/pkg/log"
+	mocks "kafka-exception-iterator/.mocks"
+	"kafka-exception-iterator/model"
 	"testing"
 	"time"
 
@@ -21,8 +20,8 @@ func Test_Listen(t *testing.T) {
 
 	t.Run("Should_Process_Old_Messages", func(t *testing.T) {
 		// Given
-		messageCh := make(chan message.Message)
-		expectedMsg := message.Message{Value: MessageIn, Headers: nil, Time: time.Now()}
+		messageCh := make(chan model.Message)
+		expectedMsg := model.Message{Value: MessageIn, Headers: nil, Time: time.Now()}
 
 		mConsumer := new(mocks.Consumer)
 		mConsumer.On("ReadMessage").Return(expectedMsg, nil)
@@ -32,7 +31,7 @@ func Test_Listen(t *testing.T) {
 			quitChannel:    make(chan bool),
 			messageChannel: messageCh,
 			kafkaConsumer:  mConsumer,
-			logger:         log.Logger(),
+			logger:         Logger(),
 		}
 
 		// When
@@ -44,8 +43,8 @@ func Test_Listen(t *testing.T) {
 	})
 	t.Run("Should_Not_Process_And_Pause_When_Newly_Created_Message_Come", func(t *testing.T) {
 		// Given
-		messageCh := make(chan message.Message)
-		expectedMsg := message.Message{Value: MessageIn, Headers: nil, Time: time.Now().Add(time.Minute)}
+		messageCh := make(chan model.Message)
+		expectedMsg := model.Message{Value: MessageIn, Headers: nil, Time: time.Now().Add(time.Minute)}
 
 		mConsumer := new(mocks.Consumer)
 		mConsumer.On("ReadMessage").Return(expectedMsg, nil)
@@ -58,7 +57,7 @@ func Test_Listen(t *testing.T) {
 			messageChannel: messageCh,
 			kafkaConsumer:  mConsumer,
 			kafkaProducer:  mProducer,
-			logger:         log.Logger(),
+			logger:         Logger(),
 		}
 
 		// When
@@ -74,13 +73,13 @@ func Test_Listen(t *testing.T) {
 func Test_ProcessMessage(t *testing.T) {
 	t.Run("Should_Process_Message_Successfully", func(t *testing.T) {
 		// Given
-		messageCh := make(chan message.Message)
-		consumeCh := make(chan message.Message)
-		expectedMsg := message.Message{Value: MessageIn}
+		messageCh := make(chan model.Message)
+		consumeCh := make(chan model.Message)
+		expectedMsg := model.Message{Value: MessageIn}
 		handler := &kafkaExceptionHandler{
 			messageChannel: messageCh,
 			logger:         zap.NewNop(),
-			consumeFn: func(message message.Message) error {
+			consumeFn: func(message model.Message) error {
 				consumeCh <- message
 				return nil
 			},
@@ -96,8 +95,8 @@ func Test_ProcessMessage(t *testing.T) {
 	})
 	t.Run("Should_Resend_Message_When_Error_Occurred_In_Processing", func(t *testing.T) {
 		// Given
-		messageCh := make(chan message.Message)
-		expectedMsg := message.Message{Value: MessageIn}
+		messageCh := make(chan model.Message)
+		expectedMsg := model.Message{Value: MessageIn}
 		mProducer := new(mocks.Producer)
 		mProducer.On("Produce", expectedMsg).Return(nil)
 		handler := &kafkaExceptionHandler{
@@ -105,7 +104,7 @@ func Test_ProcessMessage(t *testing.T) {
 			kafkaProducer:  mProducer,
 			maxRetry:       3,
 			logger:         zap.NewNop(),
-			consumeFn: func(message message.Message) error {
+			consumeFn: func(message model.Message) error {
 				return errors.New("error occurred")
 			},
 		}
@@ -120,8 +119,8 @@ func Test_ProcessMessage(t *testing.T) {
 	})
 	t.Run("Should_Not_Resend_Message_Exceed_MaxRetry_Limit_When_Error_Occurred_In_Processing", func(t *testing.T) {
 		// Given
-		messageCh := make(chan message.Message)
-		expectedMsg := message.Message{Value: MessageIn, RetryCount: 4}
+		messageCh := make(chan model.Message)
+		expectedMsg := model.Message{Value: MessageIn, RetryCount: 4}
 		mProducer := new(mocks.Producer)
 		mProducer.On("Produce", expectedMsg).Return(nil)
 		handler := &kafkaExceptionHandler{
@@ -129,7 +128,7 @@ func Test_ProcessMessage(t *testing.T) {
 			kafkaProducer:  mProducer,
 			logger:         zap.NewNop(),
 			maxRetry:       3,
-			consumeFn: func(message message.Message) error {
+			consumeFn: func(message model.Message) error {
 				return errors.New("error occurred")
 			},
 		}

@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	message "kafka-exception-iterator/internal/message"
+	model "kafka-exception-iterator/model"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -14,14 +14,14 @@ type Consumer struct {
 }
 
 // ReadMessage provides a mock function with given fields:
-func (_m *Consumer) ReadMessage() (message.Message, error) {
+func (_m *Consumer) ReadMessage() (model.Message, error) {
 	ret := _m.Called()
 
-	var r0 message.Message
-	if rf, ok := ret.Get(0).(func() message.Message); ok {
+	var r0 model.Message
+	if rf, ok := ret.Get(0).(func() model.Message); ok {
 		r0 = rf()
 	} else {
-		r0 = ret.Get(0).(message.Message)
+		r0 = ret.Get(0).(model.Message)
 	}
 
 	var r1 error

@@ -1,13 +1,10 @@
-package exception_test
+package kafka_consumer_template
 
 import (
 	"context"
 	_ "embed"
 	"fmt"
-	"kafka-exception-iterator/internal/config"
-	"kafka-exception-iterator/internal/exception"
-	"kafka-exception-iterator/internal/message"
-	"kafka-exception-iterator/pkg/log"
+	"kafka-exception-iterator/model"
 	"net"
 	"testing"
 	"time"
@@ -18,9 +15,6 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
-
-//go:embed testdata/message.json
-var MessageIn []byte
 
 type Container struct {
 	testcontainers.Container
@@ -38,17 +32,17 @@ func TestIntegration(t *testing.T) {
 	t.Run("Should_Consume_Message_Successfully", func(t *testing.T) {
 		// Given
 		kafkaConfig := getKafkaConfig(kafkaC.MappedPort, "exceptionTopic1", "group1")
-		messageCh := make(chan message.Message)
-		var consumeFn exception.ConsumeFn = func(message message.Message) error {
+		messageCh := make(chan model.Message)
+		var consumeFn ConsumeFn = func(message model.Message) error {
 			messageCh <- message
 			return nil
 		}
-		handler := exception.NewKafkaExceptionHandler(kafkaConfig, consumeFn, true)
+		handler := NewKafkaExceptionHandler(kafkaConfig, consumeFn, true)
 		handler.Start(kafkaConfig.Consumer)
-		producer := exception.NewProducer(kafkaConfig, log.Logger())
+		producer := NewProducer(kafkaConfig, Logger())
 
 		// When
-		err := producer.Produce(message.Message{
+		err := producer.Produce(model.Message{
 			Topic: kafkaConfig.Consumer.ExceptionTopic,
 			Value: MessageIn,
 		})
@@ -58,27 +52,27 @@ func TestIntegration(t *testing.T) {
 
 		// Then
 		arrivedMsg := <-messageCh
-		assert.Equal(t, arrivedMsg.Headers[0].Key, message.RetryHeaderKey)
+		assert.Equal(t, arrivedMsg.Headers[0].Key, model.RetryHeaderKey)
 		assert.Equal(t, arrivedMsg.Headers[0].Value, []byte("1"))
 		assert.Equal(t, arrivedMsg.Value, MessageIn)
 	})
 	t.Run("Should_Consume_Same_Message_Successfully", func(t *testing.T) {
 		// Given
 		kafkaConfig := getKafkaConfig(kafkaC.MappedPort, "exceptionTopic2", "group2")
-		messageCh := make(chan message.Message)
-		var consumeFn exception.ConsumeFn = func(message message.Message) error {
+		messageCh := make(chan model.Message)
+		var consumeFn ConsumeFn = func(message model.Message) error {
 			messageCh <- message
 			return nil
 		}
-		handler := exception.NewKafkaExceptionHandler(kafkaConfig, consumeFn, true)
+		handler := NewKafkaExceptionHandler(kafkaConfig, consumeFn, true)
 		handler.Start(kafkaConfig.Consumer)
-		producer := exception.NewProducer(kafkaConfig, log.Logger())
+		producer := NewProducer(kafkaConfig, Logger())
 
 		// When
-		err := producer.Produce(message.Message{
+		err := producer.Produce(model.Message{
 			Topic: kafkaConfig.Consumer.ExceptionTopic,
 			Headers: []protocol.Header{
-				{Key: message.RetryHeaderKey, Value: []byte("1")},
+				{Key: model.RetryHeaderKey, Value: []byte("1")},
 			},
 			Value: MessageIn,
 		})
@@ -88,7 +82,7 @@ func TestIntegration(t *testing.T) {
 
 		// Then
 		arrivedMsg := <-messageCh
-		assert.Equal(t, arrivedMsg.Headers[0].Key, message.RetryHeaderKey)
+		assert.Equal(t, arrivedMsg.Headers[0].Key, model.RetryHeaderKey)
 		assert.Equal(t, arrivedMsg.Headers[0].Value, []byte("2"))
 		assert.Equal(t, arrivedMsg.Value, MessageIn)
 	})
@@ -143,12 +137,12 @@ func setupKafka(t *testing.T) (c Container, cleanUp func()) {
 	return c, cleanUp
 }
 
-func getKafkaConfig(mappedPort, exceptionTopic, consumerGroup string) config.KafkaConfig {
-	return config.KafkaConfig{
+func getKafkaConfig(mappedPort, exceptionTopic, consumerGroup string) KafkaConfig {
+	return KafkaConfig{
 		Brokers: []string{
 			"127.0.0.1" + ":" + mappedPort,
 		},
-		Consumer: config.ConsumerConfig{
+		Consumer: ConsumerConfig{
 			GroupID:        consumerGroup,
 			ExceptionTopic: exceptionTopic,
 			MaxRetry:       3,

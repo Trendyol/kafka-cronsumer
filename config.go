@@ -1,4 +1,4 @@
-package config
+package kafka_consumer_template
 
 import (
 	"github.com/k0kubun/pp"

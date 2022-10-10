@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	message "kafka-exception-iterator/internal/message"
+	model "kafka-exception-iterator/model"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -13,13 +13,13 @@ type Producer struct {
 	mock.Mock
 }
 
-// Produce provides a mock function with given fields: _a0
-func (_m *Producer) Produce(_a0 message.Message) error {
-	ret := _m.Called(_a0)
+// Produce provides a mock function with given fields: message
+func (_m *Producer) Produce(message model.Message) error {
+	ret := _m.Called(message)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(message.Message) error); ok {
-		r0 = rf(_a0)
+	if rf, ok := ret.Get(0).(func(model.Message) error); ok {
+		r0 = rf(message)
 	} else {
 		r0 = ret.Error(0)
 	}

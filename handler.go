@@ -1,22 +1,20 @@
-package exception
+package kafka_consumer_template
 
 import (
 	"fmt"
-	"kafka-exception-iterator/internal/config"
-	"kafka-exception-iterator/internal/message"
-	"kafka-exception-iterator/pkg/log"
+	"kafka-exception-iterator/model"
 	"time"
 
 	"go.uber.org/zap"
 )
 
 // ConsumeFn This function describes how to consume messages from exception topic
-type ConsumeFn func(message message.Message) error
+type ConsumeFn func(message model.Message) error
 
 type kafkaExceptionHandler struct {
 	paused         bool
 	quitChannel    chan bool
-	messageChannel chan message.Message
+	messageChannel chan model.Message
 
 	kafkaConsumer Consumer
 	kafkaProducer Producer
@@ -29,16 +27,16 @@ type kafkaExceptionHandler struct {
 	deadLetterTopic string
 }
 
-func NewKafkaExceptionHandler(cfg config.KafkaConfig, c ConsumeFn, enableLogging bool) *KafkaExceptionHandlerScheduler {
-	logger := log.NoLogger()
+func NewKafkaExceptionHandler(cfg KafkaConfig, c ConsumeFn, enableLogging bool) *KafkaExceptionHandlerScheduler {
+	logger := NoLogger()
 	if enableLogging {
-		logger = log.Logger()
+		logger = Logger()
 	}
 
 	handler := &kafkaExceptionHandler{
 		paused:         false,
 		quitChannel:    make(chan bool),
-		messageChannel: make(chan message.Message),
+		messageChannel: make(chan model.Message),
 
 		kafkaConsumer: NewConsumer(cfg, logger),
 		kafkaProducer: NewProducer(cfg, logger),
@@ -64,7 +62,7 @@ func (k *kafkaExceptionHandler) Start(concurrency int) {
 }
 
 func (k *kafkaExceptionHandler) Resume() {
-	k.messageChannel = make(chan message.Message)
+	k.messageChannel = make(chan model.Message)
 	k.paused = false
 	k.quitChannel = make(chan bool)
 }
@@ -115,12 +113,12 @@ func (k *kafkaExceptionHandler) processMessage() {
 	}
 }
 
-func (k *kafkaExceptionHandler) sendToMessageChannel(msg message.Message) {
+func (k *kafkaExceptionHandler) sendToMessageChannel(msg model.Message) {
 	defer k.recoverMessage(msg)
 	k.messageChannel <- msg
 }
 
-func (k *kafkaExceptionHandler) recoverMessage(msg message.Message) {
+func (k *kafkaExceptionHandler) recoverMessage(msg model.Message) {
 	// sending message to closed channel panic could be occurred cause of concurrency for exception topic listeners
 	if r := recover(); r != nil {
 		k.logger.Warn(fmt.Sprintf("Recovered message: %v", string(msg.Value)))
@@ -128,7 +126,7 @@ func (k *kafkaExceptionHandler) recoverMessage(msg message.Message) {
 	}
 }
 
-func (k *kafkaExceptionHandler) produce(msg message.Message) {
+func (k *kafkaExceptionHandler) produce(msg model.Message) {
 	if msg.IsExceedMaxRetryCount(k.maxRetry) {
 		k.logger.Error(fmt.Sprintf("Message exceeds to retry limit %d. message: %v", k.maxRetry, msg))
 		if k.isDeadLetterTopicFeatureEnabled() {

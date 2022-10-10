@@ -1,4 +1,4 @@
-package config
+package kafka_consumer_template
 
 import "time"
 

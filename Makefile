@@ -6,8 +6,8 @@ help:
 ## lint: runs golangci lint based on .golangci.yml configuration
 .PHONY: lint
 lint:
-	@if ! test -f `go env GOPATH`/bin/mockery; then go get github.com/golang/mock/mockgen@v1.6.0 && go install github.com/golang/mock/mockgen@v1.6.0; fi
-	golangci-lint run -c .golangci.yml  --fix -v
+	@if ! test -f `go env GOPATH`/bin/golangci-lint; then go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.50.0; fi
+	golangci-lint run -c .golangci.yml --fix -v
 
 ## test: runs tests
 .PHONY: test
@@ -19,6 +19,12 @@ test:
 unit-coverage-html:
 	make test
 	go tool cover -html=unit_coverage.out -o unit_coverage.html
+
+## godoc: generate documentation
+.PHONY: godoc
+godoc:
+	@if ! test -f `go env GOPATH`/bin/godoc; then go install golang.org/x/tools/cmd/godoc; fi
+	godoc -http=127.0.0.1:6060 -play
 
 exceptionTopicName = 'exception'
 

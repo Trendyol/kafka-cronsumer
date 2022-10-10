@@ -1,4 +1,4 @@
-package log
+package kafka_consumer_template
 
 import (
 	"os"
