@@ -91,7 +91,10 @@ func (k *kafkaHandler) Listen() {
 				k.sendToMessageChannel(msg)
 			} else {
 				// iterate message to next cron time if it already consumed&produced to the topic
-				k.kafkaProducer.Produce(msg)
+				msg.NextIterationMessage = true
+				if err := k.kafkaProducer.Produce(msg); err != nil {
+					k.logger.Error("Error sending next iteration message", zap.Error(err))
+				}
 				k.Pause()
 				return
 			}

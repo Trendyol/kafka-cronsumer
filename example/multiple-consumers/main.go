@@ -1,16 +1,17 @@
 package main
 
 import (
-	"github.com/k0kubun/pp"
-	"kafka-cronsumer"
+	kafka_cronsumer "kafka-cronsumer"
 	"kafka-cronsumer/internal/config"
 	"kafka-cronsumer/model"
+
+	"fmt"
 )
 
 func main() {
 	first := getConfig("config-1")
 	var firstConsumerFn kafka_cronsumer.ConsumeFn = func(message model.Message) error {
-		pp.Printf("First Consumer > Message received: %s\n", string(message.Value))
+		fmt.Printf("First Consumer > Message received: %s\n", string(message.Value))
 		return nil
 	}
 	firstHandler := kafka_cronsumer.NewKafkaHandler(first.Kafka, firstConsumerFn, true)
@@ -18,7 +19,7 @@ func main() {
 
 	second := getConfig("config-2")
 	var secondConsumerFn kafka_cronsumer.ConsumeFn = func(message model.Message) error {
-		pp.Printf("Second Consumer > Message received: %s\n", string(message.Value))
+		fmt.Printf("Second Consumer > Message received: %s\n", string(message.Value))
 		return nil
 	}
 	secondHandler := kafka_cronsumer.NewKafkaHandler(second.Kafka, secondConsumerFn, true)

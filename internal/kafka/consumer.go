@@ -2,10 +2,11 @@ package kafka
 
 import (
 	"context"
-	"github.com/segmentio/kafka-go"
-	"go.uber.org/zap"
 	"kafka-cronsumer/internal/config"
 	"kafka-cronsumer/model"
+
+	"github.com/segmentio/kafka-go"
+	"go.uber.org/zap"
 )
 
 //go:generate mockery --name=Consumer --output=./.mocks

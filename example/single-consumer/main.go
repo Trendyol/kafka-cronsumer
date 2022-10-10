@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"kafka-cronsumer"
+	kafka_cronsumer "kafka-cronsumer"
 	"kafka-cronsumer/internal/config"
 	"kafka-cronsumer/model"
 )

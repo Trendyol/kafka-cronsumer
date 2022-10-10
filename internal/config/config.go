@@ -1,9 +1,10 @@
 package config
 
 import (
+	"time"
+
 	"github.com/k0kubun/pp"
 	"github.com/spf13/viper"
-	"time"
 )
 
 type ApplicationConfig struct {

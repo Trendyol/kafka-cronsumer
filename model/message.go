@@ -12,14 +12,15 @@ import (
 const RetryHeaderKey = "x-retry-count"
 
 type Message struct {
-	Topic         string
-	RetryCount    int
-	Partition     int
-	Offset        int64
-	HighWaterMark int64
-	Key           []byte
-	Value         []byte
-	Headers       []protocol.Header
+	NextIterationMessage bool
+	Topic                string
+	RetryCount           int
+	Partition            int
+	Offset               int64
+	HighWaterMark        int64
+	Key                  []byte
+	Value                []byte
+	Headers              []protocol.Header
 
 	Time time.Time
 }
@@ -39,7 +40,9 @@ func From(message kafka.Message) Message {
 }
 
 func (m *Message) To() kafka.Message {
-	m.increaseRetryCount()
+	if !m.NextIterationMessage {
+		m.increaseRetryCount()
+	}
 
 	return kafka.Message{
 		Topic:   m.Topic,
