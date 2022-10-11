@@ -13,7 +13,7 @@ kafka:
     heartbeatInterval: 3s
     sessionTimeout: 30s
     rebalanceTimeout: 30s
-    StartOffset: "earliest" #earliest or latest
+    startOffset: "earliest" #earliest or latest
     retentionTime: 24h
     concurrency: 1
     cron: "*/1 * * * *"
