@@ -2,6 +2,8 @@ package kafka
 
 import (
 	"context"
+	"errors"
+	"io"
 	"kafka-cronsumer/internal/config"
 	"kafka-cronsumer/model"
 
@@ -32,7 +34,7 @@ func NewConsumer(kafkaConfig config.KafkaConfig, logger *zap.Logger) Consumer {
 		HeartbeatInterval: kafkaConfig.Consumer.HeartbeatInterval,
 		SessionTimeout:    kafkaConfig.Consumer.SessionTimeout,
 		RebalanceTimeout:  kafkaConfig.Consumer.RebalanceTimeout,
-		StartOffset:       kafkaConfig.Consumer.StartOffset,
+		StartOffset:       ConvertStartOffset(kafkaConfig.Consumer.StartOffset),
 		RetentionTime:     kafkaConfig.Consumer.RetentionTime,
 	}
 
@@ -42,14 +44,33 @@ func NewConsumer(kafkaConfig config.KafkaConfig, logger *zap.Logger) Consumer {
 	}
 }
 
+func ConvertStartOffset(StartOffset string) int64 {
+	switch StartOffset {
+	case "earliest":
+		return kafka.FirstOffset
+	case "latest":
+		return kafka.LastOffset
+	default:
+		return kafka.FirstOffset
+	}
+}
+
 func (k consumer) ReadMessage() (model.Message, error) {
 	msg, err := k.consumer.ReadMessage(context.Background())
 	if err != nil {
+		if k.IsReaderHasBeenClosed(err) {
+			return model.Message{}, err
+		}
+
 		k.logger.Error("Message not read", zap.Error(err))
 		return model.Message{}, err
 	}
 
 	return model.From(msg), err
+}
+
+func (k consumer) IsReaderHasBeenClosed(err error) bool {
+	return errors.Is(err, io.EOF)
 }
 
 func (k consumer) Stop() {

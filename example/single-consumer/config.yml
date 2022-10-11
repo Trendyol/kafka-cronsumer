@@ -13,11 +13,7 @@ kafka:
     heartbeatInterval: 3s
     sessionTimeout: 30s
     rebalanceTimeout: 30s
-
-    # -1 The most recent offset available for a partition.
-    # -2 The least recent offset available for a partition.
-    StartOffset: -2
-
+    StartOffset: "earliest" #earliest or latest
     retentionTime: 24h
     concurrency: 1
     cron: "*/1 * * * *"

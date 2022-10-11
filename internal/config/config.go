@@ -29,7 +29,7 @@ type ConsumerConfig struct {
 	HeartbeatInterval time.Duration
 	SessionTimeout    time.Duration
 	RebalanceTimeout  time.Duration
-	StartOffset       int64
+	StartOffset       string
 	RetentionTime     time.Duration
 	Concurrency       int
 	Duration          time.Duration

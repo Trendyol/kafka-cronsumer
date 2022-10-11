@@ -12,6 +12,7 @@ func main() {
 	if err != nil {
 		panic("application config read failed: " + err.Error())
 	}
+	applicationConfig.Print()
 
 	var consumeFn kafka_cronsumer.ConsumeFn = func(message model.Message) error {
 		fmt.Printf("Consumer > Message received: %s\n", string(message.Value))
