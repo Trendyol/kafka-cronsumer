@@ -44,8 +44,8 @@ func NewConsumer(kafkaConfig config.KafkaConfig, logger *zap.Logger) Consumer {
 	}
 }
 
-func ConvertStartOffset(StartOffset string) int64 {
-	switch StartOffset {
+func ConvertStartOffset(offset string) int64 {
+	switch offset {
 	case "earliest":
 		return kafka.FirstOffset
 	case "latest":

@@ -24,7 +24,7 @@ func newKafkaHandlerScheduler(handler *kafkaHandler) *KafkaHandlerScheduler {
 	}
 }
 
-// Start starts the kafka handler scheduler with a new goroutine
+// Start starts the kafka handler scheduler with a new goroutine so its asynchronous operation (non-blocking)
 func (s *KafkaHandlerScheduler) Start(cfg config.ConsumerConfig) {
 	s.cron.AddFunc(cfg.Cron, func() {
 		s.logger.Info("Topic started at time: " + time.Now().String())
@@ -34,7 +34,7 @@ func (s *KafkaHandlerScheduler) Start(cfg config.ConsumerConfig) {
 	s.cron.Start()
 }
 
-// Run runs the kafka handler scheduler with the caller goroutine
+// Run runs the kafka handler scheduler with the caller goroutine so its synchronous operation (blocking)
 func (s *KafkaHandlerScheduler) Run(cfg config.ConsumerConfig) {
 	s.cron.AddFunc(cfg.Cron, func() {
 		s.logger.Info("Topic started at time: " + time.Now().String())
