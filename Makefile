@@ -26,14 +26,14 @@ godoc:
 	@if ! test -f `go env GOPATH`/bin/godoc; then go install golang.org/x/tools/cmd/godoc; fi
 	godoc -http=127.0.0.1:6060
 
-topicName = 'exception'
-
 ## produce: produce test message (requires jq and kafka-console-producer)
+## : make produce topic=exception
 .PHONY: produce
 produce:
-	jq -rc . ./testdata/message.json | kafka-console-producer --bootstrap-server 127.0.0.1:9092 --topic ${topicName}
+	jq -rc . ./testdata/message.json | kafka-console-producer --bootstrap-server 127.0.0.1:9092 --topic ${topic}
 
-## produce: produce test message with retry header (requires jq and kcat)
+## produce-with-header: produce test message with retry header (requires jq and kcat)
+## : make produce-with-header topic=exception
 .PHONY: produce-with-header
 produce-with-header:
-	jq -rc . ./testdata/message.json | kcat -b 127.0.0.1:9092 -t ${topicName} -P -H x-retry-count=1
+	jq -rc . ./testdata/message.json | kcat -b 127.0.0.1:9092 -t ${topic} -P -H x-retry-count=1
