@@ -148,6 +148,10 @@ TODO
 - [Abdulsamet İleri](https://github.com/Abdulsametileri) (Author)
 - [Emre Odabaş](https://github.com/emreodabas) (Author)
 
+## Code of Conduct
+
+[Contributor Code of Conduct](CODE-OF-CONDUCT.md). By participating in this project you agree to abide by its terms.
+
 # Libraries Used For This Project 💪
 
 ✅ [segmentio/kafka-go](https://github.com/segmentio/kafka-go)
