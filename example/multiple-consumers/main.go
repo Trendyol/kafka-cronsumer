@@ -14,7 +14,7 @@ func main() {
 		fmt.Printf("First Consumer > Message received: %s\n", string(message.Value))
 		return nil
 	}
-	firstHandler := kafka_cronsumer.NewKafkaHandler(first.Kafka, firstConsumerFn, true)
+	firstHandler := kafka_cronsumer.NewKafkaHandlerWithNoLogging(first.Kafka, firstConsumerFn)
 	firstHandler.Start(first.Kafka.Consumer)
 
 	second := getConfig("config-2")
@@ -22,7 +22,7 @@ func main() {
 		fmt.Printf("Second Consumer > Message received: %s\n", string(message.Value))
 		return nil
 	}
-	secondHandler := kafka_cronsumer.NewKafkaHandler(second.Kafka, secondConsumerFn, true)
+	secondHandler := kafka_cronsumer.NewKafkaHandlerWithNoLogging(second.Kafka, secondConsumerFn)
 	secondHandler.Start(first.Kafka.Consumer)
 
 	select {} // block main goroutine (we did to show it by on purpose)

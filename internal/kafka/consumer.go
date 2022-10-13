@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 	"github.com/segmentio/kafka-go"
-	"go.uber.org/zap"
 	"io"
 	"kafka-cronsumer/internal/config"
+	"kafka-cronsumer/log"
 	"kafka-cronsumer/model"
 	"strconv"
 )
@@ -19,10 +19,10 @@ type Consumer interface {
 
 type consumer struct {
 	consumer *kafka.Reader
-	logger   *zap.Logger
+	logger   log.Logger
 }
 
-func NewConsumer(kafkaConfig config.KafkaConfig, logger *zap.Logger) Consumer {
+func NewConsumer(kafkaConfig config.KafkaConfig, logger log.Logger) Consumer {
 	readerConfig := kafka.ReaderConfig{
 		Brokers:           kafkaConfig.Brokers,
 		GroupID:           kafkaConfig.Consumer.GroupID,
@@ -68,7 +68,7 @@ func (k consumer) ReadMessage() (model.Message, error) {
 			return model.Message{}, err
 		}
 
-		k.logger.Error("Message not read", zap.Error(err))
+		k.logger.Errorf("Message not read %v", err)
 		return model.Message{}, err
 	}
 
@@ -81,6 +81,6 @@ func (k consumer) IsReaderHasBeenClosed(err error) bool {
 
 func (k consumer) Stop() {
 	if err := k.consumer.Close(); err != nil {
-		k.logger.Error("Error while closing kafka consumer {}", zap.Error(err))
+		k.logger.Errorf("Error while closing kafka consumer %v", err)
 	}
 }

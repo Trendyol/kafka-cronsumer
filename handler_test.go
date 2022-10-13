@@ -4,13 +4,12 @@ import (
 	_ "embed"
 	"errors"
 	mocks "kafka-cronsumer/.mocks"
-	"kafka-cronsumer/internal/log"
+	"kafka-cronsumer/log"
 	"kafka-cronsumer/model"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/zap"
 )
 
 //go:embed testdata/message.json
@@ -32,7 +31,7 @@ func Test_Listen(t *testing.T) {
 			quitChannel:    make(chan bool),
 			messageChannel: messageCh,
 			kafkaConsumer:  mConsumer,
-			logger:         log.Logger(),
+			logger:         log.New(),
 		}
 
 		// When
@@ -58,7 +57,7 @@ func Test_Listen(t *testing.T) {
 			messageChannel: messageCh,
 			kafkaConsumer:  mConsumer,
 			kafkaProducer:  mProducer,
-			logger:         log.Logger(),
+			logger:         log.New(),
 		}
 
 		// When
@@ -79,7 +78,7 @@ func Test_ProcessMessage(t *testing.T) {
 		expectedMsg := model.Message{Value: MessageIn}
 		handler := &kafkaHandler{
 			messageChannel: messageCh,
-			logger:         zap.NewNop(),
+			logger:         log.New(),
 			consumeFn: func(message model.Message) error {
 				consumeCh <- message
 				return nil
@@ -104,7 +103,7 @@ func Test_ProcessMessage(t *testing.T) {
 			messageChannel: messageCh,
 			kafkaProducer:  mProducer,
 			maxRetry:       3,
-			logger:         zap.NewNop(),
+			logger:         log.New(),
 			consumeFn: func(message model.Message) error {
 				return errors.New("error occurred")
 			},
@@ -127,7 +126,7 @@ func Test_ProcessMessage(t *testing.T) {
 		handler := &kafkaHandler{
 			messageChannel: messageCh,
 			kafkaProducer:  mProducer,
-			logger:         zap.NewNop(),
+			logger:         log.New(),
 			maxRetry:       3,
 			consumeFn: func(message model.Message) error {
 				return errors.New("error occurred")

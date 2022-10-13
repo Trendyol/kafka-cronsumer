@@ -1,19 +1,19 @@
 // This package implements a topic management strategy which consumes messages with cron based manner.
-// It mainly created for exception/retry management. Of course you can use normal topic as well.
+// It mainly created for exception/retry management.
 package kafka_cronsumer
 
 import (
 	"kafka-cronsumer/internal/config"
+	"kafka-cronsumer/log"
 	"time"
 
 	gocron "github.com/robfig/cron/v3"
-	"go.uber.org/zap"
 )
 
 type KafkaHandlerScheduler struct {
 	cron    *gocron.Cron
 	handler *kafkaHandler
-	logger  *zap.Logger
+	logger  log.Logger
 }
 
 func newKafkaHandlerScheduler(handler *kafkaHandler) *KafkaHandlerScheduler {

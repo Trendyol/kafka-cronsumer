@@ -1,14 +1,11 @@
 package kafka_cronsumer
 
 import (
-	"fmt"
 	"kafka-cronsumer/internal/config"
 	"kafka-cronsumer/internal/kafka"
-	"kafka-cronsumer/internal/log"
+	"kafka-cronsumer/log"
 	"kafka-cronsumer/model"
 	"time"
-
-	"go.uber.org/zap"
 )
 
 // ConsumeFn This function describes how to consume messages from specified topic
@@ -22,7 +19,7 @@ type kafkaHandler struct {
 	kafkaConsumer kafka.Consumer
 	kafkaProducer kafka.Producer
 
-	logger *zap.Logger
+	logger log.Logger
 
 	consumeFn ConsumeFn
 
@@ -30,16 +27,63 @@ type kafkaHandler struct {
 	deadLetterTopic string
 }
 
-// NewKafkaHandler returns the newly created kafka handler instance.
+// NewKafkaHandlerWithDefaultLogging returns the newly created kafka handler instance.
 // config.KafkaConfig specifies cron, duration and so many parameters.
 // ConsumeFn describes how to consume messages from specified topic.
-// enableLogging just for debugging/troubleshooting purpose if set to false no log messages appeared.
-func NewKafkaHandler(cfg config.KafkaConfig, c ConsumeFn, enableLogging bool) *KafkaHandlerScheduler {
-	logger := log.NoLogger()
-	if enableLogging {
-		logger = log.Logger()
+// Zap used for default logging implementation
+func NewKafkaHandlerWithDefaultLogging(cfg config.KafkaConfig, c ConsumeFn) *KafkaHandlerScheduler {
+	logger := log.NewNoOp()
+
+	handler := &kafkaHandler{
+		paused:         false,
+		quitChannel:    make(chan bool),
+		messageChannel: make(chan model.Message),
+
+		kafkaConsumer: kafka.NewConsumer(cfg, logger),
+		kafkaProducer: kafka.NewProducer(cfg, logger),
+
+		consumeFn: c,
+
+		logger: logger,
+
+		maxRetry:        cfg.Consumer.MaxRetry,
+		deadLetterTopic: cfg.Consumer.DeadLetterTopic,
 	}
 
+	return newKafkaHandlerScheduler(handler)
+}
+
+// NewKafkaHandlerWithNoLogging returns the newly created kafka handler instance.
+// config.KafkaConfig specifies cron, duration and so many parameters.
+// ConsumeFn describes how to consume messages from specified topic.
+// No logs printed.
+func NewKafkaHandlerWithNoLogging(cfg config.KafkaConfig, c ConsumeFn) *KafkaHandlerScheduler {
+	logger := log.New()
+
+	handler := &kafkaHandler{
+		paused:         false,
+		quitChannel:    make(chan bool),
+		messageChannel: make(chan model.Message),
+
+		kafkaConsumer: kafka.NewConsumer(cfg, logger),
+		kafkaProducer: kafka.NewProducer(cfg, logger),
+
+		consumeFn: c,
+
+		logger: logger,
+
+		maxRetry:        cfg.Consumer.MaxRetry,
+		deadLetterTopic: cfg.Consumer.DeadLetterTopic,
+	}
+
+	return newKafkaHandlerScheduler(handler)
+}
+
+// NewKafkaHandlerWithCustomLogging returns the newly created kafka handler instance.
+// config.KafkaConfig specifies cron, duration and so many parameters.
+// ConsumeFn describes how to consume messages from specified topic.
+// logger describes log interface for injecting custom log implementation
+func NewKafkaHandlerWithCustomLogging(cfg config.KafkaConfig, c ConsumeFn, logger log.Logger) *KafkaHandlerScheduler {
 	handler := &kafkaHandler{
 		paused:         false,
 		quitChannel:    make(chan bool),
@@ -95,7 +139,7 @@ func (k *kafkaHandler) Listen() {
 				// iterate message to next cron time if it already consumed&produced to the topic
 				msg.NextIterationMessage = true
 				if err := k.kafkaProducer.Produce(msg); err != nil {
-					k.logger.Error("Error sending next iteration message", zap.Error(err))
+					k.logger.Errorf("Error sending next iteration message: %v", err)
 				}
 
 				return
@@ -133,24 +177,24 @@ func (k *kafkaHandler) sendToMessageChannel(msg model.Message) {
 func (k *kafkaHandler) recoverMessage(msg model.Message) {
 	// sending message to closed channel panic could be occurred cause of concurrency for exception topic listeners
 	if r := recover(); r != nil {
-		k.logger.Warn(fmt.Sprintf("Recovered message: %v", string(msg.Value)))
+		k.logger.Warnf("Recovered message: %s", string(msg.Value))
 		k.produce(msg)
 	}
 }
 
 func (k *kafkaHandler) produce(msg model.Message) {
 	if msg.IsExceedMaxRetryCount(k.maxRetry) {
-		k.logger.Error(fmt.Sprintf("Message exceeds to retry limit %d. message: %v", k.maxRetry, msg))
+		k.logger.Errorf("Message exceeds to retry limit %d. message: %v", k.maxRetry, msg)
 		if k.isDeadLetterTopicFeatureEnabled() {
 			msg.ChangeMessageTopic(k.deadLetterTopic)
 			if err := k.kafkaProducer.Produce(msg); err != nil {
-				k.logger.Error("Error sending message to dead letter topic", zap.Error(err))
+				k.logger.Errorf("Error sending message to dead letter topic %v", err)
 			}
 		}
 		return
 	}
 	if err := k.kafkaProducer.Produce(msg); err != nil {
-		k.logger.Error("Error sending message to topic", zap.Error(err))
+		k.logger.Errorf("Error sending message to topic %v", err)
 	}
 }
 

@@ -3,10 +3,10 @@ package kafka
 import (
 	"context"
 	"kafka-cronsumer/internal/config"
+	"kafka-cronsumer/log"
 	"kafka-cronsumer/model"
 
 	"github.com/segmentio/kafka-go"
-	"go.uber.org/zap"
 )
 
 //go:generate mockery --name=Producer --output=./.mocks
@@ -16,7 +16,7 @@ type Producer interface {
 
 type producer struct {
 	w      *kafka.Writer
-	logger *zap.Logger
+	logger log.Logger
 }
 
 /*
@@ -27,7 +27,7 @@ automatically create a topic under the following circumstances:
 	• When any client requests metadata for the topic
 */
 
-func NewProducer(kafkaConfig config.KafkaConfig, logger *zap.Logger) Producer {
+func NewProducer(kafkaConfig config.KafkaConfig, logger log.Logger) Producer {
 	newProducer := &kafka.Writer{
 		Addr:                   kafka.TCP(kafkaConfig.Brokers...),
 		Balancer:               &kafka.LeastBytes{},

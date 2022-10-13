@@ -18,6 +18,6 @@ func main() {
 		return nil
 	}
 
-	handler := kafka_cronsumer.NewKafkaHandler(applicationConfig.Kafka, consumeFn, true)
+	handler := kafka_cronsumer.NewKafkaHandlerWithNoLogging(applicationConfig.Kafka, consumeFn)
 	handler.Run(applicationConfig.Kafka.Consumer)
 }

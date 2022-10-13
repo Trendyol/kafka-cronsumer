@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"kafka-cronsumer/internal/config"
 	"kafka-cronsumer/internal/kafka"
-	"kafka-cronsumer/internal/log"
+	"kafka-cronsumer/log"
 	"kafka-cronsumer/model"
 	"net"
 	"testing"
@@ -40,9 +40,9 @@ func TestIntegration(t *testing.T) {
 			messageCh <- message
 			return nil
 		}
-		handler := NewKafkaHandler(kafkaConfig, consumeFn, true)
+		handler := NewKafkaHandlerWithDefaultLogging(kafkaConfig, consumeFn)
 		handler.Start(kafkaConfig.Consumer)
-		producer := kafka.NewProducer(kafkaConfig, log.Logger())
+		producer := kafka.NewProducer(kafkaConfig, log.New())
 
 		// When
 		err := producer.Produce(model.Message{
@@ -67,9 +67,9 @@ func TestIntegration(t *testing.T) {
 			messageCh <- message
 			return nil
 		}
-		handler := NewKafkaHandler(kafkaConfig, consumeFn, true)
+		handler := NewKafkaHandlerWithDefaultLogging(kafkaConfig, consumeFn)
 		handler.Start(kafkaConfig.Consumer)
-		producer := kafka.NewProducer(kafkaConfig, log.Logger())
+		producer := kafka.NewProducer(kafkaConfig, log.New())
 
 		// When
 		err := producer.Produce(model.Message{
