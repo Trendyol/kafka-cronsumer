@@ -3,12 +3,12 @@ package kafka
 import (
 	"context"
 	"errors"
+	"github.com/segmentio/kafka-go"
+	"go.uber.org/zap"
 	"io"
 	"kafka-cronsumer/internal/config"
 	"kafka-cronsumer/model"
-
-	"github.com/segmentio/kafka-go"
-	"go.uber.org/zap"
+	"strconv"
 )
 
 //go:generate mockery --name=Consumer --output=./.mocks
@@ -50,7 +50,13 @@ func ConvertStartOffset(offset string) int64 {
 		return kafka.FirstOffset
 	case "latest":
 		return kafka.LastOffset
+	case "":
+		return kafka.FirstOffset
 	default:
+		offsetValue, err := strconv.ParseInt(offset, 10, 64)
+		if err == nil {
+			return offsetValue
+		}
 		return kafka.FirstOffset
 	}
 }
