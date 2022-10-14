@@ -1,6 +1,6 @@
 # 🔥 Kafka C[r]onsumer 🔥
 
-# Description 📖
+## Description 📖
 
 Kafka Cronsumer is mainly used for retry/exception strategy management.
 It works based on cron expression and consumes messages in a timely manner
@@ -8,15 +8,15 @@ with the power of auto pause and concurrency configurations.
 
 [For details check our blog post]()
 
-# Architecture and How Kafka Cronsumer Works 💡
+## Architecture Overview 💡
 
 ![Architecture Overview](.github/images/architecture.png)
 
-# 🖥 Use cases
+## 🖥 Use cases
 
 TODO
 
-# Guide
+## Guide
 
 ### Installation 🧰
 
@@ -24,11 +24,11 @@ TODO
 TODO
 ```
 
-## Examples 🛠
+### Examples 🛠
 
 You can find a number of ready-to-run examples at [this directory](example).
 
-### Single Consumer
+#### Single Consumer
 
 ```go
 package main
@@ -57,7 +57,7 @@ func main() {
 }
 ```
 
-### Single Consumer With Dead Letter
+#### Single Consumer With Dead Letter
 
 ```go
 package main
@@ -87,7 +87,7 @@ func main() {
 }
 ```
 
-### Multiple Consumers
+#### Multiple Consumers
 
 ```go
 package main
@@ -131,7 +131,7 @@ func getConfig(configName string) *config.ApplicationConfig {
 }
 ```
 
-# Configs
+## Configs
 
 | config        | description                                                  | example                  |
 |---------------|--------------------------------------------------------------|--------------------------|
@@ -168,13 +168,13 @@ Please adhere to this project's `code of conduct`.
 
 [Contributor Code of Conduct](CODE-OF-CONDUCT.md). By participating in this project you agree to abide by its terms.
 
-# Libraries Used For This Project 💪
+## Libraries Used For This Project 💪
 
 ✅ [segmentio/kafka-go](https://github.com/segmentio/kafka-go)
 
 ✅ [robfig/cron](https://github.com/robfig/cron)
 
-# Additional References 🤘
+## Additional References 🤘
 
 ✅ [Kcat](https://github.com/edenhill/kcat)
 
