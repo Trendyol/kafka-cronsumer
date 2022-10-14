@@ -27,12 +27,12 @@ type kafkaHandler struct {
 	deadLetterTopic string
 }
 
-// NewKafkaHandlerWithDefaultLogging returns the newly created kafka handler instance.
+// NewKafkaCronsumer returns the newly created kafka handler instance.
 // config.KafkaConfig specifies cron, duration and so many parameters.
 // ConsumeFn describes how to consume messages from specified topic.
-// Zap used for default logging implementation
-func NewKafkaHandlerWithDefaultLogging(cfg config.KafkaConfig, c ConsumeFn) *KafkaHandlerScheduler {
-	logger := log.NewNoOp()
+// logLevel describes logging severity debug,info,warn and error.
+func NewKafkaCronsumer(cfg config.KafkaConfig, c ConsumeFn, logLevel log.Level) *KafkaHandlerScheduler {
+	logger := log.New(logLevel)
 
 	handler := &kafkaHandler{
 		paused:         false,
@@ -53,37 +53,11 @@ func NewKafkaHandlerWithDefaultLogging(cfg config.KafkaConfig, c ConsumeFn) *Kaf
 	return newKafkaHandlerScheduler(handler)
 }
 
-// NewKafkaHandlerWithNoLogging returns the newly created kafka handler instance.
-// config.KafkaConfig specifies cron, duration and so many parameters.
-// ConsumeFn describes how to consume messages from specified topic.
-// No logs printed.
-func NewKafkaHandlerWithNoLogging(cfg config.KafkaConfig, c ConsumeFn) *KafkaHandlerScheduler {
-	logger := log.New()
-
-	handler := &kafkaHandler{
-		paused:         false,
-		quitChannel:    make(chan bool),
-		messageChannel: make(chan model.Message),
-
-		kafkaConsumer: kafka.NewConsumer(cfg, logger),
-		kafkaProducer: kafka.NewProducer(cfg, logger),
-
-		consumeFn: c,
-
-		logger: logger,
-
-		maxRetry:        cfg.Consumer.MaxRetry,
-		deadLetterTopic: cfg.Consumer.DeadLetterTopic,
-	}
-
-	return newKafkaHandlerScheduler(handler)
-}
-
-// NewKafkaHandlerWithCustomLogging returns the newly created kafka handler instance.
+// NewKafkaCronsumerWithLogger returns the newly created kafka handler instance.
 // config.KafkaConfig specifies cron, duration and so many parameters.
 // ConsumeFn describes how to consume messages from specified topic.
 // logger describes log interface for injecting custom log implementation
-func NewKafkaHandlerWithCustomLogging(cfg config.KafkaConfig, c ConsumeFn, logger log.Logger) *KafkaHandlerScheduler {
+func NewKafkaCronsumerWithLogger(cfg config.KafkaConfig, c ConsumeFn, logger log.Logger) *KafkaHandlerScheduler {
 	handler := &kafkaHandler{
 		paused:         false,
 		quitChannel:    make(chan bool),

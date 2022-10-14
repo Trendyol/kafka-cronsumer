@@ -3,7 +3,15 @@ package log
 import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"os"
+)
+
+type Level string
+
+const (
+	DebugLevel Level = "debug"
+	InfoLevel  Level = "info"
+	WarnLevel  Level = "warn"
+	ErrorLevel Level = "error"
 )
 
 // Logger is a logger that supports log levels, context and structured logging.
@@ -15,10 +23,10 @@ type Logger interface {
 	Debug(args ...interface{})
 	// Info uses fmt.Sprint to construct and log a message at INFO level
 	Info(args ...interface{})
-	// Error uses fmt.Sprint to construct and log a message at ERROR level
-	Error(args ...interface{})
 	// Warn uses fmt.Sprint to construct and log a message at ERROR level
 	Warn(args ...interface{})
+	// Error uses fmt.Sprint to construct and log a message at ERROR level
+	Error(args ...interface{})
 
 	// Debugf uses fmt.Sprintf to construct and log a message at DEBUG level
 	Debugf(format string, args ...interface{})
@@ -38,8 +46,8 @@ type logger struct {
 	*zap.SugaredLogger
 }
 
-func New() Logger {
-	l, _ := newLogger()
+func New(logLevel Level) Logger {
+	l, _ := newLogger(logLevel)
 	return newWithZap(l)
 }
 
@@ -59,7 +67,7 @@ func (l *logger) With(args ...interface{}) Logger {
 	return l
 }
 
-func newLogger() (*zap.Logger, error) {
+func newLogger(logLevel Level) (*zap.Logger, error) {
 	encoderConfig := zapcore.EncoderConfig{
 		TimeKey:        "time",
 		LevelKey:       "level",
@@ -74,9 +82,10 @@ func newLogger() (*zap.Logger, error) {
 		EncodeDuration: zapcore.SecondsDurationEncoder,
 		EncodeCaller:   zapcore.ShortCallerEncoder,
 	}
+
 	// default log level is Info
 	level := zapcore.InfoLevel
-	_ = level.Set(os.Getenv("LOG_LEVEL"))
+	_ = level.Set(string(logLevel))
 
 	const initial = 100
 	config := zap.Config{

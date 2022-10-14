@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	kafka_cronsumer "kafka-cronsumer"
+	"kafka-cronsumer"
 	"kafka-cronsumer/internal/config"
+	"kafka-cronsumer/log"
 	"kafka-cronsumer/model"
 )
 
@@ -18,6 +19,6 @@ func main() {
 		return nil
 	}
 
-	handler := kafka_cronsumer.NewKafkaHandlerWithNoLogging(applicationConfig.Kafka, consumeFn)
-	handler.Run(applicationConfig.Kafka.Consumer)
+	cronsumer := kafka_cronsumer.NewKafkaCronsumer(applicationConfig.Kafka, consumeFn, log.DebugLevel)
+	cronsumer.Run(applicationConfig.Kafka.Consumer)
 }

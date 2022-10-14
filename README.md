@@ -2,15 +2,19 @@
 
 # Description 📖
 
-Kafka Cronsumer is mainly used for retry/exception strategy management. 
-It works based on cron expression and consumes messages in a timely manner 
+Kafka Cronsumer is mainly used for retry/exception strategy management.
+It works based on cron expression and consumes messages in a timely manner
 with the power of auto pause and concurrency configurations.
 
 [For details check our blog post]()
 
 # Architecture and How Kafka Cronsumer Works 💡
 
+![Architecture Overview](.github/images/architecture.png)
+
 # 🖥 Use cases
+
+TODO
 
 # Guide
 
@@ -31,8 +35,9 @@ package main
 
 import (
 	"fmt"
-	kafka_cronsumer "kafka-cronsumer"
+	"kafka-cronsumer"
 	"kafka-cronsumer/internal/config"
+	"kafka-cronsumer/log"
 	"kafka-cronsumer/model"
 )
 
@@ -47,8 +52,8 @@ func main() {
 		return nil
 	}
 
-	handler := kafka_cronsumer.NewKafkaHandler(applicationConfig.Kafka, consumeFn, true)
-	handler.Run(applicationConfig.Kafka.Consumer)
+	cronsumer := kafka_cronsumer.NewKafkaCronsumer(applicationConfig.Kafka, consumeFn, log.DebugLevel)
+	cronsumer.Run(applicationConfig.Kafka.Consumer)
 }
 ```
 
@@ -60,8 +65,9 @@ package main
 import (
 	"errors"
 	"fmt"
-	kafka_cronsumer "kafka-cronsumer"
+	"kafka-cronsumer"
 	"kafka-cronsumer/internal/config"
+	"kafka-cronsumer/log"
 	"kafka-cronsumer/model"
 )
 
@@ -76,8 +82,8 @@ func main() {
 		return errors.New("error occurred")
 	}
 
-	handler := kafka_cronsumer.NewKafkaHandler(applicationConfig.Kafka, consumeFn, true)
-	handler.Run(applicationConfig.Kafka.Consumer)
+	cronsumer := kafka_cronsumer.NewKafkaCronsumer(applicationConfig.Kafka, consumeFn, log.DebugLevel)
+	cronsumer.Run(applicationConfig.Kafka.Consumer)
 }
 ```
 
@@ -87,8 +93,9 @@ func main() {
 package main
 
 import (
-	kafka_cronsumer "kafka-cronsumer"
+	"kafka-cronsumer"
 	"kafka-cronsumer/internal/config"
+	"kafka-cronsumer/log"
 	"kafka-cronsumer/model"
 
 	"fmt"
@@ -100,7 +107,7 @@ func main() {
 		fmt.Printf("First Consumer > Message received: %s\n", string(message.Value))
 		return nil
 	}
-	firstHandler := kafka_cronsumer.NewKafkaHandler(first.Kafka, firstConsumerFn, true)
+	firstHandler := kafka_cronsumer.NewKafkaCronsumer(first.Kafka, firstConsumerFn, log.DebugLevel)
 	firstHandler.Start(first.Kafka.Consumer)
 
 	second := getConfig("config-2")
@@ -108,7 +115,7 @@ func main() {
 		fmt.Printf("Second Consumer > Message received: %s\n", string(message.Value))
 		return nil
 	}
-	secondHandler := kafka_cronsumer.NewKafkaHandler(second.Kafka, secondConsumerFn, true)
+	secondHandler := kafka_cronsumer.NewKafkaCronsumer(second.Kafka, secondConsumerFn, log.DebugLevel)
 	secondHandler.Start(first.Kafka.Consumer)
 
 	select {} // block main goroutine (we did to show it by on purpose)
@@ -126,7 +133,14 @@ func getConfig(configName string) *config.ApplicationConfig {
 
 # Configs
 
-TODO
+| config        | description                                                  | example                  |
+|---------------|--------------------------------------------------------------|--------------------------|
+| `cron`        | Cron expression when exception consumer starts to work at    | */1 * * * *              |
+| `duration`    | Work duration exception consumer actively consuming messages | 20s, 15m, 1h             |
+| `maxRetry`    | Maximum retry value for attempting to retry a message        | 3                        |
+| `concurrency` | Number of goroutines used at listeners                       | 1                        |
+| `topic`       | Exception topic names                                        | exception-topic          |
+| `groupId`     | Exception consumer group id                                  | exception-consumer-group |
 
 ## Contribute
 
@@ -143,10 +157,12 @@ TODO
     - Suggesting new features or enhancements
     - Improve/fix documentation
 
+Please adhere to this project's `code of conduct`.
+
 ## Users
 
-- [Abdulsamet İleri](https://github.com/Abdulsametileri) (Author)
-- [Emre Odabaş](https://github.com/emreodabas) (Author)
+- [@Abdulsametileri](https://github.com/Abdulsametileri) (Author)
+- [@emreodabas](https://github.com/emreodabas) (Author)
 
 ## Code of Conduct
 

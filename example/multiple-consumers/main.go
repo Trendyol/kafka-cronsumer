@@ -1,8 +1,9 @@
 package main
 
 import (
-	kafka_cronsumer "kafka-cronsumer"
+	"kafka-cronsumer"
 	"kafka-cronsumer/internal/config"
+	"kafka-cronsumer/log"
 	"kafka-cronsumer/model"
 
 	"fmt"
@@ -14,7 +15,7 @@ func main() {
 		fmt.Printf("First Consumer > Message received: %s\n", string(message.Value))
 		return nil
 	}
-	firstHandler := kafka_cronsumer.NewKafkaHandlerWithNoLogging(first.Kafka, firstConsumerFn)
+	firstHandler := kafka_cronsumer.NewKafkaCronsumer(first.Kafka, firstConsumerFn, log.DebugLevel)
 	firstHandler.Start(first.Kafka.Consumer)
 
 	second := getConfig("config-2")
@@ -22,7 +23,7 @@ func main() {
 		fmt.Printf("Second Consumer > Message received: %s\n", string(message.Value))
 		return nil
 	}
-	secondHandler := kafka_cronsumer.NewKafkaHandlerWithNoLogging(second.Kafka, secondConsumerFn)
+	secondHandler := kafka_cronsumer.NewKafkaCronsumer(second.Kafka, secondConsumerFn, log.DebugLevel)
 	secondHandler.Start(first.Kafka.Consumer)
 
 	select {} // block main goroutine (we did to show it by on purpose)

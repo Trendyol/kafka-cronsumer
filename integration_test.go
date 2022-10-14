@@ -40,9 +40,9 @@ func TestIntegration(t *testing.T) {
 			messageCh <- message
 			return nil
 		}
-		handler := NewKafkaHandlerWithDefaultLogging(kafkaConfig, consumeFn)
+		handler := NewKafkaCronsumer(kafkaConfig, consumeFn, log.DebugLevel)
 		handler.Start(kafkaConfig.Consumer)
-		producer := kafka.NewProducer(kafkaConfig, log.New())
+		producer := kafka.NewProducer(kafkaConfig, log.New(log.DebugLevel))
 
 		// When
 		err := producer.Produce(model.Message{
@@ -67,9 +67,9 @@ func TestIntegration(t *testing.T) {
 			messageCh <- message
 			return nil
 		}
-		handler := NewKafkaHandlerWithDefaultLogging(kafkaConfig, consumeFn)
+		handler := NewKafkaCronsumer(kafkaConfig, consumeFn, log.DebugLevel)
 		handler.Start(kafkaConfig.Consumer)
-		producer := kafka.NewProducer(kafkaConfig, log.New())
+		producer := kafka.NewProducer(kafkaConfig, log.New(log.DebugLevel))
 
 		// When
 		err := producer.Produce(model.Message{

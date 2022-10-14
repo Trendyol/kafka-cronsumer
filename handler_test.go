@@ -31,7 +31,7 @@ func Test_Listen(t *testing.T) {
 			quitChannel:    make(chan bool),
 			messageChannel: messageCh,
 			kafkaConsumer:  mConsumer,
-			logger:         log.New(),
+			logger:         log.New(log.DebugLevel),
 		}
 
 		// When
@@ -57,7 +57,7 @@ func Test_Listen(t *testing.T) {
 			messageChannel: messageCh,
 			kafkaConsumer:  mConsumer,
 			kafkaProducer:  mProducer,
-			logger:         log.New(),
+			logger:         log.New(log.DebugLevel),
 		}
 
 		// When
@@ -78,7 +78,7 @@ func Test_ProcessMessage(t *testing.T) {
 		expectedMsg := model.Message{Value: MessageIn}
 		handler := &kafkaHandler{
 			messageChannel: messageCh,
-			logger:         log.New(),
+			logger:         log.New(log.DebugLevel),
 			consumeFn: func(message model.Message) error {
 				consumeCh <- message
 				return nil
@@ -103,7 +103,7 @@ func Test_ProcessMessage(t *testing.T) {
 			messageChannel: messageCh,
 			kafkaProducer:  mProducer,
 			maxRetry:       3,
-			logger:         log.New(),
+			logger:         log.New(log.DebugLevel),
 			consumeFn: func(message model.Message) error {
 				return errors.New("error occurred")
 			},
@@ -126,7 +126,7 @@ func Test_ProcessMessage(t *testing.T) {
 		handler := &kafkaHandler{
 			messageChannel: messageCh,
 			kafkaProducer:  mProducer,
-			logger:         log.New(),
+			logger:         log.New(log.DebugLevel),
 			maxRetry:       3,
 			consumeFn: func(message model.Message) error {
 				return errors.New("error occurred")
