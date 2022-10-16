@@ -36,7 +36,7 @@ package main
 import (
   "fmt"
 
-  kcronsumer "github.com/Trendyol/kafka-cronsumer"
+  "github.com/Trendyol/kafka-cronsumer"
 )
 
 func main() {
@@ -64,7 +64,7 @@ import (
   "errors"
   "fmt"
 
-  kcronsumer "github.com/Trendyol/kafka-cronsumer"
+  "github.com/Trendyol/kafka-cronsumer"
 )
 
 func main() {
@@ -91,7 +91,7 @@ package main
 import (
   "fmt"
 
-  kcronsumer "github.com/Trendyol/kafka-cronsumer"
+  "github.com/Trendyol/kafka-cronsumer"
 )
 
 func main() {
