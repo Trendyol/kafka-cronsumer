@@ -1,9 +1,12 @@
-package kcronsumer
+package test
 
 import (
 	"context"
 	_ "embed"
 	"fmt"
+	kcronsumer "github.com/Trendyol/kafka-cronsumer"
+	"github.com/Trendyol/kafka-cronsumer/internal"
+	"github.com/Trendyol/kafka-cronsumer/model"
 	"net"
 	"testing"
 	"time"
@@ -34,17 +37,17 @@ func TestIntegration(t *testing.T) {
 	t.Run("Should_Consume_Message_Successfully", func(t *testing.T) {
 		// Given
 		kafkaConfig := getKafkaConfig(kafkaC.MappedPort, "topic1", "group1")
-		messageCh := make(chan Message)
-		var consumeFn ConsumeFn = func(message Message) error {
+		messageCh := make(chan model.Message)
+		var consumeFn kcronsumer.ConsumeFn = func(message model.Message) error {
 			messageCh <- message
 			return nil
 		}
-		handler := NewKafkaCronsumerScheduler(kafkaConfig, consumeFn, LogDebugLevel)
+		handler := kcronsumer.NewCronsumer(kafkaConfig, consumeFn)
 		handler.Start(kafkaConfig.Consumer)
-		producer := newProducer(kafkaConfig, newLog(LogDebugLevel))
+		producer := internal.NewProducer(kafkaConfig, internal.NewLogger(model.LogDebugLevel))
 
 		// When
-		err := producer.Produce(Message{
+		err := producer.Produce(&internal.Msg{
 			Topic: kafkaConfig.Consumer.Topic,
 			Value: MessageIn,
 		})
@@ -54,27 +57,26 @@ func TestIntegration(t *testing.T) {
 
 		// Then
 		arrivedMsg := <-messageCh
-		assert.Equal(t, arrivedMsg.Headers[0].Key, retryHeaderKey)
-		assert.Equal(t, arrivedMsg.Headers[0].Value, []byte("0"))
-		assert.Equal(t, arrivedMsg.Value, MessageIn)
+		assert.Equal(t, arrivedMsg.GetHeaders()[internal.RetryHeaderKey], []byte("0"))
+		assert.Equal(t, arrivedMsg.GetValue(), MessageIn)
 	})
 	t.Run("Should_Consume_Same_Message_Successfully", func(t *testing.T) {
 		// Given
 		kafkaConfig := getKafkaConfig(kafkaC.MappedPort, "topic2", "group2")
-		messageCh := make(chan Message)
-		var consumeFn ConsumeFn = func(message Message) error {
+		messageCh := make(chan model.Message)
+		var consumeFn kcronsumer.ConsumeFn = func(message model.Message) error {
 			messageCh <- message
 			return nil
 		}
-		handler := NewKafkaCronsumerScheduler(kafkaConfig, consumeFn, LogDebugLevel)
+		handler := kcronsumer.NewCronsumer(kafkaConfig, consumeFn)
 		handler.Start(kafkaConfig.Consumer)
-		producer := newProducer(kafkaConfig, newLog(LogDebugLevel))
+		producer := internal.NewProducer(kafkaConfig, internal.NewLogger(model.LogDebugLevel))
 
 		// When
-		err := producer.Produce(Message{
+		err := producer.Produce(&internal.Msg{
 			Topic: kafkaConfig.Consumer.Topic,
 			Headers: []protocol.Header{
-				{Key: retryHeaderKey, Value: []byte("1")},
+				{Key: internal.RetryHeaderKey, Value: []byte("1")},
 			},
 			Value: MessageIn,
 		})
@@ -84,9 +86,8 @@ func TestIntegration(t *testing.T) {
 
 		// Then
 		arrivedMsg := <-messageCh
-		assert.Equal(t, arrivedMsg.Headers[0].Key, retryHeaderKey)
-		assert.Equal(t, arrivedMsg.Headers[0].Value, []byte("2"))
-		assert.Equal(t, arrivedMsg.Value, MessageIn)
+		assert.Equal(t, arrivedMsg.GetHeaders()[internal.RetryHeaderKey], []byte("2"))
+		assert.Equal(t, arrivedMsg.GetValue(), MessageIn)
 	})
 }
 
@@ -139,12 +140,12 @@ func setupKafka(t *testing.T) (c Container, cleanUp func()) {
 	return c, cleanUp
 }
 
-func getKafkaConfig(mappedPort, topic, consumerGroup string) KafkaConfig {
-	return KafkaConfig{
+func getKafkaConfig(mappedPort, topic, consumerGroup string) *model.KafkaConfig {
+	return &model.KafkaConfig{
 		Brokers: []string{
 			"127.0.0.1" + ":" + mappedPort,
 		},
-		Consumer: ConsumerConfig{
+		Consumer: model.ConsumerConfig{
 			GroupID:     consumerGroup,
 			Topic:       topic,
 			MaxRetry:    3,

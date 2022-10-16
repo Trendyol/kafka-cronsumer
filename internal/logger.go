@@ -1,17 +1,9 @@
-package kcronsumer
+package internal
 
 import (
+	"github.com/Trendyol/kafka-cronsumer/model"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-)
-
-type Level string
-
-const (
-	LogDebugLevel Level = "debug"
-	LogInfoLevel  Level = "info"
-	LogWarnLevel  Level = "warn"
-	LogErrorLevel Level = "error"
 )
 
 // Logger is a logger that supports log levels, context and structured logging.
@@ -46,7 +38,7 @@ type logger struct {
 	*zap.SugaredLogger
 }
 
-func newLog(logLevel Level) Logger {
+func NewLogger(logLevel model.Level) Logger {
 	l, _ := newLogger(logLevel)
 	return newWithZap(l)
 }
@@ -62,7 +54,7 @@ func newWithZap(l *zap.Logger) Logger {
 	return &logger{l.Sugar()}
 }
 
-func newLogger(logLevel Level) (*zap.Logger, error) {
+func newLogger(logLevel model.Level) (*zap.Logger, error) {
 	encoderConfig := zapcore.EncoderConfig{
 		TimeKey:        "time",
 		LevelKey:       "level",

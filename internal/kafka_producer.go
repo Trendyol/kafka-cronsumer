@@ -1,14 +1,14 @@
-package kcronsumer
+package internal
 
 import (
 	"context"
-
+	"github.com/Trendyol/kafka-cronsumer/model"
 	"github.com/segmentio/kafka-go"
 )
 
 //go:generate mockery --name=producer --output=./ --filename=mock_kafka_producer.go --structname=mockProducer --inpackage
-type producer interface {
-	Produce(message Message) error
+type Producer interface {
+	Produce(message model.Message) error
 }
 
 type kafkaProducer struct {
@@ -24,8 +24,8 @@ automatically create a topic under the following circumstances:
 	• When any client requests metadata for the topic
 */
 
-func newProducer(kafkaConfig KafkaConfig, logger Logger) producer {
-	newProducer := &kafka.Writer{
+func NewProducer(kafkaConfig *model.KafkaConfig, logger Logger) *kafkaProducer {
+	producer := &kafka.Writer{
 		Addr:                   kafka.TCP(kafkaConfig.Brokers...),
 		Balancer:               &kafka.LeastBytes{},
 		BatchTimeout:           kafkaConfig.Producer.BatchTimeout,
@@ -34,11 +34,11 @@ func newProducer(kafkaConfig KafkaConfig, logger Logger) producer {
 	}
 
 	return &kafkaProducer{
-		w:      newProducer,
+		w:      producer,
 		logger: logger,
 	}
 }
 
-func (k *kafkaProducer) Produce(message Message) error {
-	return k.w.WriteMessages(context.Background(), message.to())
+func (k *kafkaProducer) Produce(message model.Message) error {
+	return k.w.WriteMessages(context.Background(), To(message))
 }

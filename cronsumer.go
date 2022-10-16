@@ -1,160 +1,84 @@
+// This package implements a topic management strategy which consumes messages with cron based manner.
+// It mainly created for exception/retry management.
 package kcronsumer
 
 import (
+	"github.com/Trendyol/kafka-cronsumer/internal"
+	"github.com/Trendyol/kafka-cronsumer/model"
 	"time"
+
+	gocron "github.com/robfig/cron/v3"
 )
 
-type kafkaCronsumer struct {
-	paused         bool
-	quitChannel    chan bool
-	messageChannel chan Message
+// ConsumeFn This function describes how to consume messages from specified topic
+type ConsumeFn func(message model.Message) error
 
-	kafkaConsumer consumer
-	kafkaProducer producer
-
-	logger Logger
-
-	consumeFn ConsumeFn
-
-	maxRetry        int
-	deadLetterTopic string
+type Cronsumer interface {
+	Start(cfg model.ConsumerConfig)
+	Run(cfg model.ConsumerConfig)
+	Stop()
 }
 
-func newKafkaCronsumer(cfg KafkaConfig, c ConsumeFn, logLevel Level) *kafkaCronsumer {
-	logger := newLog(logLevel)
-
-	handler := &kafkaCronsumer{
-		paused:         false,
-		quitChannel:    make(chan bool),
-		messageChannel: make(chan Message),
-
-		kafkaConsumer: newConsumer(cfg, logger),
-		kafkaProducer: newProducer(cfg, logger),
-
-		consumeFn: c,
-
-		logger: logger,
-
-		maxRetry:        cfg.Consumer.MaxRetry,
-		deadLetterTopic: cfg.Consumer.DeadLetterTopic,
-	}
-
-	return handler
+type cronsumer struct {
+	cron     *gocron.Cron
+	consumer internal.KafkaCronsumer
+	logger   internal.Logger
 }
 
-func newKafkaCronsumerWithLogger(cfg KafkaConfig, c ConsumeFn, logger Logger) *kafkaCronsumer {
-	return &kafkaCronsumer{
-		paused:         false,
-		quitChannel:    make(chan bool),
-		messageChannel: make(chan Message),
-
-		kafkaConsumer: newConsumer(cfg, logger),
-		kafkaProducer: newProducer(cfg, logger),
-
-		consumeFn: c,
-
-		logger: logger,
-
-		maxRetry:        cfg.Consumer.MaxRetry,
-		deadLetterTopic: cfg.Consumer.DeadLetterTopic,
+// NewKafkaCronsumer returns the newly created kafka consumer consumer instance.
+// config.KafkaConfig specifies cron, duration and so many parameters.
+// ConsumeFn describes how to consume messages from specified topic.
+// logLevel describes logging severity debug, info, warn and error.
+func NewCronsumer(cfg *model.KafkaConfig, c ConsumeFn) *cronsumer {
+	logger := internal.NewLogger(cfg.LogLevel)
+	consumer := internal.NewKafkaCronsumer(cfg, c, logger)
+	return &cronsumer{
+		cron:     gocron.New(),
+		consumer: consumer,
+		logger:   logger,
 	}
 }
 
-func (k *kafkaCronsumer) Start(concurrency int) {
-	k.Resume()
-	go k.Listen()
+// NewKafkaCronsumerSchedulerWithLogger returns the newly created kafka consumer consumer instance.
+// config.KafkaConfig specifies cron, duration and so many parameters.
+// ConsumeFn describes how to consume messages from specified topic.
+// logger describes log interface for injecting custom log implementation
+func NewCronsumerWithLogger(cfg *model.KafkaConfig, c ConsumeFn, logger internal.Logger) *cronsumer {
+	consumer := internal.NewKafkaCronsumerWithLogger(cfg, c, logger)
 
-	for i := 0; i < concurrency; i++ {
-		go k.processMessage()
+	return &cronsumer{
+		cron:     gocron.New(),
+		consumer: consumer,
+		logger:   logger,
 	}
 }
 
-func (k *kafkaCronsumer) Resume() {
-	k.messageChannel = make(chan Message)
-	k.paused = false
-	k.quitChannel = make(chan bool)
+func NewConfig(configPath, configName string) (*model.KafkaConfig, error) {
+	return model.NewConfig(configPath, configName)
 }
 
-func (k *kafkaCronsumer) Listen() {
-	startTime := time.Now()
-
-	for {
-		select {
-		case <-k.quitChannel:
-			return
-		default:
-			msg, err := k.kafkaConsumer.ReadMessage()
-			if err != nil {
-				continue
-			}
-
-			if msg.Time.Before(startTime) {
-				k.sendToMessageChannel(msg)
-			} else {
-				k.Pause()
-
-				// iterate message to next cron time if it already consumed&produced to the topic
-				msg.NextIterationMessage = true
-				if err := k.kafkaProducer.Produce(msg); err != nil {
-					k.logger.Errorf("Error sending next iteration message: %v", err)
-				}
-
-				return
-			}
-		}
-	}
+// Start starts the kafka consumer KafkaCronsumer with a new goroutine so its asynchronous operation (non-blocking)
+func (s *cronsumer) Start(cfg model.ConsumerConfig) {
+	_, _ = s.cron.AddFunc(cfg.Cron, func() {
+		s.logger.Info("Topic started at time: " + time.Now().String())
+		s.consumer.Start(cfg.Concurrency)
+		time.AfterFunc(cfg.Duration, s.consumer.Pause)
+	})
+	s.cron.Start()
 }
 
-func (k *kafkaCronsumer) Pause() {
-	if !k.paused {
-		k.logger.Info("Process Topic PAUSED")
-		close(k.messageChannel)
-		k.paused = true
-		k.quitChannel <- true
-	}
+// Run runs the kafka consumer KafkaCronsumer with the caller goroutine so its synchronous operation (blocking)
+func (s *cronsumer) Run(cfg model.ConsumerConfig) {
+	_, _ = s.cron.AddFunc(cfg.Cron, func() {
+		s.logger.Info("Topic started at time: " + time.Now().String())
+		s.consumer.Start(cfg.Concurrency)
+		time.AfterFunc(cfg.Duration, s.consumer.Pause)
+	})
+	s.cron.Run()
 }
 
-func (k *kafkaCronsumer) Stop() {
-	k.kafkaConsumer.Stop()
-}
-
-func (k *kafkaCronsumer) processMessage() {
-	for msg := range k.messageChannel {
-		if err := k.consumeFn(msg); err != nil {
-			k.produce(msg)
-		}
-	}
-}
-
-func (k *kafkaCronsumer) sendToMessageChannel(msg Message) {
-	defer k.recoverMessage(msg)
-	k.messageChannel <- msg
-}
-
-func (k *kafkaCronsumer) recoverMessage(msg Message) {
-	// sending message to closed channel panic could be occurred cause of concurrency for exception topic listeners
-	if r := recover(); r != nil {
-		k.logger.Warnf("Recovered message: %s", string(msg.Value))
-		k.produce(msg)
-	}
-}
-
-func (k *kafkaCronsumer) produce(msg Message) {
-	if msg.isExceedMaxRetryCount(k.maxRetry) {
-		k.logger.Errorf("Message exceeds to retry limit %d. message: %v", k.maxRetry, msg)
-		if k.isDeadLetterTopicFeatureEnabled() {
-			msg.changeMessageTopic(k.deadLetterTopic)
-			if err := k.kafkaProducer.Produce(msg); err != nil {
-				k.logger.Errorf("Error sending message to dead letter topic %v", err)
-			}
-		}
-		return
-	}
-	if err := k.kafkaProducer.Produce(msg); err != nil {
-		k.logger.Errorf("Error sending message to topic %v", err)
-	}
-}
-
-func (k *kafkaCronsumer) isDeadLetterTopicFeatureEnabled() bool {
-	return k.deadLetterTopic != ""
+// Stop stops the cron and kafka KafkaCronsumer consumer
+func (s *cronsumer) Stop() {
+	s.cron.Stop()
+	s.consumer.Stop()
 }
