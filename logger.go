@@ -1,4 +1,4 @@
-package log
+package kcronsumer
 
 import (
 	"go.uber.org/zap"
@@ -8,10 +8,10 @@ import (
 type Level string
 
 const (
-	DebugLevel Level = "debug"
-	InfoLevel  Level = "info"
-	WarnLevel  Level = "warn"
-	ErrorLevel Level = "error"
+	LogDebugLevel Level = "debug"
+	LogInfoLevel  Level = "info"
+	LogWarnLevel  Level = "warn"
+	LogErrorLevel Level = "error"
 )
 
 // Logger is a logger that supports log levels, context and structured logging.
@@ -46,18 +46,9 @@ type logger struct {
 	*zap.SugaredLogger
 }
 
-func New(logLevel Level) Logger {
+func newLog(logLevel Level) Logger {
 	l, _ := newLogger(logLevel)
 	return newWithZap(l)
-}
-
-func NewNoOp() Logger {
-	noOp := zap.NewNop()
-	return newWithZap(noOp)
-}
-
-func newWithZap(l *zap.Logger) Logger {
-	return &logger{l.Sugar()}
 }
 
 func (l *logger) With(args ...interface{}) Logger {
@@ -65,6 +56,10 @@ func (l *logger) With(args ...interface{}) Logger {
 		return &logger{l.SugaredLogger.With(args...)}
 	}
 	return l
+}
+
+func newWithZap(l *zap.Logger) Logger {
+	return &logger{l.Sugar()}
 }
 
 func newLogger(logLevel Level) (*zap.Logger, error) {

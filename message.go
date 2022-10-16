@@ -1,4 +1,4 @@
-package model
+package kcronsumer
 
 import (
 	"strconv"
@@ -9,7 +9,7 @@ import (
 	"github.com/segmentio/kafka-go/protocol"
 )
 
-const RetryHeaderKey = "x-retry-count"
+const retryHeaderKey = "x-retry-count"
 
 type Message struct {
 	NextIterationMessage bool
@@ -25,7 +25,7 @@ type Message struct {
 	Time time.Time
 }
 
-func From(message kafka.Message) Message {
+func from(message kafka.Message) Message {
 	return Message{
 		Topic:         message.Topic,
 		RetryCount:    getRetryCount(&message),
@@ -39,7 +39,7 @@ func From(message kafka.Message) Message {
 	}
 }
 
-func (m *Message) To() kafka.Message {
+func (m *Message) to() kafka.Message {
 	if !m.NextIterationMessage {
 		m.increaseRetryCount()
 	}
@@ -52,17 +52,28 @@ func (m *Message) To() kafka.Message {
 	}
 }
 
-func (m *Message) IsExceedMaxRetryCount(maxRetry int) bool {
+func (m *Message) isExceedMaxRetryCount(maxRetry int) bool {
 	return m.RetryCount > maxRetry
 }
 
-func (m *Message) ChangeMessageTopic(topic string) {
+func (m *Message) changeMessageTopic(topic string) {
 	m.Topic = topic
+}
+
+func (m *Message) increaseRetryCount() {
+	for i := range m.Headers {
+		if m.Headers[i].Key == retryHeaderKey {
+			byteToStr := *((*string)(unsafe.Pointer(&m.Headers[i].Value)))
+			retry, _ := strconv.Atoi(byteToStr)
+			x := strconv.Itoa(retry + 1)
+			m.Headers[i].Value = []byte(x)
+		}
+	}
 }
 
 func getRetryCount(message *kafka.Message) int {
 	for i := range message.Headers {
-		if message.Headers[i].Key != RetryHeaderKey {
+		if message.Headers[i].Key != retryHeaderKey {
 			continue
 		}
 
@@ -71,20 +82,9 @@ func getRetryCount(message *kafka.Message) int {
 	}
 
 	message.Headers = append(message.Headers, kafka.Header{
-		Key:   RetryHeaderKey,
+		Key:   retryHeaderKey,
 		Value: []byte("0"),
 	})
 
 	return 0
-}
-
-func (m *Message) increaseRetryCount() {
-	for i := range m.Headers {
-		if m.Headers[i].Key == RetryHeaderKey {
-			byteToStr := *((*string)(unsafe.Pointer(&m.Headers[i].Value)))
-			retry, _ := strconv.Atoi(byteToStr)
-			x := strconv.Itoa(retry + 1)
-			m.Headers[i].Value = []byte(x)
-		}
-	}
 }

@@ -1,33 +1,30 @@
-package kafka
+package kcronsumer
 
 import (
 	"context"
-	"kafka-cronsumer/internal/config"
-	"kafka-cronsumer/log"
-	"kafka-cronsumer/model"
 
 	"github.com/segmentio/kafka-go"
 )
 
-//go:generate mockery --name=Producer --output=./.mocks
-type Producer interface {
-	Produce(message model.Message) error
+//go:generate mockery --name=producer --output=./ --filename=mock_kafka_producer.go --structname=mockProducer --inpackage
+type producer interface {
+	Produce(message Message) error
 }
 
-type producer struct {
+type kafkaProducer struct {
 	w      *kafka.Writer
-	logger log.Logger
+	logger Logger
 }
 
 /*
 Allow Auto Topic Creation: The default Kafka configuration specifies that the broker should
 automatically create a topic under the following circumstances:
-	• When a producer starts writing messages to the topic
-	• When a consumer starts reading messages from the topic
+	• When a kafkaProducer starts writing messages to the topic
+	• When a kafkaConsumer starts reading messages from the topic
 	• When any client requests metadata for the topic
 */
 
-func NewProducer(kafkaConfig config.KafkaConfig, logger log.Logger) Producer {
+func newProducer(kafkaConfig KafkaConfig, logger Logger) producer {
 	newProducer := &kafka.Writer{
 		Addr:                   kafka.TCP(kafkaConfig.Brokers...),
 		Balancer:               &kafka.LeastBytes{},
@@ -36,12 +33,12 @@ func NewProducer(kafkaConfig config.KafkaConfig, logger log.Logger) Producer {
 		AllowAutoTopicCreation: true,
 	}
 
-	return &producer{
+	return &kafkaProducer{
 		w:      newProducer,
 		logger: logger,
 	}
 }
 
-func (k *producer) Produce(message model.Message) error {
-	return k.w.WriteMessages(context.Background(), message.To())
+func (k *kafkaProducer) Produce(message Message) error {
+	return k.w.WriteMessages(context.Background(), message.to())
 }

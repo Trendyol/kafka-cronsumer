@@ -8,9 +8,9 @@ with the power of auto pause and concurrency configurations.
 
 [For details check our blog post]()
 
-## Architecture Overview 💡
+## How Kafka Cronsumer Works 💡
 
-![Architecture Overview](.github/images/architecture.png)
+![How Kafka Cronsumer Works](.github/images/architecture.png)
 
 ## 🖥 Use cases
 
@@ -35,10 +35,10 @@ package main
 
 import (
 	"fmt"
-	"kafka-cronsumer"
-	"kafka-cronsumer/internal/config"
-	"kafka-cronsumer/log"
-	"kafka-cronsumer/model"
+	"github.com/Trendyol/kafka-cronsumer"
+	"github.com/Trendyol/kafka-cronsumer/internal/config"
+	"github.com/Trendyol/kafka-cronsumer/log"
+	"github.com/Trendyol/kafka-cronsumer/internal/model"
 )
 
 func main() {
@@ -65,10 +65,10 @@ package main
 import (
 	"errors"
 	"fmt"
-	"kafka-cronsumer"
-	"kafka-cronsumer/internal/config"
-	"kafka-cronsumer/log"
-	"kafka-cronsumer/model"
+	"github.com/Trendyol/kafka-cronsumer"
+	"github.com/Trendyol/kafka-cronsumer/internal/config"
+	"github.com/Trendyol/kafka-cronsumer/log"
+	"github.com/Trendyol/kafka-cronsumer/internal/model"
 )
 
 func main() {
@@ -93,10 +93,10 @@ func main() {
 package main
 
 import (
-	"kafka-cronsumer"
-	"kafka-cronsumer/internal/config"
-	"kafka-cronsumer/log"
-	"kafka-cronsumer/model"
+	"github.com/Trendyol/kafka-cronsumer"
+	"github.com/Trendyol/kafka-cronsumer/internal/config"
+	"github.com/Trendyol/kafka-cronsumer/log"
+	"github.com/Trendyol/kafka-cronsumer/internal/model"
 
 	"fmt"
 )
@@ -133,14 +133,25 @@ func getConfig(configName string) *config.ApplicationConfig {
 
 ## Configs
 
-| config        | description                                                  | example                  |
-|---------------|--------------------------------------------------------------|--------------------------|
-| `cron`        | Cron expression when exception consumer starts to work at    | */1 * * * *              |
-| `duration`    | Work duration exception consumer actively consuming messages | 20s, 15m, 1h             |
-| `maxRetry`    | Maximum retry value for attempting to retry a message        | 3                        |
-| `concurrency` | Number of goroutines used at listeners                       | 1                        |
-| `topic`       | Exception topic names                                        | exception-topic          |
-| `groupId`     | Exception consumer group id                                  | exception-consumer-group |
+| config                             | description                                                                                        | default  | example                  |
+|------------------------------------|----------------------------------------------------------------------------------------------------|----------|--------------------------|
+| `cron`                             | Cron expression when exception consumer starts to work at                                          |          | */1 * * * *              |
+| `duration`                         | Work duration exception consumer actively consuming messages                                       |          | 20s, 15m, 1h             |
+| `maxRetry`                         | Maximum retry value for attempting to retry a message                                              |          | 3                        |
+| `concurrency`                      | Number of goroutines used at listeners                                                             |          | 1                        |
+| `topic`                            | Exception topic names                                                                              |          | exception-topic          |
+| `groupId`                          | Exception consumer group id                                                                        |          | exception-consumer-group |
+| `kafka.consumer.minBytes`          | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.32#ReaderConfig.MinBytes)          | 10e3     |                          |
+| `kafka.consumer.maxBytes`          | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.32#ReaderConfig.MaxBytes)          | 10e6     |                          |
+| `kafka.consumer.maxWait`           | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.32#ReaderConfig.MaxWait)           | 2s       |                          |
+| `kafka.consumer.commitInterval`    | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.32#ReaderConfig.CommitInterval)    | 1s       |                          |
+| `kafka.consumer.heartbeatInterval` | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.32#ReaderConfig.HeartbeatInterval) | 3s       |                          |
+| `kafka.consumer.sessionTimeout`    | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.32#ReaderConfig.SessionTimeout)    | 30s      |                          |
+| `kafka.consumer.rebalanceTimeout`  | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.32#ReaderConfig.RebalanceTimeout)  | 30s      |                          |
+| `kafka.consumer.startOffset`       | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.32#ReaderConfig.StartOffset)       | earliest |                          |
+| `kafka.consumer.retentionTime`     | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.32#ReaderConfig.RetentionTime)     | 24h      |                          |
+| `kafka.producer.batchSize`         | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.32#Writer.BatchSize)               | 100      |                          |
+| `kafka.producer.batchTimeout`      | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.32#Writer.BatchTimeout)            | 500us    |                          |
 
 ## Contribute
 

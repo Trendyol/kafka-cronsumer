@@ -1,4 +1,4 @@
-package model
+package kcronsumer
 
 import (
 	_ "embed"
@@ -16,7 +16,7 @@ func Test_increaseRetryCount(t *testing.T) {
 		Topic:      "exception",
 		RetryCount: 1,
 		Headers: []protocol.Header{
-			{Key: RetryHeaderKey, Value: []byte("1")},
+			{Key: retryHeaderKey, Value: []byte("1")},
 		},
 	}
 
@@ -60,7 +60,7 @@ func Test_getRetryCount(t *testing.T) {
 		// Given
 		km := &kafka.Message{
 			Headers: []protocol.Header{
-				{Key: RetryHeaderKey, Value: []byte("2")},
+				{Key: retryHeaderKey, Value: []byte("2")},
 			},
 		}
 

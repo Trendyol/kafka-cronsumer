@@ -1,4 +1,4 @@
-module kafka-cronsumer
+module github.com/Trendyol/kafka-cronsumer
 
 go 1.19
 

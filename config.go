@@ -1,4 +1,4 @@
-package config
+package kcronsumer
 
 import (
 	"time"
@@ -41,7 +41,7 @@ type ProducerConfig struct {
 	BatchTimeout time.Duration
 }
 
-func New(configPath, configName string) (*ApplicationConfig, error) {
+func NewConfig(configPath, configName string) (*ApplicationConfig, error) {
 	configuration := ApplicationConfig{}
 
 	v := viper.New()
@@ -67,20 +67,20 @@ func setDefaults(v *viper.Viper) {
 }
 
 func setKafkaConsumerDefaults(v *viper.Viper) {
-	v.SetDefault("kafka.consumer.minBytes", 10e3)
-	v.SetDefault("kafka.consumer.maxBytes", 10e6)
-	v.SetDefault("kafka.consumer.maxWait", "2s")
-	v.SetDefault("kafka.consumer.commitInterval", "1s")
-	v.SetDefault("kafka.consumer.heartbeatInterval", "3s")
-	v.SetDefault("kafka.consumer.sessionTimeout", "30s")
-	v.SetDefault("kafka.consumer.rebalanceTimeout", "30s")
-	v.SetDefault("kafka.consumer.startOffset", "earliest")
-	v.SetDefault("kafka.consumer.retentionTime", "24h")
+	v.SetDefault("kafka.kafkaConsumer.minBytes", 10e3)
+	v.SetDefault("kafka.kafkaConsumer.maxBytes", 10e6)
+	v.SetDefault("kafka.kafkaConsumer.maxWait", "2s")
+	v.SetDefault("kafka.kafkaConsumer.commitInterval", "1s")
+	v.SetDefault("kafka.kafkaConsumer.heartbeatInterval", "3s")
+	v.SetDefault("kafka.kafkaConsumer.sessionTimeout", "30s")
+	v.SetDefault("kafka.kafkaConsumer.rebalanceTimeout", "30s")
+	v.SetDefault("kafka.kafkaConsumer.startOffset", "earliest")
+	v.SetDefault("kafka.kafkaConsumer.retentionTime", "24h")
 }
 
 func setKafkaProducerDefaults(v *viper.Viper) {
-	v.SetDefault("kafka.producer.batchSize", 100)
-	v.SetDefault("kafka.producer.batchTimeout", "500us")
+	v.SetDefault("kafka.kafkaProducer.batchSize", 100)
+	v.SetDefault("kafka.kafkaProducer.batchTimeout", "500us")
 }
 
 func (c *ApplicationConfig) Print() {
