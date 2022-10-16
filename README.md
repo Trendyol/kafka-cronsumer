@@ -178,12 +178,24 @@ Please adhere to this project's `code of conduct`.
 
 ✅ [robfig/cron](https://github.com/robfig/cron)
 
+✅ [spf13/viper](github.com/spf13/viper)
+
+✅ [uber-go/zap](https://github.com/uber-go/zap)
+
+✅ [vektra/mockery](https://github.com/vektra/mockery)
+
+✅ [stretchr/testify](github.com/stretchr/testify)
+
+✅ [testcontainers/testcontainers-go](https://github.com/testcontainers/testcontainers-go)
+
 ## Additional References 🤘
 
 ✅ [Kcat](https://github.com/edenhill/kcat)
 
 ✅ [jq](https://stedolan.github.io/jq/)
 
-✅ [Golangci Lint](https://github.com/golangci/golangci-lint)
+✅ [golangci-lint](https://github.com/golangci/golangci-lint)
 
 ✅ [Kafka Console Producer](https://kafka.apache.org/quickstart)
+
+✅ [redpanda](https://github.com/redpanda-data/redpanda)

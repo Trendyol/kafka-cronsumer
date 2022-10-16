@@ -1,9 +1,9 @@
 package kcronsumer
 
 import (
+	"fmt"
 	"time"
 
-	"github.com/k0kubun/pp"
 	"github.com/spf13/viper"
 )
 
@@ -84,5 +84,5 @@ func setKafkaProducerDefaults(v *viper.Viper) {
 }
 
 func (c *ApplicationConfig) Print() {
-	pp.Println(c)
+	fmt.Printf("%#v\n", c)
 }

@@ -4,7 +4,6 @@ go 1.19
 
 require (
 	github.com/docker/go-connections v0.4.0
-	github.com/k0kubun/pp v3.0.1+incompatible
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/segmentio/kafka-go v0.4.32
 	github.com/spf13/viper v1.12.0
