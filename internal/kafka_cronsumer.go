@@ -1,8 +1,9 @@
 package internal
 
 import (
-	"github.com/Trendyol/kafka-cronsumer/model"
 	"time"
+
+	"github.com/Trendyol/kafka-cronsumer/model"
 )
 
 type KafkaCronsumer interface {
@@ -27,7 +28,7 @@ type kafkaCronsumer struct {
 	deadLetterTopic string
 }
 
-func NewKafkaCronsumer(cfg *model.KafkaConfig, c func(message model.Message) error, logger Logger) *kafkaCronsumer {
+func NewKafkaCronsumer(cfg *model.KafkaConfig, c func(message model.Message) error, logger Logger) KafkaCronsumer {
 	handler := &kafkaCronsumer{
 		paused:         false,
 		quitChannel:    make(chan bool),
@@ -47,7 +48,7 @@ func NewKafkaCronsumer(cfg *model.KafkaConfig, c func(message model.Message) err
 	return handler
 }
 
-func NewKafkaCronsumerWithLogger(cfg *model.KafkaConfig, c func(message model.Message) error, logger Logger) *kafkaCronsumer {
+func NewKafkaCronsumerWithLogger(cfg *model.KafkaConfig, c func(message model.Message) error, logger Logger) KafkaCronsumer {
 	return &kafkaCronsumer{
 		paused:         false,
 		quitChannel:    make(chan bool),

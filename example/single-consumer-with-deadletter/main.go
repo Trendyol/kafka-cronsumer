@@ -3,7 +3,8 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/Trendyol/kafka-cronsumer"
+
+	kcronsumer "github.com/Trendyol/kafka-cronsumer"
 	"github.com/Trendyol/kafka-cronsumer/model"
 )
 

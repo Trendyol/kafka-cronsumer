@@ -2,8 +2,9 @@ package model
 
 import (
 	"fmt"
-	"github.com/spf13/viper"
 	"time"
+
+	"github.com/spf13/viper"
 )
 
 type Level string

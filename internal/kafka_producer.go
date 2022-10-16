@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+
 	"github.com/Trendyol/kafka-cronsumer/model"
 	"github.com/segmentio/kafka-go"
 )
@@ -24,7 +25,7 @@ automatically create a topic under the following circumstances:
 	• When any client requests metadata for the topic
 */
 
-func NewProducer(kafkaConfig *model.KafkaConfig, logger Logger) *kafkaProducer {
+func NewProducer(kafkaConfig *model.KafkaConfig, logger Logger) Producer {
 	producer := &kafka.Writer{
 		Addr:                   kafka.TCP(kafkaConfig.Brokers...),
 		Balancer:               &kafka.LeastBytes{},

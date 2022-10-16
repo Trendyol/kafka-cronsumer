@@ -4,12 +4,13 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	kcronsumer "github.com/Trendyol/kafka-cronsumer"
-	"github.com/Trendyol/kafka-cronsumer/internal"
-	"github.com/Trendyol/kafka-cronsumer/model"
 	"net"
 	"testing"
 	"time"
+
+	kcronsumer "github.com/Trendyol/kafka-cronsumer"
+	"github.com/Trendyol/kafka-cronsumer/internal"
+	"github.com/Trendyol/kafka-cronsumer/model"
 
 	"github.com/docker/go-connections/nat"
 	"github.com/segmentio/kafka-go/protocol"

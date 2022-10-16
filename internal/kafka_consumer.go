@@ -3,9 +3,10 @@ package internal
 import (
 	"context"
 	"errors"
-	"github.com/Trendyol/kafka-cronsumer/model"
 	"io"
 	"strconv"
+
+	"github.com/Trendyol/kafka-cronsumer/model"
 
 	"github.com/segmentio/kafka-go"
 )

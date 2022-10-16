@@ -1,16 +1,17 @@
 package internal
 
 import (
-	"github.com/Trendyol/kafka-cronsumer/model"
-	"github.com/segmentio/kafka-go"
-	"github.com/segmentio/kafka-go/protocol"
 	"strconv"
 	"time"
 	"unsafe"
+
+	"github.com/Trendyol/kafka-cronsumer/model"
+	"github.com/segmentio/kafka-go"
+	"github.com/segmentio/kafka-go/protocol"
 )
 
 type Msg struct {
-	NextIterationMessage bool //TODO why we add this ??
+	NextIterationMessage bool // TODO why we add this ??
 	Topic                string
 	RetryCount           int
 	Partition            int

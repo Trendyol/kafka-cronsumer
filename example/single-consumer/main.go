@@ -2,7 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/Trendyol/kafka-cronsumer"
+
+	kcronsumer "github.com/Trendyol/kafka-cronsumer"
 	"github.com/Trendyol/kafka-cronsumer/model"
 )
 

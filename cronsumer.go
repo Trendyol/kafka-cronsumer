@@ -3,9 +3,10 @@
 package kcronsumer
 
 import (
+	"time"
+
 	"github.com/Trendyol/kafka-cronsumer/internal"
 	"github.com/Trendyol/kafka-cronsumer/model"
-	"time"
 
 	gocron "github.com/robfig/cron/v3"
 )
@@ -29,7 +30,7 @@ type cronsumer struct {
 // config.KafkaConfig specifies cron, duration and so many parameters.
 // ConsumeFn describes how to consume messages from specified topic.
 // logLevel describes logging severity debug, info, warn and error.
-func NewCronsumer(cfg *model.KafkaConfig, c ConsumeFn) *cronsumer {
+func NewCronsumer(cfg *model.KafkaConfig, c ConsumeFn) Cronsumer {
 	logger := internal.NewLogger(cfg.LogLevel)
 	consumer := internal.NewKafkaCronsumer(cfg, c, logger)
 	return &cronsumer{
@@ -43,7 +44,7 @@ func NewCronsumer(cfg *model.KafkaConfig, c ConsumeFn) *cronsumer {
 // config.KafkaConfig specifies cron, duration and so many parameters.
 // ConsumeFn describes how to consume messages from specified topic.
 // logger describes log interface for injecting custom log implementation
-func NewCronsumerWithLogger(cfg *model.KafkaConfig, c ConsumeFn, logger internal.Logger) *cronsumer {
+func NewCronsumerWithLogger(cfg *model.KafkaConfig, c ConsumeFn, logger internal.Logger) Cronsumer {
 	consumer := internal.NewKafkaCronsumerWithLogger(cfg, c, logger)
 
 	return &cronsumer{
