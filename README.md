@@ -34,26 +34,24 @@ You can find a number of ready-to-run examples at [this directory](example).
 package main
 
 import (
-	"fmt"
-	"github.com/Trendyol/kafka-cronsumer"
-	"github.com/Trendyol/kafka-cronsumer/internal/config"
-	"github.com/Trendyol/kafka-cronsumer/log"
-	"github.com/Trendyol/kafka-cronsumer/internal/model"
+  "fmt"
+
+  kcronsumer "github.com/Trendyol/kafka-cronsumer"
 )
 
 func main() {
-	applicationConfig, err := config.New("./example/single-consumer", "config")
-	if err != nil {
-		panic("application config read failed: " + err.Error())
-	}
+  applicationConfig, err := kcronsumer.NewConfig("./example/single-consumer", "config")
+  if err != nil {
+    panic("application config read failed: " + err.Error())
+  }
 
-	var consumeFn kafka_cronsumer.ConsumeFn = func(message model.Message) error {
-		fmt.Printf("Consumer > Message received: %s\n", string(message.Value))
-		return nil
-	}
+  var consumeFn kcronsumer.ConsumeFn = func(message kcronsumer.Message) error {
+    fmt.Printf("consumer > Message received: %s\n", string(message.Value))
+    return nil
+  }
 
-	cronsumer := kafka_cronsumer.NewKafkaCronsumer(applicationConfig.Kafka, consumeFn, log.DebugLevel)
-	cronsumer.Run(applicationConfig.Kafka.Consumer)
+  cronsumer := kcronsumer.NewKafkaCronsumerScheduler(applicationConfig.Kafka, consumeFn, kcronsumer.LogDebugLevel)
+  cronsumer.Run(applicationConfig.Kafka.Consumer)
 }
 ```
 
@@ -63,27 +61,25 @@ func main() {
 package main
 
 import (
-	"errors"
-	"fmt"
-	"github.com/Trendyol/kafka-cronsumer"
-	"github.com/Trendyol/kafka-cronsumer/internal/config"
-	"github.com/Trendyol/kafka-cronsumer/log"
-	"github.com/Trendyol/kafka-cronsumer/internal/model"
+  "errors"
+  "fmt"
+
+  kcronsumer "github.com/Trendyol/kafka-cronsumer"
 )
 
 func main() {
-	applicationConfig, err := config.New("./example/single-consumer-with-deadletter", "config")
-	if err != nil {
-		panic("application config read failed: " + err.Error())
-	}
+  applicationConfig, err := kcronsumer.NewConfig("./example/single-consumer-with-deadletter", "config")
+  if err != nil {
+    panic("application config read failed: " + err.Error())
+  }
 
-	var consumeFn kafka_cronsumer.ConsumeFn = func(message model.Message) error {
-		fmt.Printf("Consumer > Message received: %s\n", string(message.Value))
-		return errors.New("error occurred")
-	}
+  var consumeFn kcronsumer.ConsumeFn = func(message kcronsumer.Message) error {
+    fmt.Printf("consumer > Message received: %s\n", string(message.Value))
+    return errors.New("error occurred")
+  }
 
-	cronsumer := kafka_cronsumer.NewKafkaCronsumer(applicationConfig.Kafka, consumeFn, log.DebugLevel)
-	cronsumer.Run(applicationConfig.Kafka.Consumer)
+  cronsumer := kcronsumer.NewKafkaCronsumerScheduler(applicationConfig.Kafka, consumeFn, kcronsumer.LogDebugLevel)
+  cronsumer.Run(applicationConfig.Kafka.Consumer)
 }
 ```
 
@@ -93,41 +89,38 @@ func main() {
 package main
 
 import (
-	"github.com/Trendyol/kafka-cronsumer"
-	"github.com/Trendyol/kafka-cronsumer/internal/config"
-	"github.com/Trendyol/kafka-cronsumer/log"
-	"github.com/Trendyol/kafka-cronsumer/internal/model"
+  "fmt"
 
-	"fmt"
+  kcronsumer "github.com/Trendyol/kafka-cronsumer"
 )
 
 func main() {
-	first := getConfig("config-1")
-	var firstConsumerFn kafka_cronsumer.ConsumeFn = func(message model.Message) error {
-		fmt.Printf("First Consumer > Message received: %s\n", string(message.Value))
-		return nil
-	}
-	firstHandler := kafka_cronsumer.NewKafkaCronsumer(first.Kafka, firstConsumerFn, log.DebugLevel)
-	firstHandler.Start(first.Kafka.Consumer)
+  first := getConfig("config-1")
+  var firstConsumerFn kcronsumer.ConsumeFn = func(message kcronsumer.Message) error {
+    fmt.Printf("First consumer > Message received: %s\n", string(message.Value))
+    return nil
+  }
+  firstHandler := kcronsumer.NewKafkaCronsumerScheduler(first.Kafka, firstConsumerFn, kcronsumer.LogDebugLevel)
+  firstHandler.Start(first.Kafka.Consumer)
 
-	second := getConfig("config-2")
-	var secondConsumerFn kafka_cronsumer.ConsumeFn = func(message model.Message) error {
-		fmt.Printf("Second Consumer > Message received: %s\n", string(message.Value))
-		return nil
-	}
-	secondHandler := kafka_cronsumer.NewKafkaCronsumer(second.Kafka, secondConsumerFn, log.DebugLevel)
-	secondHandler.Start(first.Kafka.Consumer)
+  second := getConfig("config-2")
+  var secondConsumerFn kcronsumer.ConsumeFn = func(message kcronsumer.Message) error {
+    fmt.Printf("Second consumer > Message received: %s\n", string(message.Value))
+    return nil
+  }
+  secondHandler := kcronsumer.NewKafkaCronsumerScheduler(second.Kafka, secondConsumerFn, kcronsumer.LogDebugLevel)
+  secondHandler.Start(first.Kafka.Consumer)
 
-	select {} // block main goroutine (we did to show it by on purpose)
+  select {} // block main goroutine (we did to show it by on purpose)
 }
 
-func getConfig(configName string) *config.ApplicationConfig {
-	cfg, err := config.New("./example/multiple-consumers", configName)
-	if err != nil {
-		panic("application config read failed: " + err.Error())
-	}
-	cfg.Print()
-	return cfg
+func getConfig(configName string) *kcronsumer.ApplicationConfig {
+  cfg, err := kcronsumer.NewConfig("./example/multiple-consumers", configName)
+  if err != nil {
+    panic("application config read failed: " + err.Error())
+  }
+  cfg.Print()
+  return cfg
 }
 ```
 
