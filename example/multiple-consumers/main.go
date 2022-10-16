@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/Trendyol/kafka-cronsumer"
+	kcronsumer "github.com/Trendyol/kafka-cronsumer"
 )
 
 func main() {

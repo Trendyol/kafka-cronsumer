@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/Trendyol/kafka-cronsumer"
+	kcronsumer "github.com/Trendyol/kafka-cronsumer"
 )
 
 func main() {
