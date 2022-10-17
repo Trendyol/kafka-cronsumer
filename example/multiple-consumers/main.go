@@ -32,6 +32,5 @@ func getConfig(configName string) *model.KafkaConfig {
 	if err != nil {
 		panic("application config read failed: " + err.Error())
 	}
-	cfg.Print()
 	return cfg
 }
