@@ -1,10 +1,11 @@
 package internal
 
 import (
-	"github.com/Trendyol/kafka-cronsumer/model"
 	"strconv"
 	"time"
 	"unsafe"
+
+	"github.com/Trendyol/kafka-cronsumer/model"
 
 	"github.com/segmentio/kafka-go"
 )
@@ -33,7 +34,6 @@ func newMessage(msg kafka.Message) KafkaMessage {
 }
 
 func (m *KafkaMessage) To(increaseRetry bool) kafka.Message {
-
 	if increaseRetry {
 		m.IncreaseRetryCount()
 	}

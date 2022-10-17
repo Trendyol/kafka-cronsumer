@@ -1,8 +1,9 @@
 package model
 
 import (
-	"github.com/segmentio/kafka-go/protocol"
 	"time"
+
+	"github.com/segmentio/kafka-go/protocol"
 )
 
 type Message struct {

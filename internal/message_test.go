@@ -2,9 +2,10 @@ package internal
 
 import (
 	_ "embed"
-	"github.com/Trendyol/kafka-cronsumer/model"
 	"strconv"
 	"testing"
+
+	"github.com/Trendyol/kafka-cronsumer/model"
 
 	"github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/protocol"

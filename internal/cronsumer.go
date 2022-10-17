@@ -1,10 +1,17 @@
 package internal
 
 import (
+	"time"
+
 	"github.com/Trendyol/kafka-cronsumer/model"
 	gocron "github.com/robfig/cron/v3"
-	"time"
 )
+
+type Cronsumer interface {
+	Start(cfg model.ConsumerConfig)
+	Run(cfg model.ConsumerConfig)
+	Stop()
+}
 
 type cronsumer struct {
 	cron     *gocron.Cron
@@ -12,7 +19,7 @@ type cronsumer struct {
 	logger   model.Logger
 }
 
-func NewCronsumer(cfg *model.KafkaConfig, c func(message model.Message) error) *cronsumer {
+func NewCronsumer(cfg *model.KafkaConfig, c func(message model.Message) error) Cronsumer {
 	l := Logger(cfg.LogLevel)
 	consumer := NewKafkaCronsumer(cfg, c, l)
 	return &cronsumer{
@@ -22,7 +29,7 @@ func NewCronsumer(cfg *model.KafkaConfig, c func(message model.Message) error) *
 	}
 }
 
-func NewCronsumerWithLogger(cfg *model.KafkaConfig, c func(m model.Message) error, l model.Logger) *cronsumer {
+func NewCronsumerWithLogger(cfg *model.KafkaConfig, c func(m model.Message) error, l model.Logger) Cronsumer {
 	consumer := NewKafkaCronsumerWithLogger(cfg, c, l)
 
 	return &cronsumer{
