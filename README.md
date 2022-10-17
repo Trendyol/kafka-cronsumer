@@ -37,21 +37,22 @@ import (
   "fmt"
 
   "github.com/Trendyol/kafka-cronsumer"
+  "github.com/Trendyol/kafka-cronsumer/model"
 )
 
 func main() {
-  applicationConfig, err := kcronsumer.NewConfig("./example/single-consumer", "config")
+  kafkaConfig, err := kcronsumer.NewConfig("./example/single-consumer", "config")
   if err != nil {
     panic("application config read failed: " + err.Error())
   }
 
-  var consumeFn kcronsumer.ConsumeFn = func(message kcronsumer.Message) error {
+  var consumeFn kcronsumer.ConsumeFn = func(message model.Message) error {
     fmt.Printf("consumer > Message received: %s\n", string(message.Value))
     return nil
   }
 
-  cronsumer := kcronsumer.NewKafkaCronsumerScheduler(applicationConfig.Kafka, consumeFn, kcronsumer.LogDebugLevel)
-  cronsumer.Run(applicationConfig.Kafka.Consumer)
+  cronsumer := kcronsumer.NewCronsumer(kafkaConfig, consumeFn)
+  cronsumer.Run(kafkaConfig.Consumer)
 }
 ```
 
@@ -64,22 +65,23 @@ import (
   "errors"
   "fmt"
 
-  "github.com/Trendyol/kafka-cronsumer"
+  kcronsumer "github.com/Trendyol/kafka-cronsumer"
+  "github.com/Trendyol/kafka-cronsumer/model"
 )
 
 func main() {
-  applicationConfig, err := kcronsumer.NewConfig("./example/single-consumer-with-deadletter", "config")
+  kafkaConfig, err := model.NewConfig("./example/single-consumer-with-deadletter", "config")
   if err != nil {
     panic("application config read failed: " + err.Error())
   }
 
-  var consumeFn kcronsumer.ConsumeFn = func(message kcronsumer.Message) error {
+  var consumeFn kcronsumer.ConsumeFn = func(message model.Message) error {
     fmt.Printf("consumer > Message received: %s\n", string(message.Value))
     return errors.New("error occurred")
   }
 
-  cronsumer := kcronsumer.NewKafkaCronsumerScheduler(applicationConfig.Kafka, consumeFn, kcronsumer.LogDebugLevel)
-  cronsumer.Run(applicationConfig.Kafka.Consumer)
+  cronsumer := kcronsumer.NewCronsumer(kafkaConfig, consumeFn)
+  cronsumer.Run(kafkaConfig.Consumer)
 }
 ```
 
@@ -91,35 +93,35 @@ package main
 import (
   "fmt"
 
-  "github.com/Trendyol/kafka-cronsumer"
+  kcronsumer "github.com/Trendyol/kafka-cronsumer"
+  "github.com/Trendyol/kafka-cronsumer/model"
 )
 
 func main() {
-  first := getConfig("config-1")
-  var firstConsumerFn kcronsumer.ConsumeFn = func(message kcronsumer.Message) error {
+  firstCfg := getConfig("config-1")
+  var firstConsumerFn kcronsumer.ConsumeFn = func(message model.Message) error {
     fmt.Printf("First consumer > Message received: %s\n", string(message.Value))
     return nil
   }
-  firstHandler := kcronsumer.NewKafkaCronsumerScheduler(first.Kafka, firstConsumerFn, kcronsumer.LogDebugLevel)
-  firstHandler.Start(first.Kafka.Consumer)
+  firstHandler := kcronsumer.NewCronsumer(firstCfg, firstConsumerFn)
+  firstHandler.Start(firstCfg.Consumer)
 
-  second := getConfig("config-2")
-  var secondConsumerFn kcronsumer.ConsumeFn = func(message kcronsumer.Message) error {
+  secondCfg := getConfig("config-2")
+  var secondConsumerFn kcronsumer.ConsumeFn = func(message model.Message) error {
     fmt.Printf("Second consumer > Message received: %s\n", string(message.Value))
     return nil
   }
-  secondHandler := kcronsumer.NewKafkaCronsumerScheduler(second.Kafka, secondConsumerFn, kcronsumer.LogDebugLevel)
-  secondHandler.Start(first.Kafka.Consumer)
+  secondHandler := kcronsumer.NewCronsumer(secondCfg, secondConsumerFn)
+  secondHandler.Start(firstCfg.Consumer)
 
   select {} // block main goroutine (we did to show it by on purpose)
 }
 
-func getConfig(configName string) *kcronsumer.ApplicationConfig {
-  cfg, err := kcronsumer.NewConfig("./example/multiple-consumers", configName)
+func getConfig(configName string) *model.KafkaConfig {
+  cfg, err := model.NewConfig("./example/multiple-consumers", configName)
   if err != nil {
     panic("application config read failed: " + err.Error())
   }
-  cfg.Print()
   return cfg
 }
 ```
@@ -134,6 +136,7 @@ func getConfig(configName string) *kcronsumer.ApplicationConfig {
 | `concurrency`                      | Number of goroutines used at listeners                                                             |          | 1                        |
 | `topic`                            | Exception topic names                                                                              |          | exception-topic          |
 | `groupId`                          | Exception consumer group id                                                                        |          | exception-consumer-group |
+| `logLevel`                         | Describes log level, valid options are `debug`, `info`, `warn`, and `error`                        |          | warn                     |
 | `kafka.consumer.minBytes`          | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.32#ReaderConfig.MinBytes)          | 10e3     |                          |
 | `kafka.consumer.maxBytes`          | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.32#ReaderConfig.MaxBytes)          | 10e6     |                          |
 | `kafka.consumer.maxWait`           | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.32#ReaderConfig.MaxWait)           | 2s       |                          |

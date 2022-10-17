@@ -6,5 +6,6 @@ kafka:
     topic: "exception"
     maxRetry: 3
     concurrency: 1
-    cron: "*/20 * * * *"
+    cron: "*/1 * * * *"
     duration: 20s
+  logLevel: debug

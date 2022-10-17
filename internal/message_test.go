@@ -1,9 +1,11 @@
-package kcronsumer
+package internal
 
 import (
 	_ "embed"
 	"strconv"
 	"testing"
+
+	"github.com/Trendyol/kafka-cronsumer/model"
 
 	"github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/protocol"
@@ -12,19 +14,21 @@ import (
 
 func Test_increaseRetryCount(t *testing.T) {
 	// Given
-	m := Message{
-		Topic:      "exception",
-		RetryCount: 1,
-		Headers: []protocol.Header{
-			{Key: retryHeaderKey, Value: []byte("1")},
+	m := KafkaMessage{
+		Message: model.Message{
+			Headers: []protocol.Header{
+				{Key: RetryHeaderKey, Value: []byte("1")},
+			},
+			Topic: "exception",
 		},
+		RetryCount: 1,
 	}
 
 	// When
-	m.increaseRetryCount()
+	m.IncreaseRetryCount()
 
 	// Then
-	assert.Equal(t, []byte("2"), m.Headers[0].Value)
+	assert.Equal(t, []byte("2"), m.GetHeaders()[RetryHeaderKey])
 }
 
 func Test_getRetryCount(t *testing.T) {
@@ -60,7 +64,7 @@ func Test_getRetryCount(t *testing.T) {
 		// Given
 		km := &kafka.Message{
 			Headers: []protocol.Header{
-				{Key: retryHeaderKey, Value: []byte("2")},
+				{Key: RetryHeaderKey, Value: []byte("2")},
 			},
 		}
 

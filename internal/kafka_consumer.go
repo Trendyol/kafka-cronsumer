@@ -1,4 +1,4 @@
-package kcronsumer
+package internal
 
 import (
 	"context"
@@ -6,21 +6,23 @@ import (
 	"io"
 	"strconv"
 
+	"github.com/Trendyol/kafka-cronsumer/model"
+
 	"github.com/segmentio/kafka-go"
 )
 
 //go:generate mockery --name=consumer --output=./ --filename=mock_kafka_consumer.go --structname=mockConsumer --inpackage
-type consumer interface {
-	ReadMessage() (Message, error)
+type Consumer interface {
+	ReadMessage() (KafkaMessage, error)
 	Stop()
 }
 
 type kafkaConsumer struct {
 	consumer *kafka.Reader
-	logger   Logger
+	logger   model.Logger
 }
 
-func newConsumer(kafkaConfig KafkaConfig, logger Logger) consumer {
+func newConsumer(kafkaConfig *model.KafkaConfig, logger model.Logger) *kafkaConsumer {
 	readerConfig := kafka.ReaderConfig{
 		Brokers:           kafkaConfig.Brokers,
 		GroupID:           kafkaConfig.Consumer.GroupID,
@@ -36,7 +38,7 @@ func newConsumer(kafkaConfig KafkaConfig, logger Logger) consumer {
 		RetentionTime:     kafkaConfig.Consumer.RetentionTime,
 	}
 
-	return kafkaConsumer{
+	return &kafkaConsumer{
 		consumer: kafka.NewReader(readerConfig),
 		logger:   logger,
 	}
@@ -59,18 +61,18 @@ func convertStartOffset(offset string) int64 {
 	}
 }
 
-func (k kafkaConsumer) ReadMessage() (Message, error) {
+func (k kafkaConsumer) ReadMessage() (KafkaMessage, error) {
 	msg, err := k.consumer.ReadMessage(context.Background())
 	if err != nil {
 		if k.IsReaderHasBeenClosed(err) {
-			return Message{}, err
+			return KafkaMessage{}, err
 		}
 
 		k.logger.Errorf("Message not read %v", err)
-		return Message{}, err
+		return KafkaMessage{}, err
 	}
 
-	return from(msg), err
+	return newMessage(msg), err
 }
 
 func (k kafkaConsumer) IsReaderHasBeenClosed(err error) bool {

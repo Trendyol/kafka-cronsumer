@@ -1,10 +1,19 @@
-package kcronsumer
+package model
 
 import (
 	"fmt"
 	"time"
 
 	"github.com/spf13/viper"
+)
+
+type Level string
+
+const (
+	LogDebugLevel Level = "debug"
+	LogInfoLevel  Level = "info"
+	LogWarnLevel  Level = "warn"
+	LogErrorLevel Level = "error"
 )
 
 type ApplicationConfig struct {
@@ -15,6 +24,7 @@ type KafkaConfig struct {
 	Brokers  []string
 	Consumer ConsumerConfig
 	Producer ProducerConfig
+	LogLevel Level
 }
 
 type ConsumerConfig struct {
@@ -41,7 +51,7 @@ type ProducerConfig struct {
 	BatchTimeout time.Duration
 }
 
-func NewConfig(configPath, configName string) (*ApplicationConfig, error) {
+func NewConfig(configPath, configName string) (*KafkaConfig, error) {
 	configuration := ApplicationConfig{}
 
 	v := viper.New()
@@ -58,7 +68,7 @@ func NewConfig(configPath, configName string) (*ApplicationConfig, error) {
 		return nil, err
 	}
 
-	return &configuration, nil
+	return &configuration.Kafka, nil
 }
 
 func setDefaults(v *viper.Viper) {
@@ -83,6 +93,6 @@ func setKafkaProducerDefaults(v *viper.Viper) {
 	v.SetDefault("kafka.kafkaProducer.batchTimeout", "500us")
 }
 
-func (c *ApplicationConfig) Print() {
+func (c *KafkaConfig) Print() {
 	fmt.Printf("%#v\n", c)
 }
