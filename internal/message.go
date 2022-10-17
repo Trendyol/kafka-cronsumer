@@ -1,77 +1,59 @@
 package internal
 
 import (
+	"github.com/Trendyol/kafka-cronsumer/model"
 	"strconv"
 	"time"
 	"unsafe"
 
-	"github.com/Trendyol/kafka-cronsumer/model"
 	"github.com/segmentio/kafka-go"
-	"github.com/segmentio/kafka-go/protocol"
 )
 
-type Msg struct {
-	NextIterationMessage bool // TODO why we add this ??
-	Topic                string
-	RetryCount           int
-	Partition            int
-	Offset               int64
-	HighWaterMark        int64
-	Key                  []byte
-	Value                []byte
-	Headers              []protocol.Header
-	Time                 time.Time
+type KafkaMessage struct {
+	model.Message
+	RetryCount int
 }
 
 const RetryHeaderKey = "x-retry-count"
 
-func newMessage(msg kafka.Message) *Msg {
-	return &Msg{
-		Topic:         msg.Topic,
-		RetryCount:    getRetryCount(&msg),
-		Partition:     msg.Partition,
-		Offset:        msg.Offset,
-		HighWaterMark: msg.HighWaterMark,
-		Key:           msg.Key,
-		Value:         msg.Value,
-		Headers:       msg.Headers,
-		Time:          msg.Time,
+func newMessage(msg kafka.Message) KafkaMessage {
+	return KafkaMessage{
+		RetryCount: getRetryCount(&msg),
+		Message: model.Message{
+			Topic:         msg.Topic,
+			Partition:     msg.Partition,
+			Offset:        msg.Offset,
+			HighWaterMark: msg.HighWaterMark,
+			Key:           msg.Key,
+			Value:         msg.Value,
+			Headers:       msg.Headers,
+			Time:          msg.Time,
+		},
 	}
 }
 
-func To(m model.Message) kafka.Message {
-	if !m.GetNextIterationMessage() {
+func (m *KafkaMessage) To(increaseRetry bool) kafka.Message {
+
+	if increaseRetry {
 		m.IncreaseRetryCount()
 	}
-
 	return kafka.Message{
-		Topic:   m.GetTopic(),
-		Value:   m.GetValue(),
-		Headers: toHeader(m.GetHeaders()),
+		Topic:   m.Topic,
+		Value:   m.Value,
+		Headers: m.Headers,
 		Time:    time.Now(),
 	}
 }
 
-func toHeader(mp map[string][]byte) []kafka.Header {
-	headers := make([]kafka.Header, len(mp))
-	for k := range mp {
-		headers = append(headers, kafka.Header{
-			Key:   k,
-			Value: mp[k],
-		})
-	}
-	return headers
-}
-
-func (m *Msg) GetTime() time.Time {
+func (m *KafkaMessage) GetTime() time.Time {
 	return m.Time
 }
 
-func (m *Msg) GetValue() []byte {
+func (m *KafkaMessage) GetValue() []byte {
 	return m.Value
 }
 
-func (m *Msg) GetHeaders() map[string][]byte {
+func (m *KafkaMessage) GetHeaders() map[string][]byte {
 	var mp = map[string][]byte{}
 	for i := range m.Headers {
 		mp[m.Headers[i].Key] = m.Headers[i].Value
@@ -79,27 +61,19 @@ func (m *Msg) GetHeaders() map[string][]byte {
 	return mp
 }
 
-func (m *Msg) GetTopic() string {
+func (m *KafkaMessage) GetTopic() string {
 	return m.Topic
 }
 
-func (m *Msg) GetNextIterationMessage() bool {
-	return m.NextIterationMessage
-}
-
-func (m *Msg) SetNextIterationMessage(b bool) {
-	m.NextIterationMessage = b
-}
-
-func (m *Msg) IsExceedMaxRetryCount(maxRetry int) bool {
+func (m *KafkaMessage) IsExceedMaxRetryCount(maxRetry int) bool {
 	return m.RetryCount > maxRetry
 }
 
-func (m *Msg) RouteMessageToTopic(topic string) {
+func (m *KafkaMessage) RouteMessageToTopic(topic string) {
 	m.Topic = topic
 }
 
-func (m *Msg) IncreaseRetryCount() {
+func (m *KafkaMessage) IncreaseRetryCount() {
 	for i := range m.Headers {
 		if m.Headers[i].Key == RetryHeaderKey {
 			byteToStr := *((*string)(unsafe.Pointer(&m.Headers[i].Value)))

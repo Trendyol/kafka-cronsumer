@@ -27,7 +27,7 @@ func NewCronsumer(cfg *model.KafkaConfig, c ConsumeFn) Cronsumer {
 // config.KafkaConfig specifies cron, duration and so many parameters.
 // ConsumeFn describes how to consume messages from specified topic.
 // logger describes log interface for injecting custom log implementation
-func NewCronsumerWithLogger(cfg *model.KafkaConfig, c ConsumeFn, logger internal.Logger) Cronsumer {
+func NewCronsumerWithLogger(cfg *model.KafkaConfig, c ConsumeFn, logger model.Logger) Cronsumer {
 	return internal.NewCronsumerWithLogger(cfg, c, logger)
 }
 

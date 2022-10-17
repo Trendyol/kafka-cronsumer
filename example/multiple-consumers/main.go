@@ -10,7 +10,7 @@ import (
 func main() {
 	firstCfg := getConfig("config-1")
 	var firstConsumerFn kcronsumer.ConsumeFn = func(message model.Message) error {
-		fmt.Printf("First consumer > Message received: %s\n", string(message.GetValue()))
+		fmt.Printf("First consumer > Message received: %s\n", string(message.Value))
 		return nil
 	}
 	firstHandler := kcronsumer.NewCronsumer(firstCfg, firstConsumerFn)
@@ -18,7 +18,7 @@ func main() {
 
 	secondCfg := getConfig("config-2")
 	var secondConsumerFn kcronsumer.ConsumeFn = func(message model.Message) error {
-		fmt.Printf("Second consumer > Message received: %s\n", string(message.GetValue()))
+		fmt.Printf("Second consumer > Message received: %s\n", string(message.Value))
 		return nil
 	}
 	secondHandler := kcronsumer.NewCronsumer(secondCfg, secondConsumerFn)

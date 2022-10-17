@@ -9,12 +9,12 @@ import (
 
 //go:generate mockery --name=producer --output=./ --filename=mock_kafka_producer.go --structname=mockProducer --inpackage
 type Producer interface {
-	Produce(message model.Message) error
+	Produce(message KafkaMessage, increaseRetry bool) error
 }
 
 type kafkaProducer struct {
 	w      *kafka.Writer
-	logger Logger
+	logger model.Logger
 }
 
 /*
@@ -25,21 +25,21 @@ automatically create a topic under the following circumstances:
 	• When any client requests metadata for the topic
 */
 
-func NewProducer(kafkaConfig *model.KafkaConfig, logger Logger) Producer {
+func NewProducer(c *model.KafkaConfig, l model.Logger) Producer {
 	producer := &kafka.Writer{
-		Addr:                   kafka.TCP(kafkaConfig.Brokers...),
+		Addr:                   kafka.TCP(c.Brokers...),
 		Balancer:               &kafka.LeastBytes{},
-		BatchTimeout:           kafkaConfig.Producer.BatchTimeout,
-		BatchSize:              kafkaConfig.Producer.BatchSize,
+		BatchTimeout:           c.Producer.BatchTimeout,
+		BatchSize:              c.Producer.BatchSize,
 		AllowAutoTopicCreation: true,
 	}
 
 	return &kafkaProducer{
 		w:      producer,
-		logger: logger,
+		logger: l,
 	}
 }
 
-func (k *kafkaProducer) Produce(message model.Message) error {
-	return k.w.WriteMessages(context.Background(), To(message))
+func (k *kafkaProducer) Produce(message KafkaMessage, increaseRetry bool) error {
+	return k.w.WriteMessages(context.Background(), message.To(increaseRetry))
 }

@@ -13,16 +13,16 @@ import (
 
 //go:generate mockery --name=consumer --output=./ --filename=mock_kafka_consumer.go --structname=mockConsumer --inpackage
 type Consumer interface {
-	ReadMessage() (model.Message, error)
+	ReadMessage() (KafkaMessage, error)
 	Stop()
 }
 
 type kafkaConsumer struct {
 	consumer *kafka.Reader
-	logger   Logger
+	logger   model.Logger
 }
 
-func newConsumer(kafkaConfig *model.KafkaConfig, logger Logger) *kafkaConsumer {
+func newConsumer(kafkaConfig *model.KafkaConfig, logger model.Logger) *kafkaConsumer {
 	readerConfig := kafka.ReaderConfig{
 		Brokers:           kafkaConfig.Brokers,
 		GroupID:           kafkaConfig.Consumer.GroupID,
@@ -61,15 +61,15 @@ func convertStartOffset(offset string) int64 {
 	}
 }
 
-func (k kafkaConsumer) ReadMessage() (model.Message, error) {
+func (k kafkaConsumer) ReadMessage() (KafkaMessage, error) {
 	msg, err := k.consumer.ReadMessage(context.Background())
 	if err != nil {
 		if k.IsReaderHasBeenClosed(err) {
-			return nil, err
+			return KafkaMessage{}, err
 		}
 
 		k.logger.Errorf("Message not read %v", err)
-		return nil, err
+		return KafkaMessage{}, err
 	}
 
 	return newMessage(msg), err

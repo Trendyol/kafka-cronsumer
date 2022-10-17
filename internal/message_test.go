@@ -2,6 +2,7 @@ package internal
 
 import (
 	_ "embed"
+	"github.com/Trendyol/kafka-cronsumer/model"
 	"strconv"
 	"testing"
 
@@ -12,12 +13,14 @@ import (
 
 func Test_increaseRetryCount(t *testing.T) {
 	// Given
-	m := Msg{
-		Topic:      "exception",
-		RetryCount: 1,
-		Headers: []protocol.Header{
-			{Key: RetryHeaderKey, Value: []byte("1")},
+	m := KafkaMessage{
+		Message: model.Message{
+			Headers: []protocol.Header{
+				{Key: RetryHeaderKey, Value: []byte("1")},
+			},
+			Topic: "exception",
 		},
+		RetryCount: 1,
 	}
 
 	// When

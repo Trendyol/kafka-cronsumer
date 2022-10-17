@@ -15,7 +15,7 @@ func main() {
 	}
 
 	var consumeFn kcronsumer.ConsumeFn = func(message model.Message) error {
-		fmt.Printf("consumer > Message received: %s\n", string(message.GetValue()))
+		fmt.Printf("consumer > Message received: %s\n", string(message.Value))
 		return errors.New("error occurred")
 	}
 

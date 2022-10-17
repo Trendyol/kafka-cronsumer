@@ -45,21 +45,24 @@ func TestIntegration(t *testing.T) {
 		}
 		handler := kcronsumer.NewCronsumer(kafkaConfig, consumeFn)
 		handler.Start(kafkaConfig.Consumer)
-		producer := internal.NewProducer(kafkaConfig, internal.NewLogger(model.LogDebugLevel))
+		producer := internal.NewProducer(kafkaConfig, internal.Logger(model.LogDebugLevel))
 
 		// When
-		err := producer.Produce(&internal.Msg{
-			Topic: kafkaConfig.Consumer.Topic,
-			Value: MessageIn,
-		})
+		err := producer.Produce(internal.KafkaMessage{
+			Message: model.Message{
+				Topic: kafkaConfig.Consumer.Topic,
+				Value: MessageIn,
+			},
+		}, true)
 		if err != nil {
 			t.Fatal(err)
 		}
 
 		// Then
 		arrivedMsg := <-messageCh
-		assert.Equal(t, arrivedMsg.GetHeaders()[internal.RetryHeaderKey], []byte("0"))
-		assert.Equal(t, arrivedMsg.GetValue(), MessageIn)
+		assert.Equal(t, arrivedMsg.Headers[0].Key, internal.RetryHeaderKey)
+		assert.Equal(t, arrivedMsg.Headers[0].Value, []byte("0"))
+		assert.Equal(t, arrivedMsg.Value, MessageIn)
 	})
 	t.Run("Should_Consume_Same_Message_Successfully", func(t *testing.T) {
 		// Given
@@ -71,24 +74,27 @@ func TestIntegration(t *testing.T) {
 		}
 		handler := kcronsumer.NewCronsumer(kafkaConfig, consumeFn)
 		handler.Start(kafkaConfig.Consumer)
-		producer := internal.NewProducer(kafkaConfig, internal.NewLogger(model.LogDebugLevel))
+		producer := internal.NewProducer(kafkaConfig, internal.Logger(model.LogDebugLevel))
 
 		// When
-		err := producer.Produce(&internal.Msg{
-			Topic: kafkaConfig.Consumer.Topic,
-			Headers: []protocol.Header{
-				{Key: internal.RetryHeaderKey, Value: []byte("1")},
+		err := producer.Produce(internal.KafkaMessage{
+			Message: model.Message{
+				Topic: kafkaConfig.Consumer.Topic,
+				Headers: []protocol.Header{
+					{Key: internal.RetryHeaderKey, Value: []byte("1")},
+				},
+				Value: MessageIn,
 			},
-			Value: MessageIn,
-		})
+		}, true)
 		if err != nil {
 			t.Fatal(err)
 		}
 
 		// Then
 		arrivedMsg := <-messageCh
-		assert.Equal(t, arrivedMsg.GetHeaders()[internal.RetryHeaderKey], []byte("2"))
-		assert.Equal(t, arrivedMsg.GetValue(), MessageIn)
+		assert.Equal(t, arrivedMsg.Headers[0].Key, internal.RetryHeaderKey)
+		assert.Equal(t, arrivedMsg.Headers[0].Value, []byte("2"))
+		assert.Equal(t, arrivedMsg.Value, MessageIn)
 	})
 }
 

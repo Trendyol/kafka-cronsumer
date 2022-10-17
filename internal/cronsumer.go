@@ -9,26 +9,26 @@ import (
 type cronsumer struct {
 	cron     *gocron.Cron
 	consumer KafkaCronsumer
-	logger   Logger
+	logger   model.Logger
 }
 
 func NewCronsumer(cfg *model.KafkaConfig, c func(message model.Message) error) *cronsumer {
-	logger := NewLogger(cfg.LogLevel)
-	consumer := NewKafkaCronsumer(cfg, c, logger)
+	l := Logger(cfg.LogLevel)
+	consumer := NewKafkaCronsumer(cfg, c, l)
 	return &cronsumer{
 		cron:     gocron.New(),
 		consumer: consumer,
-		logger:   logger,
+		logger:   l,
 	}
 }
 
-func NewCronsumerWithLogger(cfg *model.KafkaConfig, c func(message model.Message) error, logger Logger) *cronsumer {
-	consumer := NewKafkaCronsumerWithLogger(cfg, c, logger)
+func NewCronsumerWithLogger(cfg *model.KafkaConfig, c func(m model.Message) error, l model.Logger) *cronsumer {
+	consumer := NewKafkaCronsumerWithLogger(cfg, c, l)
 
 	return &cronsumer{
 		cron:     gocron.New(),
 		consumer: consumer,
-		logger:   logger,
+		logger:   l,
 	}
 }
 
