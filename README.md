@@ -14,7 +14,13 @@ with the power of auto pause and concurrency configurations.
 
 ## 🖥 Use cases
 
-TODO
+In this library, we implement an iteration-based process with a back-off strategy. As you already know back-off strategy is helpful to
+- limit the impact of the additional load on dependencies
+- increase upstream resilience and keep healthy
+- resolve transient network errors
+- allows doing hotfixes if there is a temporary bug in the code
+
+If the order of messages is unnecessary, it is very appropriate for these scenarios.
 
 ## Guide
 
