@@ -3,10 +3,11 @@ package internal
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"os"
+
 	"github.com/Trendyol/kafka-cronsumer/model"
 	"github.com/segmentio/kafka-go/sasl"
 	"github.com/segmentio/kafka-go/sasl/scram"
-	"os"
 )
 
 func createTLSConfig(sasl model.SASLConfig) *tls.Config {
@@ -25,7 +26,8 @@ func createTLSConfig(sasl model.SASLConfig) *tls.Config {
 	caCertPool.AppendCertsFromPEM(interCA)
 
 	return &tls.Config{
-		RootCAs: caCertPool,
+		RootCAs:    caCertPool,
+		MinVersion: tls.VersionTLS12,
 	}
 }
 
