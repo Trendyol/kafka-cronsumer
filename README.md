@@ -55,6 +55,7 @@ func main() {
 
 ```go
 func main() {
+    // ...
     var consumeFn kcronsumer.ConsumeFn = func(message model.Message) error {
     fmt.Printf("consumer > Message received: %s\n", string(message.Value))
     return errors.New("error occurred")
@@ -69,6 +70,7 @@ func main() {
 
 ```go
 func main() {
+    // ...
     var firstConsumerFn kcronsumer.ConsumeFn = func(message model.Message) error {
     fmt.Printf("First consumer > Message received: %s\n", string(message.Value))
     return nil
