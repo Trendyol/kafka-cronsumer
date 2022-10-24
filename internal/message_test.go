@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"bytes"
 	_ "embed"
 	"strconv"
 	"testing"
@@ -9,7 +10,6 @@ import (
 
 	"github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/protocol"
-	"github.com/stretchr/testify/assert"
 )
 
 func Test_increaseRetryCount(t *testing.T) {
@@ -28,7 +28,11 @@ func Test_increaseRetryCount(t *testing.T) {
 	m.IncreaseRetryCount()
 
 	// Then
-	assert.Equal(t, []byte("2"), m.GetHeaders()[RetryHeaderKey])
+	actual := m.GetHeaders()[RetryHeaderKey]
+	expected := []byte("2")
+	if !bytes.Equal(expected, actual) {
+		t.Errorf("Expected: %s, Actual: %s", expected, actual)
+	}
 }
 
 func Test_getRetryCount(t *testing.T) {
@@ -46,7 +50,9 @@ func Test_getRetryCount(t *testing.T) {
 		rc := getRetryCount(km)
 
 		// Then
-		assert.Equal(t, rc, 0)
+		if rc != 0 {
+			t.Errorf("Expected: %d, Actual: %d", 0, rc)
+		}
 	})
 	t.Run("When X-Retry-Count not found", func(t *testing.T) {
 		// Given
@@ -58,7 +64,9 @@ func Test_getRetryCount(t *testing.T) {
 		rc := getRetryCount(km)
 
 		// Then
-		assert.Equal(t, rc, 0)
+		if rc != 0 {
+			t.Errorf("Expected: %d, Actual: %d", 0, rc)
+		}
 	})
 	t.Run("When X-Retry-Count exists", func(t *testing.T) {
 		// Given
@@ -72,6 +80,11 @@ func Test_getRetryCount(t *testing.T) {
 		rc := getRetryCount(km)
 
 		// Then
-		assert.Equal(t, strconv.Itoa(rc), string(km.Headers[0].Value))
+		actual := strconv.Itoa(rc)
+		expected := string(km.Headers[0].Value)
+
+		if expected != actual {
+			t.Errorf("Expected: %s, Actual: %s", expected, actual)
+		}
 	})
 }
