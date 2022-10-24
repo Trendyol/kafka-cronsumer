@@ -4,7 +4,6 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	"net"
 	"testing"
 	"time"
 
@@ -12,7 +11,6 @@ import (
 	"github.com/Trendyol/kafka-cronsumer/internal"
 	"github.com/Trendyol/kafka-cronsumer/model"
 
-	"github.com/docker/go-connections/nat"
 	"github.com/segmentio/kafka-go/protocol"
 	"github.com/stretchr/testify/assert"
 	"github.com/testcontainers/testcontainers-go"
@@ -101,15 +99,10 @@ func TestIntegration(t *testing.T) {
 func setupKafka(t *testing.T) (c Container, cleanUp func()) {
 	ctx := context.Background()
 
-	port, err := getFreePort()
-	if err != nil {
-		t.Fatal(err.Error())
-	}
-
 	req := testcontainers.ContainerRequest{
 		Image: "docker.vectorized.io/vectorized/redpanda:v21.8.1",
 		ExposedPorts: []string{
-			fmt.Sprintf("%d:%d/tcp", port, port),
+			"9092:9092",
 		},
 		Cmd: []string{
 			"redpanda",
@@ -119,7 +112,7 @@ func setupKafka(t *testing.T) (c Container, cleanUp func()) {
 			"--overprovisioned",
 			"--node-id", "0",
 			"--set", "redpanda.auto_create_topics_enabled=true",
-			"--kafka-addr", fmt.Sprintf("OUTSIDE://0.0.0.0:%d", port),
+			"--kafka-addr", fmt.Sprintf("OUTSIDE://0.0.0.0:%d", 9092),
 		},
 		WaitingFor: wait.ForLog("Started Kafka API server"),
 	}
@@ -131,14 +124,9 @@ func setupKafka(t *testing.T) (c Container, cleanUp func()) {
 		t.Fatal(err.Error())
 	}
 
-	mPort, err := container.MappedPort(ctx, nat.Port(fmt.Sprintf("%d", port)))
-	if err != nil {
-		t.Fatal(err.Error())
-	}
-
 	c = Container{
 		Container:  container,
-		MappedPort: mPort.Port(),
+		MappedPort: "9092",
 	}
 	cleanUp = func() {
 		container.Terminate(ctx)
@@ -161,18 +149,4 @@ func getKafkaConfig(mappedPort, topic, consumerGroup string) *model.KafkaConfig 
 			Duration:    20 * time.Second,
 		},
 	}
-}
-
-func getFreePort() (int, error) {
-	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
-	if err != nil {
-		return 0, err
-	}
-
-	l, err := net.ListenTCP("tcp", addr)
-	if err != nil {
-		return 0, err
-	}
-	defer l.Close()
-	return l.Addr().(*net.TCPAddr).Port, nil
 }
