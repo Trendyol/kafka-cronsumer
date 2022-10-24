@@ -12,7 +12,6 @@ import (
 	"github.com/segmentio/kafka-go"
 )
 
-//go:generate mockery --name=consumer --output=./ --filename=mock_kafka_consumer.go --structname=mockConsumer --inpackage
 type Consumer interface {
 	ReadMessage() (KafkaMessage, error)
 	Stop()

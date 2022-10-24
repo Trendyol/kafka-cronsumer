@@ -8,7 +8,6 @@ import (
 	"github.com/segmentio/kafka-go"
 )
 
-//go:generate mockery --name=producer --output=./ --filename=mock_kafka_producer.go --structname=mockProducer --inpackage
 type Producer interface {
 	Produce(message KafkaMessage, increaseRetry bool) error
 }

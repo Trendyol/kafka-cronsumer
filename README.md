@@ -54,7 +54,7 @@ func main() {
 #### Single Consumer With Dead Letter
 
 ```go
-    func main() {
+func main() {
     var consumeFn kcronsumer.ConsumeFn = func(message model.Message) error {
     fmt.Printf("consumer > Message received: %s\n", string(message.Value))
     return errors.New("error occurred")
@@ -68,7 +68,7 @@ func main() {
 #### Multiple Consumers
 
 ```go
-    func main() {
+func main() {
     var firstConsumerFn kcronsumer.ConsumeFn = func(message model.Message) error {
     fmt.Printf("First consumer > Message received: %s\n", string(message.Value))
     return nil
