@@ -14,7 +14,9 @@ with the power of auto pause and concurrency configurations.
 
 ## 🖥 Use cases
 
-In this library, we implement an iteration-based process with a back-off strategy. As you already know back-off strategy is helpful to
+In this library, we implement an iteration-based process with a back-off strategy. As you already know back-off strategy
+is helpful to
+
 - limit the impact of the additional load on dependencies
 - increase upstream resilience and keep healthy
 - resolve transient network errors
@@ -37,98 +39,51 @@ You can find a number of ready-to-run examples at [this directory](example).
 #### Single Consumer
 
 ```go
-package main
-
-import (
-  "fmt"
-
-  "github.com/Trendyol/kafka-cronsumer"
-  "github.com/Trendyol/kafka-cronsumer/model"
-)
-
 func main() {
-  kafkaConfig, err := kcronsumer.NewConfig("./example/single-consumer", "config")
-  if err != nil {
-    panic("application config read failed: " + err.Error())
-  }
-
-  var consumeFn kcronsumer.ConsumeFn = func(message model.Message) error {
-    fmt.Printf("consumer > Message received: %s\n", string(message.Value))
-    return nil
-  }
-
-  cronsumer := kcronsumer.NewCronsumer(kafkaConfig, consumeFn)
-  cronsumer.Run(kafkaConfig.Consumer)
+    // ...
+    var consumeFn kcronsumer.ConsumeFn = func(message model.Message) error {
+      fmt.Printf("consumer > Message received: %s\n", string(message.Value))
+      return nil
+    }
+    
+    cronsumer := kcronsumer.NewCronsumer(kafkaConfig, consumeFn)
+    cronsumer.Run(kafkaConfig.Consumer)
 }
 ```
 
 #### Single Consumer With Dead Letter
 
 ```go
-package main
-
-import (
-  "errors"
-  "fmt"
-
-  kcronsumer "github.com/Trendyol/kafka-cronsumer"
-  "github.com/Trendyol/kafka-cronsumer/model"
-)
-
-func main() {
-  kafkaConfig, err := model.NewConfig("./example/single-consumer-with-deadletter", "config")
-  if err != nil {
-    panic("application config read failed: " + err.Error())
-  }
-
-  var consumeFn kcronsumer.ConsumeFn = func(message model.Message) error {
+    func main() {
+    var consumeFn kcronsumer.ConsumeFn = func(message model.Message) error {
     fmt.Printf("consumer > Message received: %s\n", string(message.Value))
     return errors.New("error occurred")
-  }
-
-  cronsumer := kcronsumer.NewCronsumer(kafkaConfig, consumeFn)
-  cronsumer.Run(kafkaConfig.Consumer)
+    }
+    
+    cronsumer := kcronsumer.NewCronsumer(kafkaConfig, consumeFn)
+    cronsumer.Run(kafkaConfig.Consumer)
 }
 ```
 
 #### Multiple Consumers
 
 ```go
-package main
-
-import (
-  "fmt"
-
-  kcronsumer "github.com/Trendyol/kafka-cronsumer"
-  "github.com/Trendyol/kafka-cronsumer/model"
-)
-
-func main() {
-  firstCfg := getConfig("config-1")
-  var firstConsumerFn kcronsumer.ConsumeFn = func(message model.Message) error {
+    func main() {
+    var firstConsumerFn kcronsumer.ConsumeFn = func(message model.Message) error {
     fmt.Printf("First consumer > Message received: %s\n", string(message.Value))
     return nil
-  }
-  firstHandler := kcronsumer.NewCronsumer(firstCfg, firstConsumerFn)
-  firstHandler.Start(firstCfg.Consumer)
-
-  secondCfg := getConfig("config-2")
-  var secondConsumerFn kcronsumer.ConsumeFn = func(message model.Message) error {
+    }
+    firstHandler := kcronsumer.NewCronsumer(firstCfg, firstConsumerFn)
+    firstHandler.Start(firstCfg.Consumer)
+    
+    var secondConsumerFn kcronsumer.ConsumeFn = func(message model.Message) error {
     fmt.Printf("Second consumer > Message received: %s\n", string(message.Value))
     return nil
-  }
-  secondHandler := kcronsumer.NewCronsumer(secondCfg, secondConsumerFn)
-  secondHandler.Start(firstCfg.Consumer)
-
-  select {} // block main goroutine (we did to show it by on purpose)
-}
-
-func getConfig(configName string) *model.KafkaConfig {
-  cfg, err := model.NewConfig("./example/multiple-consumers", configName)
-  if err != nil {
-    panic("application config read failed: " + err.Error())
-  }
-  return cfg
+    }
+    secondHandler := kcronsumer.NewCronsumer(secondCfg, secondConsumerFn)
+    secondHandler.Start(firstCfg.Consumer)
+    
+    select {} // block main goroutine (we did to show it by on purpose)
 }
 ```
 
@@ -136,13 +91,13 @@ func getConfig(configName string) *model.KafkaConfig {
 
 | config                             | description                                                                                        | default  | example                  |
 |------------------------------------|----------------------------------------------------------------------------------------------------|----------|--------------------------|
-| `cron`                             | Cron expression when exception consumer starts to work at                                          |          | */1 * * * *              |
-| `duration`                         | Work duration exception consumer actively consuming messages                                       |          | 20s, 15m, 1h             |
-| `maxRetry`                         | Maximum retry value for attempting to retry a message                                              |          | 3                        |
-| `concurrency`                      | Number of goroutines used at listeners                                                             |          | 1                        |
-| `topic`                            | Exception topic names                                                                              |          | exception-topic          |
-| `groupId`                          | Exception consumer group id                                                                        |          | exception-consumer-group |
-| `logLevel`                         | Describes log level, valid options are `debug`, `info`, `warn`, and `error`                        |          | warn                     |
+| `cron`                             | Cron expression when exception consumer starts to work at                                          | -        | */1 * * * *              |
+| `duration`                         | Work duration exception consumer actively consuming messages                                       | -        | 20s, 15m, 1h             |
+| `topic`                            | Exception topic names                                                                              | -        | exception-topic          |
+| `groupId`                          | Exception consumer group id                                                                        | -        | exception-consumer-group |
+| `logLevel`                         | Describes log level, valid options are `debug`, `info`, `warn`, and `error`                        | warn     |                          |
+| `maxRetry`                         | Maximum retry value for attempting to retry a message                                              | 3        |                          |
+| `concurrency`                      | Number of goroutines used at listeners                                                             | 1        |                          |
 | `kafka.consumer.minBytes`          | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.32#ReaderConfig.MinBytes)          | 10e3     |                          |
 | `kafka.consumer.maxBytes`          | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.32#ReaderConfig.MaxBytes)          | 10e6     |                          |
 | `kafka.consumer.maxWait`           | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.32#ReaderConfig.MaxWait)           | 2s       |                          |
@@ -187,15 +142,7 @@ Please adhere to this project's `code of conduct`.
 
 ✅ [robfig/cron](https://github.com/robfig/cron)
 
-✅ [spf13/viper](github.com/spf13/viper)
-
 ✅ [uber-go/zap](https://github.com/uber-go/zap)
-
-✅ [vektra/mockery](https://github.com/vektra/mockery)
-
-✅ [stretchr/testify](github.com/stretchr/testify)
-
-✅ [testcontainers/testcontainers-go](https://github.com/testcontainers/testcontainers-go)
 
 ## Additional References 🤘
 
@@ -206,5 +153,3 @@ Please adhere to this project's `code of conduct`.
 ✅ [golangci-lint](https://github.com/golangci/golangci-lint)
 
 ✅ [Kafka Console Producer](https://kafka.apache.org/quickstart)
-
-✅ [redpanda](https://github.com/redpanda-data/redpanda)

@@ -30,18 +30,14 @@ type kafkaCronsumer struct {
 
 func NewKafkaCronsumer(cfg *model.KafkaConfig, c func(message model.Message) error, logger model.Logger) KafkaCronsumer {
 	handler := &kafkaCronsumer{
-		paused:         false,
-		quitChannel:    make(chan bool),
-		messageChannel: make(chan KafkaMessage),
-
-		kafkaConsumer: newConsumer(cfg, logger),
-		kafkaProducer: NewProducer(cfg, logger),
-
-		consumeFn: c,
-
-		logger: logger,
-
-		maxRetry:        cfg.Consumer.MaxRetry,
+		paused:          false,
+		quitChannel:     make(chan bool),
+		messageChannel:  make(chan KafkaMessage),
+		kafkaConsumer:   newConsumer(cfg, logger),
+		kafkaProducer:   newProducer(cfg, logger),
+		consumeFn:       c,
+		logger:          logger,
+		maxRetry:        setMaxRetry(cfg.Consumer.MaxRetry),
 		deadLetterTopic: cfg.Consumer.DeadLetterTopic,
 	}
 
@@ -50,20 +46,23 @@ func NewKafkaCronsumer(cfg *model.KafkaConfig, c func(message model.Message) err
 
 func NewKafkaCronsumerWithLogger(cfg *model.KafkaConfig, c func(message model.Message) error, l model.Logger) KafkaCronsumer {
 	return &kafkaCronsumer{
-		paused:         false,
-		quitChannel:    make(chan bool),
-		messageChannel: make(chan KafkaMessage),
-
-		kafkaConsumer: newConsumer(cfg, l),
-		kafkaProducer: NewProducer(cfg, l),
-
-		consumeFn: c,
-
-		logger: l,
-
-		maxRetry:        cfg.Consumer.MaxRetry,
+		paused:          false,
+		quitChannel:     make(chan bool),
+		messageChannel:  make(chan KafkaMessage),
+		kafkaConsumer:   newConsumer(cfg, l),
+		kafkaProducer:   newProducer(cfg, l),
+		consumeFn:       c,
+		logger:          l,
+		maxRetry:        setMaxRetry(cfg.Consumer.MaxRetry),
 		deadLetterTopic: cfg.Consumer.DeadLetterTopic,
 	}
+}
+
+func setMaxRetry(maxRetry int) int {
+	if maxRetry == 0 {
+		return 3
+	}
+	return maxRetry
 }
 
 func (k *kafkaCronsumer) Start(concurrency int) {
@@ -145,7 +144,7 @@ func (k *kafkaCronsumer) recoverMessage(msg KafkaMessage) {
 
 func (k *kafkaCronsumer) produce(msg KafkaMessage) {
 	if msg.IsExceedMaxRetryCount(k.maxRetry) {
-		k.logger.Errorf("Message exceeds to retry limit %d. KafkaMessage: %v", k.maxRetry, msg)
+		k.logger.Errorf("Message exceeds to retry limit %d. KafkaMessage: %s", k.maxRetry, msg.Value)
 		if k.isDeadLetterTopicFeatureEnabled() {
 			msg.RouteMessageToTopic(k.deadLetterTopic)
 			if err := k.kafkaProducer.Produce(msg, true); err != nil {

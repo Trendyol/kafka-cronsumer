@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"time"
 
 	"github.com/Trendyol/kafka-cronsumer/model"
 	"github.com/segmentio/kafka-go"
@@ -20,23 +21,33 @@ type kafkaProducer struct {
 /*
 Allow Auto Topic Creation: The default Kafka configuration specifies that the broker should
 automatically create a topic under the following circumstances:
-	• When a kafkaProducer starts writing messages to the topic
-	• When a kafkaConsumer starts reading messages from the topic
-	• When any client requests metadata for the topic
+  - When a kafkaProducer starts writing messages to the topic
+  - When a kafkaConsumer starts reading messages from the topic
+  - When any client requests metadata for the topic
 */
+func newProducer(kafkaConfig *model.KafkaConfig, l model.Logger) Producer {
+	setProducerConfigDefaults(kafkaConfig)
 
-func NewProducer(c *model.KafkaConfig, l model.Logger) Producer {
 	producer := &kafka.Writer{
-		Addr:                   kafka.TCP(c.Brokers...),
+		Addr:                   kafka.TCP(kafkaConfig.Brokers...),
 		Balancer:               &kafka.LeastBytes{},
-		BatchTimeout:           c.Producer.BatchTimeout,
-		BatchSize:              c.Producer.BatchSize,
+		BatchTimeout:           kafkaConfig.Producer.BatchTimeout,
+		BatchSize:              kafkaConfig.Producer.BatchSize,
 		AllowAutoTopicCreation: true,
 	}
 
 	return &kafkaProducer{
 		w:      producer,
 		logger: l,
+	}
+}
+
+func setProducerConfigDefaults(kafkaConfig *model.KafkaConfig) {
+	if kafkaConfig.Producer.BatchSize == 0 {
+		kafkaConfig.Producer.BatchSize = 100
+	}
+	if kafkaConfig.Producer.BatchTimeout == 0 {
+		kafkaConfig.Producer.BatchTimeout = 500 * time.Microsecond
 	}
 }
 

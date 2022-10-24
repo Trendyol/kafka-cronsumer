@@ -30,7 +30,3 @@ func NewCronsumer(cfg *model.KafkaConfig, c ConsumeFn) Cronsumer {
 func NewCronsumerWithLogger(cfg *model.KafkaConfig, c ConsumeFn, logger model.Logger) Cronsumer {
 	return internal.NewCronsumerWithLogger(cfg, c, logger)
 }
-
-func NewConfig(configPath, configName string) (*model.KafkaConfig, error) {
-	return model.NewConfig(configPath, configName)
-}

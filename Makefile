@@ -30,7 +30,7 @@ godoc:
 ## : make produce topic=exception
 .PHONY: produce
 produce:
-	jq -rc . ./test/testdata/message.json | kafka-console-producer --bootstrap-server 127.0.0.1:9092 --topic ${topic}
+	jq -rc . ./testdata/message.json | kafka-console-producer --bootstrap-server 127.0.0.1:9092 --topic ${topic}
 
 # default value
 export topic=exception
@@ -38,4 +38,4 @@ export topic=exception
 ## : make produce-with-header topic=exception
 .PHONY: produce-with-header
 produce-with-header:
-	jq -rc . ./test/testdata/message.json | kcat -b 127.0.0.1:9092 -t ${topic} -P -H x-retry-count=1
+	jq -rc . ./testdata/message.json | kcat -b 127.0.0.1:9092 -t ${topic} -P -H x-retry-count=1
