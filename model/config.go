@@ -21,7 +21,18 @@ type KafkaConfig struct {
 	Brokers  []string       `yaml:"brokers"`
 	Consumer ConsumerConfig `yaml:"consumer"`
 	Producer ProducerConfig `yaml:"producer"`
+	SASL     SASLConfig     `yaml:"sasl"`
 	LogLevel Level          `yaml:"logLevel"`
+}
+
+type SASLConfig struct {
+	Enabled            bool   `yaml:"enabled"`
+	AuthType           string `yaml:"authType"` // plain or scram
+	Username           string `yaml:"username"`
+	Password           string `yaml:"password"`
+	RootCAPath         string `yaml:"rootCAPath"`
+	IntermediateCAPath string `yaml:"intermediateCAPath"`
+	Rack               string `yaml:"rack"`
 }
 
 type ConsumerConfig struct {

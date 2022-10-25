@@ -41,6 +41,17 @@ func newConsumer(kafkaConfig *model.KafkaConfig, logger model.Logger) *kafkaCons
 		RetentionTime:     kafkaConfig.Consumer.RetentionTime,
 	}
 
+	if kafkaConfig.SASL.Enabled {
+		readerConfig.Dialer = &kafka.Dialer{
+			TLS:           createTLSConfig(kafkaConfig.SASL),
+			SASLMechanism: getSaslMechanism(kafkaConfig.SASL),
+		}
+
+		if kafkaConfig.SASL.Rack != "" {
+			readerConfig.GroupBalancers = []kafka.GroupBalancer{kafka.RackAffinityGroupBalancer{Rack: kafkaConfig.SASL.Rack}}
+		}
+	}
+
 	return &kafkaConsumer{
 		consumer: kafka.NewReader(readerConfig),
 		logger:   logger,

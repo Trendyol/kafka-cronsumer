@@ -93,13 +93,13 @@ func main() {
 
 | config                             | description                                                                                        | default  | example                  |
 |------------------------------------|----------------------------------------------------------------------------------------------------|----------|--------------------------|
-| `cron`                             | Cron expression when exception consumer starts to work at                                          | -        | */1 * * * *              |
-| `duration`                         | Work duration exception consumer actively consuming messages                                       | -        | 20s, 15m, 1h             |
-| `topic`                            | Exception topic names                                                                              | -        | exception-topic          |
-| `groupId`                          | Exception consumer group id                                                                        | -        | exception-consumer-group |
-| `logLevel`                         | Describes log level, valid options are `debug`, `info`, `warn`, and `error`                        | warn     |                          |
-| `maxRetry`                         | Maximum retry value for attempting to retry a message                                              | 3        |                          |
-| `concurrency`                      | Number of goroutines used at listeners                                                             | 1        |                          |
+| `kafka.logLevel`                   | Describes log level, valid options are `debug`, `info`, `warn`, and `error`                        | warn     |                          |
+| `kafka.consumer.cron`              | Cron expression when exception consumer starts to work at                                          |          | */1 * * * *              |
+| `kafka.consumer.duration`          | Work duration exception consumer actively consuming messages                                       |          | 20s, 15m, 1h             |
+| `kafka.consumer.topic`             | Exception topic names                                                                              |          | exception-topic          |
+| `kafka.consumer.groupId`           | Exception consumer group id                                                                        |          | exception-consumer-group |
+| `kafka.consumer.maxRetry`          | Maximum retry value for attempting to retry a message                                              | 3        |                          |
+| `kafka.consumer.concurrency`       | Number of goroutines used at listeners                                                             | 1        |                          |
 | `kafka.consumer.minBytes`          | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.32#ReaderConfig.MinBytes)          | 10e3     |                          |
 | `kafka.consumer.maxBytes`          | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.32#ReaderConfig.MaxBytes)          | 10e6     |                          |
 | `kafka.consumer.maxWait`           | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.32#ReaderConfig.MaxWait)           | 2s       |                          |
@@ -111,6 +111,13 @@ func main() {
 | `kafka.consumer.retentionTime`     | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.32#ReaderConfig.RetentionTime)     | 24h      |                          |
 | `kafka.producer.batchSize`         | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.32#Writer.BatchSize)               | 100      |                          |
 | `kafka.producer.batchTimeout`      | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.32#Writer.BatchTimeout)            | 500us    |                          |
+| `kafka.sasl.enabled`               | It enables sasl authentication mechanism                                                           | false    |                          |
+| `kafka.sasl.authType`              | Currently we only support `SCRAM`                                                                  | ""       |                          |
+| `kafka.sasl.username`              | SCRAM username                                                                                     | ""       |                          |
+| `kafka.sasl.password`              | SCRAM password                                                                                     | ""       |                          |
+| `kafka.sasl.rootCAPath`            | [see doc](https://pkg.go.dev/crypto/tls#Config.RootCAs)                                            | ""       |                          |
+| `kafka.sasl.intermediateCAPath`    |                                                                                                    | ""       |                          |
+| `kafka.sasl.rack`                  | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.32#RackAffinityGroupBalancer)      | ""       |                          |
 
 ## Contribute
 

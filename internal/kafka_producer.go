@@ -35,6 +35,13 @@ func newProducer(kafkaConfig *model.KafkaConfig, l model.Logger) Producer {
 		AllowAutoTopicCreation: true,
 	}
 
+	if kafkaConfig.SASL.Enabled {
+		producer.Transport = &kafka.Transport{
+			TLS:  createTLSConfig(kafkaConfig.SASL),
+			SASL: getSaslMechanism(kafkaConfig.SASL),
+		}
+	}
+
 	return &kafkaProducer{
 		w:      producer,
 		logger: l,
