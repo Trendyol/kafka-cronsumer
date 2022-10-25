@@ -42,8 +42,8 @@ You can find a number of ready-to-run examples at [this directory](example).
 func main() {
     // ...
     var consumeFn kcronsumer.ConsumeFn = func(message model.Message) error {
-      fmt.Printf("consumer > Message received: %s\n", string(message.Value))
-      return nil
+        fmt.Printf("consumer > Message received: %s\n", string(message.Value))
+        return nil
     }
     
     cronsumer := kcronsumer.NewCronsumer(kafkaConfig, consumeFn)
@@ -57,8 +57,8 @@ func main() {
 func main() {
     // ...
     var consumeFn kcronsumer.ConsumeFn = func(message model.Message) error {
-    fmt.Printf("consumer > Message received: %s\n", string(message.Value))
-    return errors.New("error occurred")
+        fmt.Printf("consumer > Message received: %s\n", string(message.Value))
+        return errors.New("error occurred")
     }
     
     cronsumer := kcronsumer.NewCronsumer(kafkaConfig, consumeFn)
@@ -72,15 +72,15 @@ func main() {
 func main() {
     // ...
     var firstConsumerFn kcronsumer.ConsumeFn = func(message model.Message) error {
-    fmt.Printf("First consumer > Message received: %s\n", string(message.Value))
-    return nil
+        fmt.Printf("First consumer > Message received: %s\n", string(message.Value))
+        return nil
     }
     firstHandler := kcronsumer.NewCronsumer(firstCfg, firstConsumerFn)
     firstHandler.Start(firstCfg.Consumer)
     
     var secondConsumerFn kcronsumer.ConsumeFn = func(message model.Message) error {
-    fmt.Printf("Second consumer > Message received: %s\n", string(message.Value))
-    return nil
+        fmt.Printf("Second consumer > Message received: %s\n", string(message.Value))
+        return nil
     }
     secondHandler := kcronsumer.NewCronsumer(secondCfg, secondConsumerFn)
     secondHandler.Start(firstCfg.Consumer)
