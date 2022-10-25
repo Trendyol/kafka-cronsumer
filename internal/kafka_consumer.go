@@ -47,8 +47,9 @@ func newConsumer(kafkaConfig *model.KafkaConfig, logger model.Logger) *kafkaCons
 			SASLMechanism: getSaslMechanism(kafkaConfig.SASL),
 		}
 
-		// TODO: can we add this configuration?
-		readerConfig.GroupBalancers = []kafka.GroupBalancer{kafka.RackAffinityGroupBalancer{Rack: kafkaConfig.SASL.Rack}}
+		if kafkaConfig.SASL.Rack != "" {
+			readerConfig.GroupBalancers = []kafka.GroupBalancer{kafka.RackAffinityGroupBalancer{Rack: kafkaConfig.SASL.Rack}}
+		}
 	}
 
 	return &kafkaConsumer{

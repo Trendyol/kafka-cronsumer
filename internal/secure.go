@@ -27,11 +27,11 @@ func createTLSConfig(sasl model.SASLConfig) *tls.Config {
 
 	return &tls.Config{
 		RootCAs:    caCertPool,
-		MinVersion: tls.VersionTLS12,
+		MinVersion: tls.VersionTLS13,
 	}
 }
 
-// TODO: can we support plain authentication type?
+// TODO: we can support `plain` authentication type
 // link: https://github.com/segmentio/kafka-go#plain
 func getSaslMechanism(sasl model.SASLConfig) sasl.Mechanism {
 	mechanism, err := scram.Mechanism(scram.SHA512, sasl.Username, sasl.Password)

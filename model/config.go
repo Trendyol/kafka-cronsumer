@@ -32,7 +32,7 @@ type SASLConfig struct {
 	Password           string `yaml:"password"`
 	RootCAPath         string `yaml:"rootCAPath"`
 	IntermediateCAPath string `yaml:"intermediateCAPath"`
-	Rack               string `yaml:"rack"` // TODO: can we add this?
+	Rack               string `yaml:"rack"`
 }
 
 type ConsumerConfig struct {
