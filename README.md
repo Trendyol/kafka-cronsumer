@@ -29,7 +29,7 @@ If the order of messages is unnecessary, it is very appropriate for these scenar
 ### Installation 🧰
 
 ```sh
-TODO
+go get -u github.com/Trendyol/kafka-cronsumer@latest
 ```
 
 ### Examples 🛠
@@ -84,8 +84,7 @@ func main() {
     }
     secondHandler := kcronsumer.NewCronsumer(secondCfg, secondConsumerFn)
     secondHandler.Start(firstCfg.Consumer)
-    
-    select {} // block main goroutine (we did to show it by on purpose)
+    // ...    
 }
 ```
 
@@ -147,18 +146,18 @@ Please adhere to this project's `code of conduct`.
 
 ## Libraries Used For This Project 💪
 
-✅ [segmentio/kafka-go](https://github.com/segmentio/kafka-go)
+- [segmentio/kafka-go](https://github.com/segmentio/kafka-go)
 
-✅ [robfig/cron](https://github.com/robfig/cron)
+- [robfig/cron](https://github.com/robfig/cron)
 
-✅ [uber-go/zap](https://github.com/uber-go/zap)
+- [uber-go/zap](https://github.com/uber-go/zap)
 
 ## Additional References 🤘
 
-✅ [Kcat](https://github.com/edenhill/kcat)
+- [Kcat](https://github.com/edenhill/kcat)
 
-✅ [jq](https://stedolan.github.io/jq/)
+- [jq](https://stedolan.github.io/jq/)
 
-✅ [golangci-lint](https://github.com/golangci/golangci-lint)
+- [golangci-lint](https://github.com/golangci/golangci-lint)
 
-✅ [Kafka Console Producer](https://kafka.apache.org/quickstart)
+- [Kafka Console Producer](https://kafka.apache.org/quickstart)
