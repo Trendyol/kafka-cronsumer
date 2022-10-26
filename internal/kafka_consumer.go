@@ -19,10 +19,10 @@ type Consumer interface {
 
 type kafkaConsumer struct {
 	consumer *kafka.Reader
-	logger   model.Logger
+	cfg      *model.KafkaConfig
 }
 
-func newConsumer(kafkaConfig *model.KafkaConfig, logger model.Logger) *kafkaConsumer {
+func newConsumer(kafkaConfig *model.KafkaConfig) *kafkaConsumer {
 	setConsumerConfigDefaults(kafkaConfig)
 	checkConsumerRequiredParams(kafkaConfig)
 
@@ -54,7 +54,7 @@ func newConsumer(kafkaConfig *model.KafkaConfig, logger model.Logger) *kafkaCons
 
 	return &kafkaConsumer{
 		consumer: kafka.NewReader(readerConfig),
-		logger:   logger,
+		cfg:      kafkaConfig,
 	}
 }
 
@@ -118,7 +118,7 @@ func (k kafkaConsumer) ReadMessage() (KafkaMessage, error) {
 			return KafkaMessage{}, err
 		}
 
-		k.logger.Errorf("Message not read %v", err)
+		k.cfg.Logger.Errorf("Message not read %v", err)
 		return KafkaMessage{}, err
 	}
 
@@ -131,6 +131,6 @@ func (k kafkaConsumer) IsReaderHasBeenClosed(err error) bool {
 
 func (k kafkaConsumer) Stop() {
 	if err := k.consumer.Close(); err != nil {
-		k.logger.Errorf("Error while closing kafka kafkaConsumer %v", err)
+		k.cfg.Logger.Errorf("Error while closing kafka kafkaConsumer %v", err)
 	}
 }

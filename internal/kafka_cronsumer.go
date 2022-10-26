@@ -20,39 +20,23 @@ type kafkaCronsumer struct {
 	kafkaConsumer Consumer
 	kafkaProducer Producer
 
-	logger model.Logger
-
 	consumeFn func(message model.Message) error
 
 	maxRetry        int
 	deadLetterTopic string
+
+	cfg *model.KafkaConfig
 }
 
-func NewKafkaCronsumer(cfg *model.KafkaConfig, c func(message model.Message) error, logger model.Logger) KafkaCronsumer {
-	handler := &kafkaCronsumer{
-		paused:          false,
-		quitChannel:     make(chan bool),
-		messageChannel:  make(chan KafkaMessage),
-		kafkaConsumer:   newConsumer(cfg, logger),
-		kafkaProducer:   newProducer(cfg, logger),
-		consumeFn:       c,
-		logger:          logger,
-		maxRetry:        setMaxRetry(cfg.Consumer.MaxRetry),
-		deadLetterTopic: cfg.Consumer.DeadLetterTopic,
-	}
-
-	return handler
-}
-
-func NewKafkaCronsumerWithLogger(cfg *model.KafkaConfig, c func(message model.Message) error, l model.Logger) KafkaCronsumer {
+func NewKafkaCronsumer(cfg *model.KafkaConfig, c func(message model.Message) error) KafkaCronsumer {
 	return &kafkaCronsumer{
+		cfg:             cfg,
 		paused:          false,
 		quitChannel:     make(chan bool),
 		messageChannel:  make(chan KafkaMessage),
-		kafkaConsumer:   newConsumer(cfg, l),
-		kafkaProducer:   newProducer(cfg, l),
+		kafkaConsumer:   newConsumer(cfg),
+		kafkaProducer:   newProducer(cfg),
 		consumeFn:       c,
-		logger:          l,
 		maxRetry:        setMaxRetry(cfg.Consumer.MaxRetry),
 		deadLetterTopic: cfg.Consumer.DeadLetterTopic,
 	}
@@ -99,7 +83,7 @@ func (k *kafkaCronsumer) Listen() {
 				k.Pause()
 
 				if err := k.kafkaProducer.Produce(msg, false); err != nil {
-					k.logger.Errorf("Error sending next iteration KafkaMessage: %v", err)
+					k.cfg.Logger.Errorf("Error sending next iteration KafkaMessage: %v", err)
 				}
 
 				return
@@ -110,7 +94,7 @@ func (k *kafkaCronsumer) Listen() {
 
 func (k *kafkaCronsumer) Pause() {
 	if !k.paused {
-		k.logger.Info("Process Topic PAUSED")
+		k.cfg.Logger.Info("Process Topic PAUSED")
 		close(k.messageChannel)
 		k.paused = true
 		k.quitChannel <- true
@@ -137,24 +121,24 @@ func (k *kafkaCronsumer) sendToMessageChannel(msg KafkaMessage) {
 func (k *kafkaCronsumer) recoverMessage(msg KafkaMessage) {
 	// sending KafkaMessage to closed channel panic could be occurred cause of concurrency for exception topic listeners
 	if r := recover(); r != nil {
-		k.logger.Warnf("Recovered KafkaMessage: %s", string(msg.Value))
+		k.cfg.Logger.Warnf("Recovered KafkaMessage: %s", string(msg.Value))
 		k.produce(msg)
 	}
 }
 
 func (k *kafkaCronsumer) produce(msg KafkaMessage) {
 	if msg.IsExceedMaxRetryCount(k.maxRetry) {
-		k.logger.Errorf("Message exceeds to retry limit %d. KafkaMessage: %s", k.maxRetry, msg.Value)
+		k.cfg.Logger.Errorf("Message exceeds to retry limit %d. KafkaMessage: %s", k.maxRetry, msg.Value)
 		if k.isDeadLetterTopicFeatureEnabled() {
 			msg.RouteMessageToTopic(k.deadLetterTopic)
 			if err := k.kafkaProducer.Produce(msg, true); err != nil {
-				k.logger.Errorf("Error sending KafkaMessage to dead letter topic %v", err)
+				k.cfg.Logger.Errorf("Error sending KafkaMessage to dead letter topic %v", err)
 			}
 		}
 		return
 	}
 	if err := k.kafkaProducer.Produce(msg, true); err != nil {
-		k.logger.Errorf("Error sending KafkaMessage to topic %v", err)
+		k.cfg.Logger.Errorf("Error sending KafkaMessage to topic %v", err)
 	}
 }
 
