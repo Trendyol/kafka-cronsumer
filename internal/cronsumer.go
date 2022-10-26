@@ -8,12 +8,13 @@ import (
 )
 
 type Cronsumer interface {
-	Start(cfg model.ConsumerConfig)
-	Run(cfg model.ConsumerConfig)
+	Start()
+	Run()
 	Stop()
 }
 
 type cronsumer struct {
+	cfg      *model.KafkaConfig
 	cron     *gocron.Cron
 	consumer KafkaCronsumer
 	logger   model.Logger
@@ -30,6 +31,7 @@ func NewCronsumer(cfg *model.KafkaConfig, c func(message model.Message) error) C
 		cron:     gocron.New(),
 		consumer: consumer,
 		logger:   l,
+		cfg:      cfg,
 	}
 }
 
@@ -40,11 +42,13 @@ func NewCronsumerWithLogger(cfg *model.KafkaConfig, c func(m model.Message) erro
 		cron:     gocron.New(),
 		consumer: consumer,
 		logger:   l,
+		cfg:      cfg,
 	}
 }
 
 // Start starts the kafka consumer KafkaCronsumer with a new goroutine so its asynchronous operation (non-blocking)
-func (s *cronsumer) Start(cfg model.ConsumerConfig) {
+func (s *cronsumer) Start() {
+	cfg := s.cfg.Consumer
 	checkRequiredParams(cfg)
 	_, _ = s.cron.AddFunc(cfg.Cron, func() {
 		s.logger.Info("Topic started at time: " + time.Now().String())
@@ -55,7 +59,8 @@ func (s *cronsumer) Start(cfg model.ConsumerConfig) {
 }
 
 // Run runs the kafka consumer KafkaCronsumer with the caller goroutine so its synchronous operation (blocking)
-func (s *cronsumer) Run(cfg model.ConsumerConfig) {
+func (s *cronsumer) Run() {
+	cfg := s.cfg.Consumer
 	checkRequiredParams(cfg)
 	_, _ = s.cron.AddFunc(cfg.Cron, func() {
 		s.logger.Info("Topic started at time: " + time.Now().String())

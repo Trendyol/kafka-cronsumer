@@ -19,7 +19,7 @@ func main() {
 	}
 
 	cronsumer := kcronsumer.NewCronsumer(kafkaConfig, consumeFn)
-	cronsumer.Run(kafkaConfig.Consumer)
+	cronsumer.Run()
 }
 
 func getConfig() *model.KafkaConfig {
