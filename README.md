@@ -47,7 +47,7 @@ func main() {
     }
     
     cronsumer := kcronsumer.NewCronsumer(kafkaConfig, consumeFn)
-    cronsumer.Run(kafkaConfig.Consumer)
+    cronsumer.Run()
 }
 ```
 
@@ -62,7 +62,7 @@ func main() {
     }
     
     cronsumer := kcronsumer.NewCronsumer(kafkaConfig, consumeFn)
-    cronsumer.Run(kafkaConfig.Consumer)
+    cronsumer.Run()
 }
 ```
 
@@ -76,14 +76,14 @@ func main() {
         return nil
     }
     firstHandler := kcronsumer.NewCronsumer(firstCfg, firstConsumerFn)
-    firstHandler.Start(firstCfg.Consumer)
+    firstHandler.Start()
     
     var secondConsumerFn kcronsumer.ConsumeFn = func(message model.Message) error {
         fmt.Printf("Second consumer > Message received: %s\n", string(message.Value))
         return nil
     }
     secondHandler := kcronsumer.NewCronsumer(secondCfg, secondConsumerFn)
-    secondHandler.Start(firstCfg.Consumer)
+    secondHandler.Start()
     // ...    
 }
 ```

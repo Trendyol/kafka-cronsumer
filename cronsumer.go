@@ -11,8 +11,8 @@ import (
 type ConsumeFn func(message model.Message) error
 
 type Cronsumer interface {
-	Start(cfg model.ConsumerConfig)
-	Run(cfg model.ConsumerConfig)
+	Start()
+	Run()
 	Stop()
 }
 
