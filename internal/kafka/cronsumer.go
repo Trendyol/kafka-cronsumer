@@ -22,8 +22,7 @@ type kafkaCronsumer struct {
 	cfg *kafka.Config
 }
 
-// nolint: revive
-func NewKafkaCronsumer(cfg *kafka.Config, c func(message kafka.Message) error) *kafkaCronsumer {
+func NewKafkaCronsumer(cfg *kafka.Config, c func(message kafka.Message) error) *kafkaCronsumer { //nolint: revive
 	return &kafkaCronsumer{
 		cfg:             cfg,
 		paused:          false,
