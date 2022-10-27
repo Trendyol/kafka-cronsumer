@@ -34,7 +34,7 @@ go get -u github.com/Trendyol/kafka-cronsumer@latest
 
 ### Examples 🛠
 
-You can find a number of ready-to-run examples at [this directory](example).
+You can find a number of ready-to-run examples at [this directory](examples).
 
 #### Single Consumer
 

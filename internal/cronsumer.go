@@ -27,7 +27,6 @@ func NewCronsumer(cfg *model.KafkaConfig, fn func(message model.Message) error) 
 		consumer: NewKafkaCronsumer(cfg, fn),
 		cfg:      cfg,
 	}
-
 }
 
 func (s *cronsumer) WithLogger(logger model.Logger) {

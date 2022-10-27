@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
+	"runtime"
 
 	kcronsumer "github.com/Trendyol/kafka-cronsumer"
 	"github.com/Trendyol/kafka-cronsumer/model"
@@ -10,8 +12,8 @@ import (
 )
 
 func main() {
-	firstCfg := getConfig("./example/multiple-consumers/config-1.yml")
-	secondCfg := getConfig("./example/multiple-consumers/config-2.yml")
+	firstCfg := getConfig("config-1.yml")
+	secondCfg := getConfig("config-2.yml")
 
 	var firstConsumerFn kcronsumer.ConsumeFn = func(message model.Message) error {
 		fmt.Printf("First consumer > Message received: %s\n", string(message.Value))
@@ -30,8 +32,10 @@ func main() {
 	select {} // block main goroutine (we did to show it by on purpose)
 }
 
-func getConfig(path string) *model.KafkaConfig {
-	file, err := os.ReadFile(path)
+func getConfig(configFileName string) *model.KafkaConfig {
+	_, filename, _, _ := runtime.Caller(0)
+	dirname := filepath.Dir(filename)
+	file, err := os.ReadFile(filepath.Join(dirname, configFileName))
 	if err != nil {
 		panic(err)
 	}

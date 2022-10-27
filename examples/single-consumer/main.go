@@ -1,9 +1,10 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
+	"runtime"
 
 	kcronsumer "github.com/Trendyol/kafka-cronsumer"
 	"github.com/Trendyol/kafka-cronsumer/model"
@@ -15,7 +16,7 @@ func main() {
 
 	var consumeFn kcronsumer.ConsumeFn = func(message model.Message) error {
 		fmt.Printf("consumer > Message received: %s\n", string(message.Value))
-		return errors.New("error occurred")
+		return nil
 	}
 
 	cronsumer := kcronsumer.NewCronsumer(kafkaConfig, consumeFn)
@@ -23,7 +24,9 @@ func main() {
 }
 
 func getConfig() *model.KafkaConfig {
-	file, err := os.ReadFile("./example/single-consumer-with-deadletter/config.yml")
+	_, filename, _, _ := runtime.Caller(0)
+	dirname := filepath.Dir(filename)
+	file, err := os.ReadFile(filepath.Join(dirname, "config.yml"))
 	if err != nil {
 		panic(err)
 	}

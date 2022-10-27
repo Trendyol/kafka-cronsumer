@@ -1,12 +1,14 @@
 package main
 
 import (
+	"errors"
 	"fmt"
-	"os"
-
 	kcronsumer "github.com/Trendyol/kafka-cronsumer"
 	"github.com/Trendyol/kafka-cronsumer/model"
 	"gopkg.in/yaml.v3"
+	"os"
+	"path/filepath"
+	"runtime"
 )
 
 func main() {
@@ -14,16 +16,17 @@ func main() {
 
 	var consumeFn kcronsumer.ConsumeFn = func(message model.Message) error {
 		fmt.Printf("consumer > Message received: %s\n", string(message.Value))
-		return nil
+		return errors.New("error occurred")
 	}
 
 	cronsumer := kcronsumer.NewCronsumer(kafkaConfig, consumeFn)
-	cronsumer.WithLogger(&myLogger{})
 	cronsumer.Run()
 }
 
 func getConfig() *model.KafkaConfig {
-	file, err := os.ReadFile("./example/single-consumer-with-custom-logger/config.yml")
+	_, filename, _, _ := runtime.Caller(0)
+	dirname := filepath.Dir(filename)
+	file, err := os.ReadFile(filepath.Join(dirname, "config.yml"))
 	if err != nil {
 		panic(err)
 	}

@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
+	"runtime"
 
 	kcronsumer "github.com/Trendyol/kafka-cronsumer"
 	"github.com/Trendyol/kafka-cronsumer/model"
@@ -18,11 +20,14 @@ func main() {
 	}
 
 	cronsumer := kcronsumer.NewCronsumer(kafkaConfig, consumeFn)
+	cronsumer.WithLogger(&myLogger{})
 	cronsumer.Run()
 }
 
 func getConfig() *model.KafkaConfig {
-	file, err := os.ReadFile("./example/single-consumer/config.yml")
+	_, filename, _, _ := runtime.Caller(0)
+	dirname := filepath.Dir(filename)
+	file, err := os.ReadFile(filepath.Join(dirname, "config.yml"))
 	if err != nil {
 		panic(err)
 	}
