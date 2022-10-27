@@ -1,7 +1,8 @@
-package internal
+package kafka
 
 import (
 	"context"
+	"github.com/Trendyol/kafka-cronsumer/internal/sasl"
 	"time"
 
 	"github.com/Trendyol/kafka-cronsumer/pkg/config"
@@ -38,8 +39,8 @@ func newProducer(kafkaConfig *config.Kafka) Producer {
 
 	if kafkaConfig.SASL.Enabled {
 		producer.Transport = &kafka.Transport{
-			TLS:  createTLSConfig(kafkaConfig.SASL),
-			SASL: getSaslMechanism(kafkaConfig.SASL),
+			TLS:  sasl.NewTLSConfig(kafkaConfig.SASL),
+			SASL: sasl.Mechanism(kafkaConfig.SASL),
 		}
 	}
 

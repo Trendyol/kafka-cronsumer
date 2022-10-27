@@ -3,7 +3,7 @@
 package kcronsumer
 
 import (
-	"github.com/Trendyol/kafka-cronsumer/internal"
+	"github.com/Trendyol/kafka-cronsumer/internal/kafka"
 	"github.com/Trendyol/kafka-cronsumer/model"
 	"github.com/Trendyol/kafka-cronsumer/pkg/config"
 )

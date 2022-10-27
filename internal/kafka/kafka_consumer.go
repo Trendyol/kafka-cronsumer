@@ -1,8 +1,9 @@
-package internal
+package kafka
 
 import (
 	"context"
 	"errors"
+	"github.com/Trendyol/kafka-cronsumer/internal/sasl"
 	"io"
 	"strconv"
 	"time"
@@ -43,8 +44,8 @@ func newConsumer(kafkaConfig *config.Kafka) *kafkaConsumer {
 
 	if kafkaConfig.SASL.Enabled {
 		readerConfig.Dialer = &kafka.Dialer{
-			TLS:           createTLSConfig(kafkaConfig.SASL),
-			SASLMechanism: getSaslMechanism(kafkaConfig.SASL),
+			TLS:           sasl.NewTLSConfig(kafkaConfig.SASL),
+			SASLMechanism: sasl.Mechanism(kafkaConfig.SASL),
 		}
 
 		if kafkaConfig.SASL.Rack != "" {

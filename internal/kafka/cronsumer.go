@@ -1,4 +1,4 @@
-package internal
+package kafka
 
 import (
 	"time"
@@ -24,7 +24,7 @@ type cronsumer struct {
 }
 
 func NewCronsumer(cfg *config.Kafka, fn func(message model.Message) error) Cronsumer {
-	cfg.Logger = Logger(cfg.LogLevel)
+	cfg.Logger = logger.New(cfg.LogLevel)
 	return &cronsumer{
 		cron:     gocron.New(),
 		consumer: NewKafkaCronsumer(cfg, fn),
