@@ -41,9 +41,9 @@ You can find a number of ready-to-run examples at [this directory](examples).
 ```go
 func main() {
     // ...
-    var consumeFn kcronsumer.ConsumeFn = func(message model.Message) error {
-        fmt.Printf("consumer > Message received: %s\n", string(message.Value))
-        return nil
+    var consumeFn kafka.ConsumeFn = func(message kafka.Message) error {
+      fmt.Printf("consumer > Message received: %s\n", string(message.Value))
+      return nil
     }
     
     cronsumer := kcronsumer.NewCronsumer(kafkaConfig, consumeFn)
@@ -56,9 +56,9 @@ func main() {
 ```go
 func main() {
     // ...
-    var consumeFn kcronsumer.ConsumeFn = func(message model.Message) error {
-        fmt.Printf("consumer > Message received: %s\n", string(message.Value))
-        return errors.New("error occurred")
+    var consumeFn kafka.ConsumeFn = func(message kafka.Message) error {
+      fmt.Printf("consumer > Message received: %s\n", string(message.Value))
+      return errors.New("error occurred")
     }
     
     cronsumer := kcronsumer.NewCronsumer(kafkaConfig, consumeFn)
@@ -71,16 +71,16 @@ func main() {
 ```go
 func main() {
     // ...
-    var firstConsumerFn kcronsumer.ConsumeFn = func(message model.Message) error {
-        fmt.Printf("First consumer > Message received: %s\n", string(message.Value))
-        return nil
+    var firstConsumerFn kafka.ConsumeFn = func(message kafka.Message) error {
+      fmt.Printf("First consumer > Message received: %s\n", string(message.Value))
+      return nil
     }
     firstHandler := kcronsumer.NewCronsumer(firstCfg, firstConsumerFn)
     firstHandler.Start()
-    
-    var secondConsumerFn kcronsumer.ConsumeFn = func(message model.Message) error {
-        fmt.Printf("Second consumer > Message received: %s\n", string(message.Value))
-        return nil
+
+    var secondConsumerFn kafka.ConsumeFn = func(message kafka.Message) error {
+      fmt.Printf("Second consumer > Message received: %s\n", string(message.Value))
+      return nil
     }
     secondHandler := kcronsumer.NewCronsumer(secondCfg, secondConsumerFn)
     secondHandler.Start()
