@@ -2,8 +2,9 @@ package internal
 
 import (
 	"context"
-	"github.com/Trendyol/kafka-cronsumer/pkg/config"
 	"time"
+
+	"github.com/Trendyol/kafka-cronsumer/pkg/config"
 
 	"github.com/segmentio/kafka-go"
 )

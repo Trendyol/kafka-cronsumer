@@ -1,8 +1,9 @@
 package internal
 
 import (
-	"github.com/Trendyol/kafka-cronsumer/pkg/config"
 	"time"
+
+	"github.com/Trendyol/kafka-cronsumer/pkg/config"
 
 	"github.com/Trendyol/kafka-cronsumer/model"
 )
@@ -129,7 +130,7 @@ func (k *kafkaCronsumer) recoverMessage(msg KafkaMessage) {
 
 func (k *kafkaCronsumer) produce(msg KafkaMessage) {
 	if msg.IsExceedMaxRetryCount(k.maxRetry) {
-		k.cfg.Logger.Debugf("Message exceeds to retry limit %d. KafkaMessage: %s", k.maxRetry, msg.Value)
+		k.cfg.Logger.Errorf("Message exceeds to retry limit %d. KafkaMessage: %s", k.maxRetry, msg.Value)
 		if k.isDeadLetterTopicFeatureEnabled() {
 			msg.RouteMessageToTopic(k.deadLetterTopic)
 			if err := k.kafkaProducer.Produce(msg, true); err != nil {

@@ -3,10 +3,10 @@ package logger
 type Level string
 
 const (
-	LogDebugLevel Level = "debug"
-	LogInfoLevel  Level = "info"
-	LogWarnLevel  Level = "warn"
-	LogErrorLevel Level = "error"
+	Debug Level = "debug"
+	Info  Level = "info"
+	Warn  Level = "warn"
+	Error Level = "error"
 )
 
 // Interface is a logger that supports log levels, context and structured logging.

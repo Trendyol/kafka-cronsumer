@@ -6,7 +6,7 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-type logger struct {
+type zapLogger struct {
 	*zap.SugaredLogger
 }
 
@@ -21,7 +21,7 @@ func Logger(logLevel logger.Level) logger.Interface {
 
 func (l *zapLogger) With(args ...interface{}) logger.Interface {
 	if len(args) > 0 {
-		return &logger{l.SugaredLogger.With(args...)}
+		return &zapLogger{l.SugaredLogger.With(args...)}
 	}
 	return l
 }

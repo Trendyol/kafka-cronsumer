@@ -1,9 +1,10 @@
 package internal
 
 import (
+	"time"
+
 	"github.com/Trendyol/kafka-cronsumer/pkg/config"
 	"github.com/Trendyol/kafka-cronsumer/pkg/logger"
-	"time"
 
 	"github.com/Trendyol/kafka-cronsumer/model"
 	gocron "github.com/robfig/cron/v3"

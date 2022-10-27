@@ -38,5 +38,5 @@ func getConfig() *config.Kafka {
 		panic(err)
 	}
 
-	return &cfg.Kafka
+	return cfg
 }

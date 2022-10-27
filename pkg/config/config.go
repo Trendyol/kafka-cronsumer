@@ -1,8 +1,9 @@
 package config
 
 import (
-	"github.com/Trendyol/kafka-cronsumer/pkg/logger"
 	"time"
+
+	"github.com/Trendyol/kafka-cronsumer/pkg/logger"
 )
 
 type Kafka struct {
