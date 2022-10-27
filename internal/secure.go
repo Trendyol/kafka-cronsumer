@@ -25,9 +25,8 @@ func createTLSConfig(sasl model.SASLConfig) *tls.Config {
 	caCertPool.AppendCertsFromPEM(rootCA)
 	caCertPool.AppendCertsFromPEM(interCA)
 
-	return &tls.Config{
-		RootCAs:    caCertPool,
-		MinVersion: tls.VersionTLS13,
+	return &tls.Config{ //nolint: gosec
+		RootCAs: caCertPool,
 	}
 }
 
