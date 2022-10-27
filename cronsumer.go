@@ -7,19 +7,9 @@ import (
 	. "github.com/Trendyol/kafka-cronsumer/pkg/kafka" //nolint:revive
 )
 
-// ConsumeFn This function describes how to consume messages from specified topic
-type ConsumeFn func(message model.Message) error
-
-type Cronsumer interface {
-	Start()
-	Run()
-	Stop()
-	WithLogger(logger logger.Interface)
-}
-
 // NewCronsumer returns the newly created kafka consumer instance.
 // config.Config specifies cron, duration and so many parameters.
 // ConsumeFn describes how to consume messages from specified topic.
-func NewCronsumer(cfg *config.Kafka, c ConsumeFn) Cronsumer {
-	return internal.NewCronsumer(cfg, c)
+func NewCronsumer(cfg *Config, c ConsumeFn) Cronsumer {
+	return kafka.NewCronsumer(cfg, c)
 }

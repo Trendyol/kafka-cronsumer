@@ -39,5 +39,6 @@ func Mechanism(sasl kafka.SASLConfig) sasl.Mechanism {
 	if err != nil {
 		panic("Error while creating SCRAM configuration, error: " + err.Error())
 	}
+
 	return mechanism
 }
