@@ -16,7 +16,6 @@ linters:
     - goconst
     - gocritic
     - gocyclo
-    - gofmt
     - goimports
     - revive
     - gosimple
@@ -26,6 +25,7 @@ linters:
     - lll
     - misspell
     - nakedret
+    - gofumpt
     - nolintlint
     - staticcheck
     - stylecheck

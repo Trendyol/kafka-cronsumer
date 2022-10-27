@@ -54,7 +54,7 @@ func (m *KafkaMessage) GetValue() []byte {
 }
 
 func (m *KafkaMessage) GetHeaders() map[string][]byte {
-	var mp = map[string][]byte{}
+	mp := map[string][]byte{}
 	for i := range m.Headers {
 		mp[m.Headers[i].Key] = m.Headers[i].Value
 	}

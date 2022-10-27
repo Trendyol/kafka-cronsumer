@@ -6,7 +6,6 @@ import (
 	"github.com/Trendyol/kafka-cronsumer/internal"
 	"github.com/Trendyol/kafka-cronsumer/model"
 	"github.com/Trendyol/kafka-cronsumer/pkg/config"
-	"github.com/Trendyol/kafka-cronsumer/pkg/logger"
 )
 
 // ConsumeFn This function describes how to consume messages from specified topic
