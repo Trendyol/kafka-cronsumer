@@ -16,7 +16,6 @@ linters:
     - goconst
     - gocritic
     - gocyclo
-    - goimports
     - revive
     - gosimple
     - govet
@@ -38,6 +37,13 @@ linters:
 issues:
   # Excluding configuration per-path, per-linter, per-text and per-source
   exclude-rules:
+    - path: internal/kafka/
+      text: "dot-imports"
+      linters:
+        - revive
+    - linters:
+        - stylecheck
+      text: "ST1001:"
     - path: _test\.go
       linters:
         - errcheck

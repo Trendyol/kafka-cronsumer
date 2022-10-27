@@ -3,8 +3,9 @@ package sasl
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 	"os"
+
+	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 
 	"github.com/segmentio/kafka-go/sasl"
 	"github.com/segmentio/kafka-go/sasl/scram"

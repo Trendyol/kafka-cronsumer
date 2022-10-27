@@ -3,26 +3,27 @@ package kafka
 import (
 	"context"
 	"errors"
-	"github.com/Trendyol/kafka-cronsumer/internal/sasl"
-	kafka2 "github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 	"io"
 	"strconv"
 	"time"
+
+	"github.com/Trendyol/kafka-cronsumer/internal/sasl"
+	. "github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 
 	"github.com/segmentio/kafka-go"
 )
 
 type Consumer interface {
-	ReadMessage() (KafkaMessage, error)
+	ReadMessage() (MessageWrapper, error)
 	Stop()
 }
 
 type kafkaConsumer struct {
 	consumer *kafka.Reader
-	cfg      *kafka2.Config
+	cfg      *Config
 }
 
-func newConsumer(kafkaConfig *kafka2.Config) *kafkaConsumer {
+func newConsumer(kafkaConfig *Config) *kafkaConsumer {
 	setConsumerConfigDefaults(kafkaConfig)
 	checkConsumerRequiredParams(kafkaConfig)
 
@@ -58,7 +59,7 @@ func newConsumer(kafkaConfig *kafka2.Config) *kafkaConsumer {
 	}
 }
 
-func checkConsumerRequiredParams(kafkaConfig *kafka2.Config) {
+func checkConsumerRequiredParams(kafkaConfig *Config) {
 	if kafkaConfig.Consumer.GroupID == "" {
 		panic("you have to set consumer group id")
 	}
@@ -67,7 +68,7 @@ func checkConsumerRequiredParams(kafkaConfig *kafka2.Config) {
 	}
 }
 
-func setConsumerConfigDefaults(kafkaConfig *kafka2.Config) {
+func setConsumerConfigDefaults(kafkaConfig *Config) {
 	if kafkaConfig.Consumer.MinBytes == 0 {
 		kafkaConfig.Consumer.MinBytes = 10e3
 	}
@@ -111,15 +112,15 @@ func convertStartOffset(offset string) int64 {
 	}
 }
 
-func (k kafkaConsumer) ReadMessage() (KafkaMessage, error) {
+func (k kafkaConsumer) ReadMessage() (MessageWrapper, error) {
 	msg, err := k.consumer.ReadMessage(context.Background())
 	if err != nil {
 		if k.IsReaderHasBeenClosed(err) {
-			return KafkaMessage{}, err
+			return MessageWrapper{}, err
 		}
 
 		k.cfg.Logger.Errorf("Message not read %v", err)
-		return KafkaMessage{}, err
+		return MessageWrapper{}, err
 	}
 
 	return newMessage(msg), err

@@ -2,20 +2,21 @@ package kafka
 
 import (
 	"context"
-	"github.com/Trendyol/kafka-cronsumer/internal/sasl"
-	kafka2 "github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 	"time"
+
+	"github.com/Trendyol/kafka-cronsumer/internal/sasl"
+	. "github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 
 	"github.com/segmentio/kafka-go"
 )
 
 type Producer interface {
-	Produce(message KafkaMessage, increaseRetry bool) error
+	Produce(message MessageWrapper, increaseRetry bool) error
 }
 
 type kafkaProducer struct {
 	w   *kafka.Writer
-	cfg *kafka2.Config
+	cfg *Config
 }
 
 /*
@@ -25,7 +26,7 @@ automatically create a topic under the following circumstances:
   - When a kafkaConsumer starts reading messages from the topic
   - When any client requests metadata for the topic
 */
-func newProducer(kafkaConfig *kafka2.Config) Producer {
+func newProducer(kafkaConfig *Config) Producer {
 	setProducerConfigDefaults(kafkaConfig)
 
 	producer := &kafka.Writer{
@@ -49,7 +50,7 @@ func newProducer(kafkaConfig *kafka2.Config) Producer {
 	}
 }
 
-func setProducerConfigDefaults(kafkaConfig *kafka2.Config) {
+func setProducerConfigDefaults(kafkaConfig *Config) {
 	if kafkaConfig.Producer.BatchSize == 0 {
 		kafkaConfig.Producer.BatchSize = 100
 	}
@@ -58,6 +59,6 @@ func setProducerConfigDefaults(kafkaConfig *kafka2.Config) {
 	}
 }
 
-func (k *kafkaProducer) Produce(message KafkaMessage, increaseRetry bool) error {
+func (k *kafkaProducer) Produce(message MessageWrapper, increaseRetry bool) error {
 	return k.w.WriteMessages(context.Background(), message.To(increaseRetry))
 }

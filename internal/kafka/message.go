@@ -1,25 +1,26 @@
 package kafka
 
 import (
-	kafka2 "github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 	"strconv"
 	"time"
 	"unsafe"
 
+	. "github.com/Trendyol/kafka-cronsumer/pkg/kafka"
+
 	"github.com/segmentio/kafka-go"
 )
 
-type KafkaMessage struct {
-	kafka2.Message
+type MessageWrapper struct {
+	Message
 	RetryCount int
 }
 
 const RetryHeaderKey = "x-retry-count"
 
-func newMessage(msg kafka.Message) KafkaMessage {
-	return KafkaMessage{
+func newMessage(msg kafka.Message) MessageWrapper {
+	return MessageWrapper{
 		RetryCount: getRetryCount(&msg),
-		Message: kafka2.Message{
+		Message: Message{
 			Topic:         msg.Topic,
 			Partition:     msg.Partition,
 			Offset:        msg.Offset,
@@ -32,7 +33,7 @@ func newMessage(msg kafka.Message) KafkaMessage {
 	}
 }
 
-func (m *KafkaMessage) To(increaseRetry bool) kafka.Message {
+func (m *MessageWrapper) To(increaseRetry bool) kafka.Message {
 	if increaseRetry {
 		m.IncreaseRetryCount()
 	}
@@ -44,15 +45,15 @@ func (m *KafkaMessage) To(increaseRetry bool) kafka.Message {
 	}
 }
 
-func (m *KafkaMessage) GetTime() time.Time {
+func (m *MessageWrapper) GetTime() time.Time {
 	return m.Time
 }
 
-func (m *KafkaMessage) GetValue() []byte {
+func (m *MessageWrapper) GetValue() []byte {
 	return m.Value
 }
 
-func (m *KafkaMessage) GetHeaders() map[string][]byte {
+func (m *MessageWrapper) GetHeaders() map[string][]byte {
 	mp := map[string][]byte{}
 	for i := range m.Headers {
 		mp[m.Headers[i].Key] = m.Headers[i].Value
@@ -60,19 +61,19 @@ func (m *KafkaMessage) GetHeaders() map[string][]byte {
 	return mp
 }
 
-func (m *KafkaMessage) GetTopic() string {
+func (m *MessageWrapper) GetTopic() string {
 	return m.Topic
 }
 
-func (m *KafkaMessage) IsExceedMaxRetryCount(maxRetry int) bool {
+func (m *MessageWrapper) IsExceedMaxRetryCount(maxRetry int) bool {
 	return m.RetryCount > maxRetry
 }
 
-func (m *KafkaMessage) RouteMessageToTopic(topic string) {
+func (m *MessageWrapper) RouteMessageToTopic(topic string) {
 	m.Topic = topic
 }
 
-func (m *KafkaMessage) IncreaseRetryCount() {
+func (m *MessageWrapper) IncreaseRetryCount() {
 	for i := range m.Headers {
 		if m.Headers[i].Key == RetryHeaderKey {
 			byteToStr := *((*string)(unsafe.Pointer(&m.Headers[i].Value)))
