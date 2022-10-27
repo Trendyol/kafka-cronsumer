@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/Trendyol/kafka-cronsumer/pkg/config"
 	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 	"os"
 	"path/filepath"
@@ -33,7 +32,7 @@ func main() {
 	select {} // block main goroutine (we did to show it by on purpose)
 }
 
-func getConfig(configFileName string) *config.Kafka {
+func getConfig(configFileName string) *kafka.Config {
 	_, filename, _, _ := runtime.Caller(0)
 	dirname := filepath.Dir(filename)
 	file, err := os.ReadFile(filepath.Join(dirname, configFileName))
@@ -41,7 +40,7 @@ func getConfig(configFileName string) *config.Kafka {
 		panic(err)
 	}
 
-	cfg := &config.Kafka{}
+	cfg := &kafka.Config{}
 	err = yaml.Unmarshal(file, cfg)
 	if err != nil {
 		panic(err)

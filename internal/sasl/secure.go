@@ -3,15 +3,14 @@ package sasl
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 	"os"
-
-	"github.com/Trendyol/kafka-cronsumer/pkg/config"
 
 	"github.com/segmentio/kafka-go/sasl"
 	"github.com/segmentio/kafka-go/sasl/scram"
 )
 
-func NewTLSConfig(sasl config.SASL) *tls.Config {
+func NewTLSConfig(sasl kafka.SASLConfig) *tls.Config {
 	rootCA, err := os.ReadFile(sasl.RootCAPath)
 	if err != nil {
 		panic("Error while reading Root CA file: " + sasl.RootCAPath + " error: " + err.Error())
@@ -34,7 +33,7 @@ func NewTLSConfig(sasl config.SASL) *tls.Config {
 
 // TODO: we can support `plain` authentication type
 // link: https://github.com/segmentio/kafka-go#plain
-func Mechanism(sasl config.SASL) sasl.Mechanism {
+func Mechanism(sasl kafka.SASLConfig) sasl.Mechanism {
 	mechanism, err := scram.Mechanism(scram.SHA512, sasl.Username, sasl.Password)
 	if err != nil {
 		panic("Error while creating SCRAM configuration, error: " + err.Error())

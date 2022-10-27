@@ -3,9 +3,8 @@ package kafka
 import (
 	"context"
 	"github.com/Trendyol/kafka-cronsumer/internal/sasl"
+	kafka2 "github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 	"time"
-
-	"github.com/Trendyol/kafka-cronsumer/pkg/config"
 
 	"github.com/segmentio/kafka-go"
 )
@@ -16,17 +15,17 @@ type Producer interface {
 
 type kafkaProducer struct {
 	w   *kafka.Writer
-	cfg *config.Kafka
+	cfg *kafka2.Config
 }
 
 /*
-Allow Auto Topic Creation: The default Kafka configuration specifies that the broker should
+Allow Auto Topic Creation: The default Config configuration specifies that the broker should
 automatically create a topic under the following circumstances:
   - When a kafkaProducer starts writing messages to the topic
   - When a kafkaConsumer starts reading messages from the topic
   - When any client requests metadata for the topic
 */
-func newProducer(kafkaConfig *config.Kafka) Producer {
+func newProducer(kafkaConfig *kafka2.Config) Producer {
 	setProducerConfigDefaults(kafkaConfig)
 
 	producer := &kafka.Writer{
@@ -50,7 +49,7 @@ func newProducer(kafkaConfig *config.Kafka) Producer {
 	}
 }
 
-func setProducerConfigDefaults(kafkaConfig *config.Kafka) {
+func setProducerConfigDefaults(kafkaConfig *kafka2.Config) {
 	if kafkaConfig.Producer.BatchSize == 0 {
 		kafkaConfig.Producer.BatchSize = 100
 	}

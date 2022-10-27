@@ -4,7 +4,6 @@ package kcronsumer
 
 import (
 	"github.com/Trendyol/kafka-cronsumer/internal/kafka"
-	"github.com/Trendyol/kafka-cronsumer/pkg/config"
 	. "github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 )
 
@@ -19,7 +18,7 @@ type Cronsumer interface {
 }
 
 // NewCronsumer returns the newly created kafka consumer instance.
-// config.Kafka specifies cron, duration and so many parameters.
+// config.Config specifies cron, duration and so many parameters.
 // ConsumeFn describes how to consume messages from specified topic.
 func NewCronsumer(cfg *config.Kafka, c ConsumeFn) Cronsumer {
 	return internal.NewCronsumer(cfg, c)

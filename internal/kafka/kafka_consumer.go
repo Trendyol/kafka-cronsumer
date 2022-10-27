@@ -4,11 +4,10 @@ import (
 	"context"
 	"errors"
 	"github.com/Trendyol/kafka-cronsumer/internal/sasl"
+	kafka2 "github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 	"io"
 	"strconv"
 	"time"
-
-	"github.com/Trendyol/kafka-cronsumer/pkg/config"
 
 	"github.com/segmentio/kafka-go"
 )
@@ -20,10 +19,10 @@ type Consumer interface {
 
 type kafkaConsumer struct {
 	consumer *kafka.Reader
-	cfg      *config.Kafka
+	cfg      *kafka2.Config
 }
 
-func newConsumer(kafkaConfig *config.Kafka) *kafkaConsumer {
+func newConsumer(kafkaConfig *kafka2.Config) *kafkaConsumer {
 	setConsumerConfigDefaults(kafkaConfig)
 	checkConsumerRequiredParams(kafkaConfig)
 
@@ -59,7 +58,7 @@ func newConsumer(kafkaConfig *config.Kafka) *kafkaConsumer {
 	}
 }
 
-func checkConsumerRequiredParams(kafkaConfig *config.Kafka) {
+func checkConsumerRequiredParams(kafkaConfig *kafka2.Config) {
 	if kafkaConfig.Consumer.GroupID == "" {
 		panic("you have to set consumer group id")
 	}
@@ -68,7 +67,7 @@ func checkConsumerRequiredParams(kafkaConfig *config.Kafka) {
 	}
 }
 
-func setConsumerConfigDefaults(kafkaConfig *config.Kafka) {
+func setConsumerConfigDefaults(kafkaConfig *kafka2.Config) {
 	if kafkaConfig.Consumer.MinBytes == 0 {
 		kafkaConfig.Consumer.MinBytes = 10e3
 	}

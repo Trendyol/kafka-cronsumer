@@ -4,19 +4,18 @@ import (
 	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 	"time"
 
-	"github.com/Trendyol/kafka-cronsumer/pkg/config"
 	"github.com/Trendyol/kafka-cronsumer/pkg/logger"
 
 	gocron "github.com/robfig/cron/v3"
 )
 
 type cronsumer struct {
-	cfg      *config.Kafka
+	cfg      *kafka.Config
 	cron     *gocron.Cron
 	consumer KafkaCronsumer
 }
 
-func NewCronsumer(cfg *config.Kafka, fn func(message kafka.Message) error) kafka.Cronsumer {
+func NewCronsumer(cfg *kafka.Config, fn func(message kafka.Message) error) kafka.Cronsumer {
 	cfg.Logger = logger.New(cfg.LogLevel)
 	return &cronsumer{
 		cron:     gocron.New(),
@@ -53,7 +52,7 @@ func (s *cronsumer) Run() {
 	s.cron.Run()
 }
 
-func checkRequiredParams(cfg config.Consumer) {
+func checkRequiredParams(cfg kafka.ConsumerConfig) {
 	if cfg.Cron == "" {
 		panic("you have to set cron expression")
 	}

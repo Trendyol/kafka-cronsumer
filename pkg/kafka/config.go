@@ -1,4 +1,4 @@
-package config
+package kafka
 
 import (
 	"time"
@@ -6,16 +6,16 @@ import (
 	"github.com/Trendyol/kafka-cronsumer/pkg/logger"
 )
 
-type Kafka struct {
+type Config struct {
 	Brokers  []string         `yaml:"brokers"`
-	Consumer Consumer         `yaml:"consumer"`
-	Producer Producer         `yaml:"producer"`
-	SASL     SASL             `yaml:"sasl"`
+	Consumer ConsumerConfig   `yaml:"consumer"`
+	Producer ProducerConfig   `yaml:"producer"`
+	SASL     SASLConfig       `yaml:"sasl"`
 	LogLevel logger.Level     `yaml:"logLevel"`
 	Logger   logger.Interface `yaml:"-"`
 }
 
-type SASL struct {
+type SASLConfig struct {
 	Enabled            bool   `yaml:"enabled"`
 	AuthType           string `yaml:"authType"` // plain or scram
 	Username           string `yaml:"username"`
@@ -25,7 +25,7 @@ type SASL struct {
 	Rack               string `yaml:"rack"`
 }
 
-type Consumer struct {
+type ConsumerConfig struct {
 	GroupID           string        `yaml:"groupId"`
 	Topic             string        `yaml:"topic"`
 	DeadLetterTopic   string        `yaml:"deadLetterTopic"`
@@ -44,7 +44,7 @@ type Consumer struct {
 	Cron              string        `yaml:"cron"`
 }
 
-type Producer struct {
+type ProducerConfig struct {
 	BatchSize    int           `yaml:"batchSize"`
 	BatchTimeout time.Duration `yaml:"batchTimeout"`
 }

@@ -3,8 +3,6 @@ package kafka
 import (
 	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 	"time"
-
-	"github.com/Trendyol/kafka-cronsumer/pkg/config"
 )
 
 type KafkaCronsumer interface {
@@ -26,10 +24,10 @@ type kafkaCronsumer struct {
 	maxRetry        int
 	deadLetterTopic string
 
-	cfg *config.Kafka
+	cfg *kafka.Config
 }
 
-func NewKafkaCronsumer(cfg *config.Kafka, c func(message kafka.Message) error) KafkaCronsumer {
+func NewKafkaCronsumer(cfg *kafka.Config, c func(message kafka.Message) error) KafkaCronsumer {
 	return &kafkaCronsumer{
 		cfg:             cfg,
 		paused:          false,
