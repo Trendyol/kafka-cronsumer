@@ -3,7 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
-	kcronsumer "github.com/Trendyol/kafka-cronsumer"
+	"github.com/Trendyol/kafka-cronsumer"
 	"github.com/Trendyol/kafka-cronsumer/model"
 	"gopkg.in/yaml.v3"
 	"os"

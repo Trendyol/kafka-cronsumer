@@ -139,6 +139,7 @@ Please adhere to this project's `code of conduct`.
 
 - [@Abdulsametileri](https://github.com/Abdulsametileri) (Author)
 - [@emreodabas](https://github.com/emreodabas) (Author)
+- [@anilmisirlioglu](https://github.com/anilmisirlioglu) (Contributor)
 
 ## Code of Conduct
 
