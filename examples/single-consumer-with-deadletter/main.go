@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/Trendyol/kafka-cronsumer"
 	"github.com/Trendyol/kafka-cronsumer/model"
+	"github.com/Trendyol/kafka-cronsumer/pkg/config"
 	"gopkg.in/yaml.v3"
 	"os"
 	"path/filepath"
@@ -23,7 +24,7 @@ func main() {
 	cronsumer.Run()
 }
 
-func getConfig() *model.KafkaConfig {
+func getConfig() *config.Kafka {
 	_, filename, _, _ := runtime.Caller(0)
 	dirname := filepath.Dir(filename)
 	file, err := os.ReadFile(filepath.Join(dirname, "config.yml"))
@@ -31,11 +32,11 @@ func getConfig() *model.KafkaConfig {
 		panic(err)
 	}
 
-	var cfg model.ApplicationConfig
-	err = yaml.Unmarshal(file, &cfg)
+	cfg := &config.Kafka{}
+	err = yaml.Unmarshal(file, cfg)
 	if err != nil {
 		panic(err)
 	}
 
-	return &cfg.Kafka
+	return cfg
 }

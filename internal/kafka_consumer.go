@@ -3,11 +3,10 @@ package internal
 import (
 	"context"
 	"errors"
+	"github.com/Trendyol/kafka-cronsumer/pkg/config"
 	"io"
 	"strconv"
 	"time"
-
-	"github.com/Trendyol/kafka-cronsumer/model"
 
 	"github.com/segmentio/kafka-go"
 )
@@ -19,10 +18,10 @@ type Consumer interface {
 
 type kafkaConsumer struct {
 	consumer *kafka.Reader
-	cfg      *model.KafkaConfig
+	cfg      *config.Kafka
 }
 
-func newConsumer(kafkaConfig *model.KafkaConfig) *kafkaConsumer {
+func newConsumer(kafkaConfig *config.Kafka) *kafkaConsumer {
 	setConsumerConfigDefaults(kafkaConfig)
 	checkConsumerRequiredParams(kafkaConfig)
 
@@ -58,7 +57,7 @@ func newConsumer(kafkaConfig *model.KafkaConfig) *kafkaConsumer {
 	}
 }
 
-func checkConsumerRequiredParams(kafkaConfig *model.KafkaConfig) {
+func checkConsumerRequiredParams(kafkaConfig *config.Kafka) {
 	if kafkaConfig.Consumer.GroupID == "" {
 		panic("you have to set consumer group id")
 	}
@@ -67,7 +66,7 @@ func checkConsumerRequiredParams(kafkaConfig *model.KafkaConfig) {
 	}
 }
 
-func setConsumerConfigDefaults(kafkaConfig *model.KafkaConfig) {
+func setConsumerConfigDefaults(kafkaConfig *config.Kafka) {
 	if kafkaConfig.Consumer.MinBytes == 0 {
 		kafkaConfig.Consumer.MinBytes = 10e3
 	}

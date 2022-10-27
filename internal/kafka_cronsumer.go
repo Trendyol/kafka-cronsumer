@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"github.com/Trendyol/kafka-cronsumer/pkg/config"
 	"time"
 
 	"github.com/Trendyol/kafka-cronsumer/model"
@@ -25,10 +26,10 @@ type kafkaCronsumer struct {
 	maxRetry        int
 	deadLetterTopic string
 
-	cfg *model.KafkaConfig
+	cfg *config.Kafka
 }
 
-func NewKafkaCronsumer(cfg *model.KafkaConfig, c func(message model.Message) error) KafkaCronsumer {
+func NewKafkaCronsumer(cfg *config.Kafka, c func(message model.Message) error) KafkaCronsumer {
 	return &kafkaCronsumer{
 		cfg:             cfg,
 		paused:          false,

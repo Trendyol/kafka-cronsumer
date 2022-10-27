@@ -1,7 +1,7 @@
 package internal
 
 import (
-	"github.com/Trendyol/kafka-cronsumer/model"
+	"github.com/Trendyol/kafka-cronsumer/pkg/logger"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -10,27 +10,27 @@ type logger struct {
 	*zap.SugaredLogger
 }
 
-func Logger(logLevel model.Level) model.Logger {
+func Logger(logLevel logger.Level) logger.Interface {
 	if logLevel == "" {
-		logLevel = model.LogWarnLevel
+		logLevel = logger.Warn
 	}
 
 	l, _ := newLogger(logLevel)
 	return newWithZap(l)
 }
 
-func (l *logger) With(args ...interface{}) model.Logger {
+func (l *zapLogger) With(args ...interface{}) logger.Interface {
 	if len(args) > 0 {
 		return &logger{l.SugaredLogger.With(args...)}
 	}
 	return l
 }
 
-func newWithZap(l *zap.Logger) model.Logger {
-	return &logger{l.Sugar()}
+func newWithZap(l *zap.Logger) logger.Interface {
+	return &zapLogger{l.Sugar()}
 }
 
-func newLogger(logLevel model.Level) (*zap.Logger, error) {
+func newLogger(logLevel logger.Level) (*zap.Logger, error) {
 	encoderConfig := zapcore.EncoderConfig{
 		TimeKey:        "time",
 		LevelKey:       "level",

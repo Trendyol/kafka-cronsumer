@@ -1,11 +1,10 @@
-kafka:
-  brokers:
-    - "127.0.0.1:9092"
-  consumer:
-    groupId: "sample-consumer-1"
-    topic: "exception-1"
-    maxRetry: 3
-    concurrency: 1
-    cron: "*/1 * * * *"
-    duration: 20s
-  logLevel: warn
+brokers:
+  - "127.0.0.1:9092"
+consumer:
+  groupId: "sample-consumer-1"
+  topic: "exception-1"
+  maxRetry: 3
+  concurrency: 1
+  cron: "*/1 * * * *"
+  duration: 20s
+logLevel: warn

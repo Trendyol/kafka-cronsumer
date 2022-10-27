@@ -1,6 +1,8 @@
 package internal
 
 import (
+	"github.com/Trendyol/kafka-cronsumer/pkg/config"
+	"github.com/Trendyol/kafka-cronsumer/pkg/logger"
 	"time"
 
 	"github.com/Trendyol/kafka-cronsumer/model"
@@ -11,16 +13,16 @@ type Cronsumer interface {
 	Start()
 	Run()
 	Stop()
-	WithLogger(logger model.Logger)
+	WithLogger(logger logger.Interface)
 }
 
 type cronsumer struct {
-	cfg      *model.KafkaConfig
+	cfg      *config.Kafka
 	cron     *gocron.Cron
 	consumer KafkaCronsumer
 }
 
-func NewCronsumer(cfg *model.KafkaConfig, fn func(message model.Message) error) Cronsumer {
+func NewCronsumer(cfg *config.Kafka, fn func(message model.Message) error) Cronsumer {
 	cfg.Logger = Logger(cfg.LogLevel)
 	return &cronsumer{
 		cron:     gocron.New(),
@@ -29,7 +31,7 @@ func NewCronsumer(cfg *model.KafkaConfig, fn func(message model.Message) error) 
 	}
 }
 
-func (s *cronsumer) WithLogger(logger model.Logger) {
+func (s *cronsumer) WithLogger(logger logger.Interface) {
 	s.cfg.Logger = logger
 }
 
@@ -57,7 +59,7 @@ func (s *cronsumer) Run() {
 	s.cron.Run()
 }
 
-func checkRequiredParams(cfg model.ConsumerConfig) {
+func checkRequiredParams(cfg config.Consumer) {
 	if cfg.Cron == "" {
 		panic("you have to set cron expression")
 	}

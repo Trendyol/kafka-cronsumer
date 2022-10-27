@@ -5,6 +5,8 @@ package kcronsumer
 import (
 	"github.com/Trendyol/kafka-cronsumer/internal"
 	"github.com/Trendyol/kafka-cronsumer/model"
+	"github.com/Trendyol/kafka-cronsumer/pkg/config"
+	"github.com/Trendyol/kafka-cronsumer/pkg/logger"
 )
 
 // ConsumeFn This function describes how to consume messages from specified topic
@@ -14,12 +16,12 @@ type Cronsumer interface {
 	Start()
 	Run()
 	Stop()
-	WithLogger(logger model.Logger)
+	WithLogger(logger logger.Interface)
 }
 
 // NewCronsumer returns the newly created kafka consumer instance.
-// config.KafkaConfig specifies cron, duration and so many parameters.
+// config.Kafka specifies cron, duration and so many parameters.
 // ConsumeFn describes how to consume messages from specified topic.
-func NewCronsumer(cfg *model.KafkaConfig, c ConsumeFn) Cronsumer {
+func NewCronsumer(cfg *config.Kafka, c ConsumeFn) Cronsumer {
 	return internal.NewCronsumer(cfg, c)
 }

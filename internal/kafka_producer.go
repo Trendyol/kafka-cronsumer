@@ -2,9 +2,9 @@ package internal
 
 import (
 	"context"
+	"github.com/Trendyol/kafka-cronsumer/pkg/config"
 	"time"
 
-	"github.com/Trendyol/kafka-cronsumer/model"
 	"github.com/segmentio/kafka-go"
 )
 
@@ -14,7 +14,7 @@ type Producer interface {
 
 type kafkaProducer struct {
 	w   *kafka.Writer
-	cfg *model.KafkaConfig
+	cfg *config.Kafka
 }
 
 /*
@@ -24,7 +24,7 @@ automatically create a topic under the following circumstances:
   - When a kafkaConsumer starts reading messages from the topic
   - When any client requests metadata for the topic
 */
-func newProducer(kafkaConfig *model.KafkaConfig) Producer {
+func newProducer(kafkaConfig *config.Kafka) Producer {
 	setProducerConfigDefaults(kafkaConfig)
 
 	producer := &kafka.Writer{
@@ -48,7 +48,7 @@ func newProducer(kafkaConfig *model.KafkaConfig) Producer {
 	}
 }
 
-func setProducerConfigDefaults(kafkaConfig *model.KafkaConfig) {
+func setProducerConfigDefaults(kafkaConfig *config.Kafka) {
 	if kafkaConfig.Producer.BatchSize == 0 {
 		kafkaConfig.Producer.BatchSize = 100
 	}
