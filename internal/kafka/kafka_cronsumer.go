@@ -1,11 +1,10 @@
 package kafka
 
 import (
+	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 	"time"
 
 	"github.com/Trendyol/kafka-cronsumer/pkg/config"
-
-	"github.com/Trendyol/kafka-cronsumer/model"
 )
 
 type KafkaCronsumer interface {
@@ -22,7 +21,7 @@ type kafkaCronsumer struct {
 	kafkaConsumer Consumer
 	kafkaProducer Producer
 
-	consumeFn func(message model.Message) error
+	consumeFn func(message kafka.Message) error
 
 	maxRetry        int
 	deadLetterTopic string
@@ -30,7 +29,7 @@ type kafkaCronsumer struct {
 	cfg *config.Kafka
 }
 
-func NewKafkaCronsumer(cfg *config.Kafka, c func(message model.Message) error) KafkaCronsumer {
+func NewKafkaCronsumer(cfg *config.Kafka, c func(message kafka.Message) error) KafkaCronsumer {
 	return &kafkaCronsumer{
 		cfg:             cfg,
 		paused:          false,

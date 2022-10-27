@@ -1,21 +1,14 @@
 package kafka
 
 import (
+	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 	"time"
 
 	"github.com/Trendyol/kafka-cronsumer/pkg/config"
 	"github.com/Trendyol/kafka-cronsumer/pkg/logger"
 
-	"github.com/Trendyol/kafka-cronsumer/model"
 	gocron "github.com/robfig/cron/v3"
 )
-
-type Cronsumer interface {
-	Start()
-	Run()
-	Stop()
-	WithLogger(logger logger.Interface)
-}
 
 type cronsumer struct {
 	cfg      *config.Kafka
@@ -23,7 +16,7 @@ type cronsumer struct {
 	consumer KafkaCronsumer
 }
 
-func NewCronsumer(cfg *config.Kafka, fn func(message model.Message) error) Cronsumer {
+func NewCronsumer(cfg *config.Kafka, fn func(message kafka.Message) error) kafka.Cronsumer {
 	cfg.Logger = logger.New(cfg.LogLevel)
 	return &cronsumer{
 		cron:     gocron.New(),

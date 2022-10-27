@@ -3,10 +3,9 @@ package kafka
 import (
 	"bytes"
 	_ "embed"
+	kafka2 "github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 	"strconv"
 	"testing"
-
-	"github.com/Trendyol/kafka-cronsumer/model"
 
 	"github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/protocol"
@@ -15,7 +14,7 @@ import (
 func Test_increaseRetryCount(t *testing.T) {
 	// Given
 	m := KafkaMessage{
-		Message: model.Message{
+		Message: kafka2.Message{
 			Headers: []protocol.Header{
 				{Key: RetryHeaderKey, Value: []byte("1")},
 			},

@@ -3,12 +3,12 @@ package main
 import (
 	"fmt"
 	"github.com/Trendyol/kafka-cronsumer/pkg/config"
+	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 	"os"
 	"path/filepath"
 	"runtime"
 
 	"github.com/Trendyol/kafka-cronsumer"
-	"github.com/Trendyol/kafka-cronsumer/model"
 	"gopkg.in/yaml.v3"
 )
 
@@ -16,14 +16,14 @@ func main() {
 	firstCfg := getConfig("config-1.yml")
 	secondCfg := getConfig("config-2.yml")
 
-	var firstConsumerFn kcronsumer.ConsumeFn = func(message model.Message) error {
+	var firstConsumerFn kafka.ConsumeFn = func(message kafka.Message) error {
 		fmt.Printf("First consumer > Message received: %s\n", string(message.Value))
 		return nil
 	}
 	firstHandler := kcronsumer.NewCronsumer(firstCfg, firstConsumerFn)
 	firstHandler.Start()
 
-	var secondConsumerFn kcronsumer.ConsumeFn = func(message model.Message) error {
+	var secondConsumerFn kafka.ConsumeFn = func(message kafka.Message) error {
 		fmt.Printf("Second consumer > Message received: %s\n", string(message.Value))
 		return nil
 	}

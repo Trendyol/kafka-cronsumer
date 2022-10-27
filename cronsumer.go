@@ -4,8 +4,8 @@ package kcronsumer
 
 import (
 	"github.com/Trendyol/kafka-cronsumer/internal/kafka"
-	"github.com/Trendyol/kafka-cronsumer/model"
 	"github.com/Trendyol/kafka-cronsumer/pkg/config"
+	. "github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 )
 
 // ConsumeFn This function describes how to consume messages from specified topic

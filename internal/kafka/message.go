@@ -1,17 +1,16 @@
 package kafka
 
 import (
+	kafka2 "github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 	"strconv"
 	"time"
 	"unsafe"
-
-	"github.com/Trendyol/kafka-cronsumer/model"
 
 	"github.com/segmentio/kafka-go"
 )
 
 type KafkaMessage struct {
-	model.Message
+	kafka2.Message
 	RetryCount int
 }
 
@@ -20,7 +19,7 @@ const RetryHeaderKey = "x-retry-count"
 func newMessage(msg kafka.Message) KafkaMessage {
 	return KafkaMessage{
 		RetryCount: getRetryCount(&msg),
-		Message: model.Message{
+		Message: kafka2.Message{
 			Topic:         msg.Topic,
 			Partition:     msg.Partition,
 			Offset:        msg.Offset,

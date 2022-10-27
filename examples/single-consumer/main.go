@@ -3,19 +3,19 @@ package main
 import (
 	"fmt"
 	"github.com/Trendyol/kafka-cronsumer/pkg/config"
+	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 	"os"
 	"path/filepath"
 	"runtime"
 
 	"github.com/Trendyol/kafka-cronsumer"
-	"github.com/Trendyol/kafka-cronsumer/model"
 	"gopkg.in/yaml.v3"
 )
 
 func main() {
 	kafkaConfig := getConfig()
 
-	var consumeFn kcronsumer.ConsumeFn = func(message model.Message) error {
+	var consumeFn kafka.ConsumeFn = func(message kafka.Message) error {
 		fmt.Printf("consumer > Message received: %s\n", string(message.Value))
 		return nil
 	}
