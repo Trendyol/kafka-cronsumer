@@ -1,17 +1,6 @@
 package model
 
-import (
-	"time"
-)
-
-type Level string
-
-const (
-	LogDebugLevel Level = "debug"
-	LogInfoLevel  Level = "info"
-	LogWarnLevel  Level = "warn"
-	LogErrorLevel Level = "error"
-)
+import "time"
 
 type ApplicationConfig struct {
 	Kafka KafkaConfig
@@ -23,6 +12,7 @@ type KafkaConfig struct {
 	Producer ProducerConfig `yaml:"producer"`
 	SASL     SASLConfig     `yaml:"sasl"`
 	LogLevel Level          `yaml:"logLevel"`
+	Logger   Logger         `yaml:"-"`
 }
 
 type SASLConfig struct {

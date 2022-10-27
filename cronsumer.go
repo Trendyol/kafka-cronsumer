@@ -14,6 +14,7 @@ type Cronsumer interface {
 	Start()
 	Run()
 	Stop()
+	WithLogger(logger model.Logger)
 }
 
 // NewCronsumer returns the newly created kafka consumer instance.
@@ -21,12 +22,4 @@ type Cronsumer interface {
 // ConsumeFn describes how to consume messages from specified topic.
 func NewCronsumer(cfg *model.KafkaConfig, c ConsumeFn) Cronsumer {
 	return internal.NewCronsumer(cfg, c)
-}
-
-// NewCronsumerWithLogger returns the newly created kafka consumer instance.
-// config.KafkaConfig specifies cron, duration and so many parameters.
-// ConsumeFn describes how to consume messages from specified topic.
-// logger describes log interface for injecting custom log implementation
-func NewCronsumerWithLogger(cfg *model.KafkaConfig, c ConsumeFn, logger model.Logger) Cronsumer {
-	return internal.NewCronsumerWithLogger(cfg, c, logger)
 }

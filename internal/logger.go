@@ -11,6 +11,10 @@ type logger struct {
 }
 
 func Logger(logLevel model.Level) model.Logger {
+	if logLevel == "" {
+		logLevel = model.LogWarnLevel
+	}
+
 	l, _ := newLogger(logLevel)
 	return newWithZap(l)
 }

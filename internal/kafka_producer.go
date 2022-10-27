@@ -13,8 +13,8 @@ type Producer interface {
 }
 
 type kafkaProducer struct {
-	w      *kafka.Writer
-	logger model.Logger
+	w   *kafka.Writer
+	cfg *model.KafkaConfig
 }
 
 /*
@@ -24,7 +24,7 @@ automatically create a topic under the following circumstances:
   - When a kafkaConsumer starts reading messages from the topic
   - When any client requests metadata for the topic
 */
-func newProducer(kafkaConfig *model.KafkaConfig, l model.Logger) Producer {
+func newProducer(kafkaConfig *model.KafkaConfig) Producer {
 	setProducerConfigDefaults(kafkaConfig)
 
 	producer := &kafka.Writer{
@@ -43,8 +43,8 @@ func newProducer(kafkaConfig *model.KafkaConfig, l model.Logger) Producer {
 	}
 
 	return &kafkaProducer{
-		w:      producer,
-		logger: l,
+		w:   producer,
+		cfg: kafkaConfig,
 	}
 }
 

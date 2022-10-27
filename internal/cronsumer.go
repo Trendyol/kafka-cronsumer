@@ -11,39 +11,27 @@ type Cronsumer interface {
 	Start()
 	Run()
 	Stop()
+	WithLogger(logger model.Logger)
 }
 
 type cronsumer struct {
 	cfg      *model.KafkaConfig
 	cron     *gocron.Cron
 	consumer KafkaCronsumer
-	logger   model.Logger
 }
 
-func NewCronsumer(cfg *model.KafkaConfig, c func(message model.Message) error) Cronsumer {
-	if cfg.LogLevel == "" {
-		cfg.LogLevel = "warn"
-	}
-
-	l := Logger(cfg.LogLevel)
-	consumer := NewKafkaCronsumer(cfg, c, l)
+func NewCronsumer(cfg *model.KafkaConfig, fn func(message model.Message) error) Cronsumer {
+	cfg.Logger = Logger(cfg.LogLevel)
 	return &cronsumer{
 		cron:     gocron.New(),
-		consumer: consumer,
-		logger:   l,
+		consumer: NewKafkaCronsumer(cfg, fn),
 		cfg:      cfg,
 	}
+
 }
 
-func NewCronsumerWithLogger(cfg *model.KafkaConfig, c func(m model.Message) error, l model.Logger) Cronsumer {
-	consumer := NewKafkaCronsumerWithLogger(cfg, c, l)
-
-	return &cronsumer{
-		cron:     gocron.New(),
-		consumer: consumer,
-		logger:   l,
-		cfg:      cfg,
-	}
+func (s *cronsumer) WithLogger(logger model.Logger) {
+	s.cfg.Logger = logger
 }
 
 // Start starts the kafka consumer KafkaCronsumer with a new goroutine so its asynchronous operation (non-blocking)
@@ -51,7 +39,7 @@ func (s *cronsumer) Start() {
 	cfg := s.cfg.Consumer
 	checkRequiredParams(cfg)
 	_, _ = s.cron.AddFunc(cfg.Cron, func() {
-		s.logger.Info("Topic started at time: " + time.Now().String())
+		s.cfg.Logger.Info("Topic started at time: " + time.Now().String())
 		s.consumer.Start(setConcurrency(cfg.Concurrency))
 		time.AfterFunc(cfg.Duration, s.consumer.Pause)
 	})
@@ -63,7 +51,7 @@ func (s *cronsumer) Run() {
 	cfg := s.cfg.Consumer
 	checkRequiredParams(cfg)
 	_, _ = s.cron.AddFunc(cfg.Cron, func() {
-		s.logger.Info("Topic started at time: " + time.Now().String())
+		s.cfg.Logger.Info("Topic started at time: " + time.Now().String())
 		s.consumer.Start(setConcurrency(cfg.Concurrency))
 		time.AfterFunc(cfg.Duration, s.consumer.Pause)
 	})
