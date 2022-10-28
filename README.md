@@ -75,15 +75,15 @@ func main() {
       fmt.Printf("First consumer > Message received: %s\n", string(message.Value))
       return nil
     }
-    firstHandler := cronsumer.New(firstCfg, firstConsumerFn)
-    firstHandler.Start()
+    first := cronsumer.New(firstCfg, firstConsumerFn)
+    first.Start()
 
     var secondConsumerFn kafka.ConsumeFn = func(message kafka.Message) error {
       fmt.Printf("Second consumer > Message received: %s\n", string(message.Value))
       return nil
     }
-    secondHandler := cronsumer.New(secondCfg, secondConsumerFn)
-    secondHandler.Start()
+    second := cronsumer.New(secondCfg, secondConsumerFn)
+    second.Start()
     // ...    
 }
 ```
