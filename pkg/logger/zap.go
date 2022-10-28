@@ -1,7 +1,6 @@
-package internal
+package logger
 
 import (
-	"github.com/Trendyol/kafka-cronsumer/model"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -10,27 +9,23 @@ type logger struct {
 	*zap.SugaredLogger
 }
 
-func Logger(logLevel model.Level) model.Logger {
-	if logLevel == "" {
-		logLevel = model.LogWarnLevel
+func New(level Level) Interface {
+	if level == "" {
+		level = Info
 	}
 
-	l, _ := newLogger(logLevel)
-	return newWithZap(l)
+	l, _ := newLogger(level)
+	return &logger{l.Sugar()}
 }
 
-func (l *logger) With(args ...interface{}) model.Logger {
+func (l *logger) With(args ...interface{}) Interface {
 	if len(args) > 0 {
 		return &logger{l.SugaredLogger.With(args...)}
 	}
 	return l
 }
 
-func newWithZap(l *zap.Logger) model.Logger {
-	return &logger{l.Sugar()}
-}
-
-func newLogger(logLevel model.Level) (*zap.Logger, error) {
+func newLogger(level Level) (*zap.Logger, error) {
 	encoderConfig := zapcore.EncoderConfig{
 		TimeKey:        "time",
 		LevelKey:       "level",
@@ -47,12 +42,12 @@ func newLogger(logLevel model.Level) (*zap.Logger, error) {
 	}
 
 	// default log level is Info
-	level := zapcore.InfoLevel
-	_ = level.Set(string(logLevel))
+	lvl := zapcore.InfoLevel
+	_ = lvl.Set(string(level))
 
 	const initial = 100
 	config := zap.Config{
-		Level:       zap.NewAtomicLevelAt(level),
+		Level:       zap.NewAtomicLevelAt(lvl),
 		Development: false,
 		Sampling: &zap.SamplingConfig{
 			Initial:    initial,
@@ -63,5 +58,6 @@ func newLogger(logLevel model.Level) (*zap.Logger, error) {
 		OutputPaths:      []string{"stdout"},
 		ErrorOutputPaths: []string{"stderr"},
 	}
+
 	return config.Build(zap.AddStacktrace(zap.FatalLevel))
 }

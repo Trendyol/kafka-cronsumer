@@ -41,13 +41,13 @@ You can find a number of ready-to-run examples at [this directory](examples).
 ```go
 func main() {
     // ...
-    var consumeFn kcronsumer.ConsumeFn = func(message model.Message) error {
-        fmt.Printf("consumer > Message received: %s\n", string(message.Value))
-        return nil
+    var consumeFn kafka.ConsumeFn = func(message kafka.Message) error {
+      fmt.Printf("consumer > Message received: %s\n", string(message.Value))
+      return nil
     }
     
-    cronsumer := kcronsumer.NewCronsumer(kafkaConfig, consumeFn)
-    cronsumer.Run()
+    c := cronsumer.New(kafkaConfig, consumeFn)
+    c.Run()
 }
 ```
 
@@ -56,13 +56,13 @@ func main() {
 ```go
 func main() {
     // ...
-    var consumeFn kcronsumer.ConsumeFn = func(message model.Message) error {
-        fmt.Printf("consumer > Message received: %s\n", string(message.Value))
-        return errors.New("error occurred")
+    var consumeFn kafka.ConsumeFn = func(message kafka.Message) error {
+      fmt.Printf("consumer > Message received: %s\n", string(message.Value))
+      return errors.New("error occurred")
     }
     
-    cronsumer := kcronsumer.NewCronsumer(kafkaConfig, consumeFn)
-    cronsumer.Run()
+    c := cronsumer.New(kafkaConfig, consumeFn)
+    c.Run()
 }
 ```
 
@@ -71,52 +71,52 @@ func main() {
 ```go
 func main() {
     // ...
-    var firstConsumerFn kcronsumer.ConsumeFn = func(message model.Message) error {
-        fmt.Printf("First consumer > Message received: %s\n", string(message.Value))
-        return nil
+    var firstConsumerFn kafka.ConsumeFn = func(message kafka.Message) error {
+      fmt.Printf("First consumer > Message received: %s\n", string(message.Value))
+      return nil
     }
-    firstHandler := kcronsumer.NewCronsumer(firstCfg, firstConsumerFn)
-    firstHandler.Start()
-    
-    var secondConsumerFn kcronsumer.ConsumeFn = func(message model.Message) error {
-        fmt.Printf("Second consumer > Message received: %s\n", string(message.Value))
-        return nil
+    first := cronsumer.New(firstCfg, firstConsumerFn)
+    first.Start()
+
+    var secondConsumerFn kafka.ConsumeFn = func(message kafka.Message) error {
+      fmt.Printf("Second consumer > Message received: %s\n", string(message.Value))
+      return nil
     }
-    secondHandler := kcronsumer.NewCronsumer(secondCfg, secondConsumerFn)
-    secondHandler.Start()
+    second := cronsumer.New(secondCfg, secondConsumerFn)
+    second.Start()
     // ...    
 }
 ```
 
 ## Configs
 
-| config                             | description                                                                                        | default  | example                  |
-|------------------------------------|----------------------------------------------------------------------------------------------------|----------|--------------------------|
-| `kafka.logLevel`                   | Describes log level, valid options are `debug`, `info`, `warn`, and `error`                        | warn     |                          |
-| `kafka.consumer.cron`              | Cron expression when exception consumer starts to work at                                          |          | */1 * * * *              |
-| `kafka.consumer.duration`          | Work duration exception consumer actively consuming messages                                       |          | 20s, 15m, 1h             |
-| `kafka.consumer.topic`             | Exception topic names                                                                              |          | exception-topic          |
-| `kafka.consumer.groupId`           | Exception consumer group id                                                                        |          | exception-consumer-group |
-| `kafka.consumer.maxRetry`          | Maximum retry value for attempting to retry a message                                              | 3        |                          |
-| `kafka.consumer.concurrency`       | Number of goroutines used at listeners                                                             | 1        |                          |
-| `kafka.consumer.minBytes`          | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.35#ReaderConfig.MinBytes)          | 10e3     |                          |
-| `kafka.consumer.maxBytes`          | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.35#ReaderConfig.MaxBytes)          | 10e6     |                          |
-| `kafka.consumer.maxWait`           | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.35#ReaderConfig.MaxWait)           | 2s       |                          |
-| `kafka.consumer.commitInterval`    | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.35#ReaderConfig.CommitInterval)    | 1s       |                          |
-| `kafka.consumer.heartbeatInterval` | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.35#ReaderConfig.HeartbeatInterval) | 3s       |                          |
-| `kafka.consumer.sessionTimeout`    | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.35#ReaderConfig.SessionTimeout)    | 30s      |                          |
-| `kafka.consumer.rebalanceTimeout`  | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.35#ReaderConfig.RebalanceTimeout)  | 30s      |                          |
-| `kafka.consumer.startOffset`       | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.35#ReaderConfig.StartOffset)       | earliest |                          |
-| `kafka.consumer.retentionTime`     | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.35#ReaderConfig.RetentionTime)     | 24h      |                          |
-| `kafka.producer.batchSize`         | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.35#Writer.BatchSize)               | 100      |                          |
-| `kafka.producer.batchTimeout`      | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.35#Writer.BatchTimeout)            | 500us    |                          |
-| `kafka.sasl.enabled`               | It enables sasl authentication mechanism                                                           | false    |                          |
-| `kafka.sasl.authType`              | Currently we only support `SCRAM`                                                                  | ""       |                          |
-| `kafka.sasl.username`              | SCRAM username                                                                                     | ""       |                          |
-| `kafka.sasl.password`              | SCRAM password                                                                                     | ""       |                          |
-| `kafka.sasl.rootCAPath`            | [see doc](https://pkg.go.dev/crypto/tls#Config.RootCAs)                                            | ""       |                          |
-| `kafka.sasl.intermediateCAPath`    |                                                                                                    | ""       |                          |
-| `kafka.sasl.rack`                  | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.32#RackAffinityGroupBalancer)      | ""       |                          |
+| config                       | description                                                                                        | default  | example                  |
+|------------------------------|----------------------------------------------------------------------------------------------------|----------|--------------------------|
+| `logLevel`                   | Describes log level, valid options are `debug`, `info`, `warn`, and `error`                        | info     |                          |
+| `consumer.cron`              | Cron expression when exception consumer starts to work at                                          |          | */1 * * * *              |
+| `consumer.duration`          | Work duration exception consumer actively consuming messages                                       |          | 20s, 15m, 1h             |
+| `consumer.topic`             | Exception topic names                                                                              |          | exception-topic          |
+| `consumer.groupId`           | Exception consumer group id                                                                        |          | exception-consumer-group |
+| `consumer.maxRetry`          | Maximum retry value for attempting to retry a message                                              | 3        |                          |
+| `consumer.concurrency`       | Number of goroutines used at listeners                                                             | 1        |                          |
+| `consumer.minBytes`          | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.35#ReaderConfig.MinBytes)          | 10e3     |                          |
+| `consumer.maxBytes`          | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.35#ReaderConfig.MaxBytes)          | 10e6     |                          |
+| `consumer.maxWait`           | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.35#ReaderConfig.MaxWait)           | 2s       |                          |
+| `consumer.commitInterval`    | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.35#ReaderConfig.CommitInterval)    | 1s       |                          |
+| `consumer.heartbeatInterval` | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.35#ReaderConfig.HeartbeatInterval) | 3s       |                          |
+| `consumer.sessionTimeout`    | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.35#ReaderConfig.SessionTimeout)    | 30s      |                          |
+| `consumer.rebalanceTimeout`  | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.35#ReaderConfig.RebalanceTimeout)  | 30s      |                          |
+| `consumer.startOffset`       | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.35#ReaderConfig.StartOffset)       | earliest |                          |
+| `consumer.retentionTime`     | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.35#ReaderConfig.RetentionTime)     | 24h      |                          |
+| `producer.batchSize`         | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.35#Writer.BatchSize)               | 100      |                          |
+| `producer.batchTimeout`      | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.35#Writer.BatchTimeout)            | 500us    |                          |
+| `sasl.enabled`               | It enables sasl authentication mechanism                                                           | false    |                          |
+| `sasl.authType`              | Currently we only support `SCRAM`                                                                  | ""       |                          |
+| `sasl.username`              | SCRAM username                                                                                     | ""       |                          |
+| `sasl.password`              | SCRAM password                                                                                     | ""       |                          |
+| `sasl.rootCAPath`            | [see doc](https://pkg.go.dev/crypto/tls#Config.RootCAs)                                            | ""       |                          |
+| `sasl.intermediateCAPath`    |                                                                                                    | ""       |                          |
+| `sasl.rack`                  | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.32#RackAffinityGroupBalancer)      | ""       |                          |
 
 ## Contribute
 

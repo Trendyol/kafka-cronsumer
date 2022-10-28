@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/Trendyol/kafka-cronsumer/model"
+	. "github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 
 	"github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/protocol"
@@ -14,8 +14,8 @@ import (
 
 func Test_increaseRetryCount(t *testing.T) {
 	// Given
-	m := KafkaMessage{
-		Message: model.Message{
+	m := MessageWrapper{
+		Message: Message{
 			Headers: []protocol.Header{
 				{Key: RetryHeaderKey, Value: []byte("1")},
 			},

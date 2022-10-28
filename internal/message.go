@@ -5,22 +5,22 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/Trendyol/kafka-cronsumer/model"
+	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 
-	"github.com/segmentio/kafka-go"
+	segmentio "github.com/segmentio/kafka-go"
 )
 
-type KafkaMessage struct {
-	model.Message
+type MessageWrapper struct {
+	kafka.Message
 	RetryCount int
 }
 
 const RetryHeaderKey = "x-retry-count"
 
-func newMessage(msg kafka.Message) KafkaMessage {
-	return KafkaMessage{
+func newMessage(msg segmentio.Message) MessageWrapper {
+	return MessageWrapper{
 		RetryCount: getRetryCount(&msg),
-		Message: model.Message{
+		Message: kafka.Message{
 			Topic:         msg.Topic,
 			Partition:     msg.Partition,
 			Offset:        msg.Offset,
@@ -33,11 +33,11 @@ func newMessage(msg kafka.Message) KafkaMessage {
 	}
 }
 
-func (m *KafkaMessage) To(increaseRetry bool) kafka.Message {
+func (m *MessageWrapper) To(increaseRetry bool) segmentio.Message {
 	if increaseRetry {
 		m.IncreaseRetryCount()
 	}
-	return kafka.Message{
+	return segmentio.Message{
 		Topic:   m.Topic,
 		Value:   m.Value,
 		Headers: m.Headers,
@@ -45,35 +45,35 @@ func (m *KafkaMessage) To(increaseRetry bool) kafka.Message {
 	}
 }
 
-func (m *KafkaMessage) GetTime() time.Time {
+func (m *MessageWrapper) GetTime() time.Time {
 	return m.Time
 }
 
-func (m *KafkaMessage) GetValue() []byte {
+func (m *MessageWrapper) GetValue() []byte {
 	return m.Value
 }
 
-func (m *KafkaMessage) GetHeaders() map[string][]byte {
-	var mp = map[string][]byte{}
+func (m *MessageWrapper) GetHeaders() map[string][]byte {
+	mp := map[string][]byte{}
 	for i := range m.Headers {
 		mp[m.Headers[i].Key] = m.Headers[i].Value
 	}
 	return mp
 }
 
-func (m *KafkaMessage) GetTopic() string {
+func (m *MessageWrapper) GetTopic() string {
 	return m.Topic
 }
 
-func (m *KafkaMessage) IsExceedMaxRetryCount(maxRetry int) bool {
+func (m *MessageWrapper) IsExceedMaxRetryCount(maxRetry int) bool {
 	return m.RetryCount > maxRetry
 }
 
-func (m *KafkaMessage) RouteMessageToTopic(topic string) {
+func (m *MessageWrapper) RouteMessageToTopic(topic string) {
 	m.Topic = topic
 }
 
-func (m *KafkaMessage) IncreaseRetryCount() {
+func (m *MessageWrapper) IncreaseRetryCount() {
 	for i := range m.Headers {
 		if m.Headers[i].Key == RetryHeaderKey {
 			byteToStr := *((*string)(unsafe.Pointer(&m.Headers[i].Value)))
@@ -84,7 +84,7 @@ func (m *KafkaMessage) IncreaseRetryCount() {
 	}
 }
 
-func getRetryCount(message *kafka.Message) int {
+func getRetryCount(message *segmentio.Message) int {
 	for i := range message.Headers {
 		if message.Headers[i].Key != RetryHeaderKey {
 			continue
@@ -94,7 +94,7 @@ func getRetryCount(message *kafka.Message) int {
 		return retryCount
 	}
 
-	message.Headers = append(message.Headers, kafka.Header{
+	message.Headers = append(message.Headers, segmentio.Header{
 		Key:   RetryHeaderKey,
 		Value: []byte("0"),
 	})

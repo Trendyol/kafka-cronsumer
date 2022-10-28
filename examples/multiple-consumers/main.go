@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
+	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 	"os"
 	"path/filepath"
 	"runtime"
 
 	"github.com/Trendyol/kafka-cronsumer"
-	"github.com/Trendyol/kafka-cronsumer/model"
 	"gopkg.in/yaml.v3"
 )
 
@@ -15,24 +15,24 @@ func main() {
 	firstCfg := getConfig("config-1.yml")
 	secondCfg := getConfig("config-2.yml")
 
-	var firstConsumerFn kcronsumer.ConsumeFn = func(message model.Message) error {
+	var firstConsumerFn kafka.ConsumeFn = func(message kafka.Message) error {
 		fmt.Printf("First consumer > Message received: %s\n", string(message.Value))
 		return nil
 	}
-	firstHandler := kcronsumer.NewCronsumer(firstCfg, firstConsumerFn)
-	firstHandler.Start()
+	first := cronsumer.New(firstCfg, firstConsumerFn)
+	first.Start()
 
-	var secondConsumerFn kcronsumer.ConsumeFn = func(message model.Message) error {
+	var secondConsumerFn kafka.ConsumeFn = func(message kafka.Message) error {
 		fmt.Printf("Second consumer > Message received: %s\n", string(message.Value))
 		return nil
 	}
-	secondHandler := kcronsumer.NewCronsumer(secondCfg, secondConsumerFn)
-	secondHandler.Start()
+	second := cronsumer.New(secondCfg, secondConsumerFn)
+	second.Start()
 
 	select {} // block main goroutine (we did to show it by on purpose)
 }
 
-func getConfig(configFileName string) *model.KafkaConfig {
+func getConfig(configFileName string) *kafka.Config {
 	_, filename, _, _ := runtime.Caller(0)
 	dirname := filepath.Dir(filename)
 	file, err := os.ReadFile(filepath.Join(dirname, configFileName))
@@ -40,11 +40,11 @@ func getConfig(configFileName string) *model.KafkaConfig {
 		panic(err)
 	}
 
-	var cfg model.ApplicationConfig
-	err = yaml.Unmarshal(file, &cfg)
+	cfg := &kafka.Config{}
+	err = yaml.Unmarshal(file, cfg)
 	if err != nil {
 		panic(err)
 	}
 
-	return &cfg.Kafka
+	return cfg
 }

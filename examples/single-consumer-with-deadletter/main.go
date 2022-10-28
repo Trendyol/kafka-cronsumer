@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Trendyol/kafka-cronsumer"
-	"github.com/Trendyol/kafka-cronsumer/model"
+	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 	"gopkg.in/yaml.v3"
 	"os"
 	"path/filepath"
@@ -14,16 +14,16 @@ import (
 func main() {
 	kafkaConfig := getConfig()
 
-	var consumeFn kcronsumer.ConsumeFn = func(message model.Message) error {
+	var consumeFn kafka.ConsumeFn = func(message kafka.Message) error {
 		fmt.Printf("consumer > Message received: %s\n", string(message.Value))
 		return errors.New("error occurred")
 	}
 
-	cronsumer := kcronsumer.NewCronsumer(kafkaConfig, consumeFn)
-	cronsumer.Run()
+	c := cronsumer.New(kafkaConfig, consumeFn)
+	c.Run()
 }
 
-func getConfig() *model.KafkaConfig {
+func getConfig() *kafka.Config {
 	_, filename, _, _ := runtime.Caller(0)
 	dirname := filepath.Dir(filename)
 	file, err := os.ReadFile(filepath.Join(dirname, "config.yml"))
@@ -31,11 +31,11 @@ func getConfig() *model.KafkaConfig {
 		panic(err)
 	}
 
-	var cfg model.ApplicationConfig
-	err = yaml.Unmarshal(file, &cfg)
+	cfg := &kafka.Config{}
+	err = yaml.Unmarshal(file, cfg)
 	if err != nil {
 		panic(err)
 	}
 
-	return &cfg.Kafka
+	return cfg
 }

@@ -2,14 +2,14 @@ package main
 
 import (
 	"fmt"
-	"github.com/Trendyol/kafka-cronsumer/model"
+	"github.com/Trendyol/kafka-cronsumer/pkg/logger"
 )
 
 type myLogger struct{}
 
-var _ model.Logger = (*myLogger)(nil)
+var _ logger.Interface = (*myLogger)(nil)
 
-func (m myLogger) With(args ...interface{}) model.Logger {
+func (m myLogger) With(args ...interface{}) logger.Interface {
 	return m
 }
 

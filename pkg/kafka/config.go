@@ -1,18 +1,18 @@
-package model
+package kafka
 
-import "time"
+import (
+	"time"
 
-type ApplicationConfig struct {
-	Kafka KafkaConfig
-}
+	"github.com/Trendyol/kafka-cronsumer/pkg/logger"
+)
 
-type KafkaConfig struct {
-	Brokers  []string       `yaml:"brokers"`
-	Consumer ConsumerConfig `yaml:"consumer"`
-	Producer ProducerConfig `yaml:"producer"`
-	SASL     SASLConfig     `yaml:"sasl"`
-	LogLevel Level          `yaml:"logLevel"`
-	Logger   Logger         `yaml:"-"`
+type Config struct {
+	Brokers  []string         `yaml:"brokers"`
+	Consumer ConsumerConfig   `yaml:"consumer"`
+	Producer ProducerConfig   `yaml:"producer"`
+	SASL     SASLConfig       `yaml:"sasl"`
+	LogLevel logger.Level     `yaml:"logLevel"`
+	Logger   logger.Interface `yaml:"-"`
 }
 
 type SASLConfig struct {

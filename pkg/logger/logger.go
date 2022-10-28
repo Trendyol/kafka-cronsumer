@@ -1,18 +1,18 @@
-package model
+package logger
 
 type Level string
 
 const (
-	LogDebugLevel Level = "debug"
-	LogInfoLevel  Level = "info"
-	LogWarnLevel  Level = "warn"
-	LogErrorLevel Level = "error"
+	Debug Level = "debug"
+	Info  Level = "info"
+	Warn  Level = "warn"
+	Error Level = "error"
 )
 
-// Logger is a logger that supports log levels, context and structured logging.
-type Logger interface {
+// Interface is a logger that supports log levels, context and structured logging.
+type Interface interface {
 	// With returns a logger based off the root logger and decorates it with the given context and arguments.
-	With(args ...interface{}) Logger
+	With(args ...interface{}) Interface
 
 	// Debug uses fmt.Sprint to construct and log a message at DEBUG level
 	Debug(args ...interface{})
