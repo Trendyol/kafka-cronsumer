@@ -26,7 +26,7 @@ func NewTLSConfig(sasl kafka.SASLConfig) *tls.Config {
 	caCertPool.AppendCertsFromPEM(rootCA)
 	caCertPool.AppendCertsFromPEM(interCA)
 
-	return &tls.Config{
+	return &tls.Config{ //nolint:gosec
 		RootCAs: caCertPool,
 	}
 }
