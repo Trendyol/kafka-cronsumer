@@ -135,11 +135,10 @@ func main() {
 
 Please adhere to this project's `code of conduct`.
 
-## Users
+## Maintainers
 
-- [@Abdulsametileri](https://github.com/Abdulsametileri) (Author)
-- [@emreodabas](https://github.com/emreodabas) (Author)
-- [@anilmisirlioglu](https://github.com/anilmisirlioglu) (Contributor)
+- [@Abdulsametileri](https://github.com/Abdulsametileri)
+- [@emreodabas](https://github.com/emreodabas)
 
 ## Code of Conduct
 
