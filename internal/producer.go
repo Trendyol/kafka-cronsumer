@@ -1,13 +1,12 @@
-package kafka
+package internal
 
 import (
 	"context"
 	"time"
 
-	"github.com/Trendyol/kafka-cronsumer/internal/sasl"
-	. "github.com/Trendyol/kafka-cronsumer/pkg/kafka"
+	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 
-	"github.com/segmentio/kafka-go"
+	segmentio "github.com/segmentio/kafka-go"
 )
 
 type Producer interface {
@@ -15,32 +14,32 @@ type Producer interface {
 }
 
 type kafkaProducer struct {
-	w   *kafka.Writer
-	cfg *Config
+	w   *segmentio.Writer
+	cfg *kafka.Config
 }
 
 /*
-Allow Auto Topic Creation: The default Config configuration specifies that the broker should
+Allow Auto Topic Creation: The default kafka.Config configuration specifies that the broker should
 automatically create a topic under the following circumstances:
   - When a kafkaProducer starts writing messages to the topic
   - When a kafkaConsumer starts reading messages from the topic
   - When any client requests metadata for the topic
 */
-func newProducer(kafkaConfig *Config) Producer {
+func newProducer(kafkaConfig *kafka.Config) Producer {
 	setProducerConfigDefaults(kafkaConfig)
 
-	producer := &kafka.Writer{
-		Addr:                   kafka.TCP(kafkaConfig.Brokers...),
-		Balancer:               &kafka.LeastBytes{},
+	producer := &segmentio.Writer{
+		Addr:                   segmentio.TCP(kafkaConfig.Brokers...),
+		Balancer:               &segmentio.LeastBytes{},
 		BatchTimeout:           kafkaConfig.Producer.BatchTimeout,
 		BatchSize:              kafkaConfig.Producer.BatchSize,
 		AllowAutoTopicCreation: true,
 	}
 
 	if kafkaConfig.SASL.Enabled {
-		producer.Transport = &kafka.Transport{
-			TLS:  sasl.NewTLSConfig(kafkaConfig.SASL),
-			SASL: sasl.Mechanism(kafkaConfig.SASL),
+		producer.Transport = &segmentio.Transport{
+			TLS:  NewTLSConfig(kafkaConfig.SASL),
+			SASL: Mechanism(kafkaConfig.SASL),
 		}
 	}
 
@@ -50,7 +49,7 @@ func newProducer(kafkaConfig *Config) Producer {
 	}
 }
 
-func setProducerConfigDefaults(kafkaConfig *Config) {
+func setProducerConfigDefaults(kafkaConfig *kafka.Config) {
 	if kafkaConfig.Producer.BatchSize == 0 {
 		kafkaConfig.Producer.BatchSize = 100
 	}

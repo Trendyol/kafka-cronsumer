@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	kcronsumer "github.com/Trendyol/kafka-cronsumer"
+	"github.com/Trendyol/kafka-cronsumer"
 	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 	"os"
 	"path/filepath"
@@ -19,9 +19,9 @@ func main() {
 		return nil
 	}
 
-	cronsumer := kcronsumer.NewCronsumer(kafkaConfig, consumeFn)
-	cronsumer.WithLogger(&myLogger{})
-	cronsumer.Run()
+	c := cronsumer.New(kafkaConfig, consumeFn)
+	c.WithLogger(&myLogger{})
+	c.Run()
 }
 
 func getConfig() *kafka.Config {

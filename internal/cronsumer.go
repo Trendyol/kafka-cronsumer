@@ -1,4 +1,4 @@
-package kafka
+package internal
 
 import (
 	"time"
@@ -22,7 +22,7 @@ type kafkaCronsumer struct {
 	cfg *kafka.Config
 }
 
-func NewKafkaCronsumer(cfg *kafka.Config, c func(message kafka.Message) error) *kafkaCronsumer { //nolint: revive
+func newKafkaCronsumer(cfg *kafka.Config, c func(message kafka.Message) error) *kafkaCronsumer {
 	return &kafkaCronsumer{
 		cfg:             cfg,
 		paused:          false,

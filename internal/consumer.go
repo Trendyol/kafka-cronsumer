@@ -1,4 +1,4 @@
-package kafka
+package internal
 
 import (
 	"context"
@@ -7,10 +7,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Trendyol/kafka-cronsumer/internal/sasl"
-	. "github.com/Trendyol/kafka-cronsumer/pkg/kafka"
-
-	"github.com/segmentio/kafka-go"
+	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
+	segmentio "github.com/segmentio/kafka-go"
 )
 
 type Consumer interface {
@@ -19,15 +17,15 @@ type Consumer interface {
 }
 
 type kafkaConsumer struct {
-	consumer *kafka.Reader
-	cfg      *Config
+	consumer *segmentio.Reader
+	cfg      *kafka.Config
 }
 
-func newConsumer(kafkaConfig *Config) *kafkaConsumer {
+func newConsumer(kafkaConfig *kafka.Config) *kafkaConsumer {
 	setConsumerConfigDefaults(kafkaConfig)
 	checkConsumerRequiredParams(kafkaConfig)
 
-	readerConfig := kafka.ReaderConfig{
+	readerConfig := segmentio.ReaderConfig{
 		Brokers:           kafkaConfig.Brokers,
 		GroupID:           kafkaConfig.Consumer.GroupID,
 		GroupTopics:       []string{kafkaConfig.Consumer.Topic},
@@ -43,23 +41,23 @@ func newConsumer(kafkaConfig *Config) *kafkaConsumer {
 	}
 
 	if kafkaConfig.SASL.Enabled {
-		readerConfig.Dialer = &kafka.Dialer{
-			TLS:           sasl.NewTLSConfig(kafkaConfig.SASL),
-			SASLMechanism: sasl.Mechanism(kafkaConfig.SASL),
+		readerConfig.Dialer = &segmentio.Dialer{
+			TLS:           NewTLSConfig(kafkaConfig.SASL),
+			SASLMechanism: Mechanism(kafkaConfig.SASL),
 		}
 
 		if kafkaConfig.SASL.Rack != "" {
-			readerConfig.GroupBalancers = []kafka.GroupBalancer{kafka.RackAffinityGroupBalancer{Rack: kafkaConfig.SASL.Rack}}
+			readerConfig.GroupBalancers = []segmentio.GroupBalancer{segmentio.RackAffinityGroupBalancer{Rack: kafkaConfig.SASL.Rack}}
 		}
 	}
 
 	return &kafkaConsumer{
-		consumer: kafka.NewReader(readerConfig),
+		consumer: segmentio.NewReader(readerConfig),
 		cfg:      kafkaConfig,
 	}
 }
 
-func checkConsumerRequiredParams(kafkaConfig *Config) {
+func checkConsumerRequiredParams(kafkaConfig *kafka.Config) {
 	if kafkaConfig.Consumer.GroupID == "" {
 		panic("you have to set consumer group id")
 	}
@@ -68,7 +66,7 @@ func checkConsumerRequiredParams(kafkaConfig *Config) {
 	}
 }
 
-func setConsumerConfigDefaults(kafkaConfig *Config) {
+func setConsumerConfigDefaults(kafkaConfig *kafka.Config) {
 	if kafkaConfig.Consumer.MinBytes == 0 {
 		kafkaConfig.Consumer.MinBytes = 10e3
 	}
@@ -98,17 +96,17 @@ func setConsumerConfigDefaults(kafkaConfig *Config) {
 func convertStartOffset(offset string) int64 {
 	switch offset {
 	case "earliest":
-		return kafka.FirstOffset
+		return segmentio.FirstOffset
 	case "latest":
-		return kafka.LastOffset
+		return segmentio.LastOffset
 	case "":
-		return kafka.FirstOffset
+		return segmentio.FirstOffset
 	default:
 		offsetValue, err := strconv.ParseInt(offset, 10, 64)
 		if err == nil {
 			return offsetValue
 		}
-		return kafka.FirstOffset
+		return segmentio.FirstOffset
 	}
 }
 

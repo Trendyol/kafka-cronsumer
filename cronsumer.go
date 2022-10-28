@@ -1,15 +1,15 @@
-// This package implements a topic management strategy which consumes messages with cron based manner.
+// Package cronsumer This package implements a topic management strategy which consumes messages with cron based manner.
 // It mainly created for exception/retry management.
-package kcronsumer
+package cronsumer
 
 import (
-	"github.com/Trendyol/kafka-cronsumer/internal/kafka"
-	. "github.com/Trendyol/kafka-cronsumer/pkg/kafka" //nolint:revive
+	"github.com/Trendyol/kafka-cronsumer/internal"
+	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 )
 
-// NewCronsumer returns the newly created kafka consumer instance.
+// New returns the newly created kafka consumer instance.
 // config.Config specifies cron, duration and so many parameters.
 // ConsumeFn describes how to consume messages from specified topic.
-func NewCronsumer(cfg *Config, c ConsumeFn) Cronsumer {
-	return kafka.NewCronsumer(cfg, c)
+func New(cfg *kafka.Config, c kafka.ConsumeFn) kafka.Cronsumer {
+	return internal.NewCronsumer(cfg, c)
 }

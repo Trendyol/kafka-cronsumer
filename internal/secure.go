@@ -1,4 +1,4 @@
-package sasl
+package internal
 
 import (
 	"crypto/tls"

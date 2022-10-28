@@ -1,26 +1,26 @@
-package kafka
+package internal
 
 import (
 	"strconv"
 	"time"
 	"unsafe"
 
-	. "github.com/Trendyol/kafka-cronsumer/pkg/kafka"
+	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 
-	"github.com/segmentio/kafka-go"
+	segmentio "github.com/segmentio/kafka-go"
 )
 
 type MessageWrapper struct {
-	Message
+	kafka.Message
 	RetryCount int
 }
 
 const RetryHeaderKey = "x-retry-count"
 
-func newMessage(msg kafka.Message) MessageWrapper {
+func newMessage(msg segmentio.Message) MessageWrapper {
 	return MessageWrapper{
 		RetryCount: getRetryCount(&msg),
-		Message: Message{
+		Message: kafka.Message{
 			Topic:         msg.Topic,
 			Partition:     msg.Partition,
 			Offset:        msg.Offset,
@@ -33,11 +33,11 @@ func newMessage(msg kafka.Message) MessageWrapper {
 	}
 }
 
-func (m *MessageWrapper) To(increaseRetry bool) kafka.Message {
+func (m *MessageWrapper) To(increaseRetry bool) segmentio.Message {
 	if increaseRetry {
 		m.IncreaseRetryCount()
 	}
-	return kafka.Message{
+	return segmentio.Message{
 		Topic:   m.Topic,
 		Value:   m.Value,
 		Headers: m.Headers,
@@ -84,7 +84,7 @@ func (m *MessageWrapper) IncreaseRetryCount() {
 	}
 }
 
-func getRetryCount(message *kafka.Message) int {
+func getRetryCount(message *segmentio.Message) int {
 	for i := range message.Headers {
 		if message.Headers[i].Key != RetryHeaderKey {
 			continue
@@ -94,7 +94,7 @@ func getRetryCount(message *kafka.Message) int {
 		return retryCount
 	}
 
-	message.Headers = append(message.Headers, kafka.Header{
+	message.Headers = append(message.Headers, segmentio.Header{
 		Key:   RetryHeaderKey,
 		Value: []byte("0"),
 	})

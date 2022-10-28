@@ -11,7 +11,7 @@ type logger struct {
 
 func New(level Level) Interface {
 	if level == "" {
-		level = Warn
+		level = Info
 	}
 
 	l, _ := newLogger(level)

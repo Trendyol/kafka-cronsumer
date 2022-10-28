@@ -19,8 +19,8 @@ func main() {
 		return errors.New("error occurred")
 	}
 
-	cronsumer := kcronsumer.NewCronsumer(kafkaConfig, consumeFn)
-	cronsumer.Run()
+	c := cronsumer.New(kafkaConfig, consumeFn)
+	c.Run()
 }
 
 func getConfig() *kafka.Config {
