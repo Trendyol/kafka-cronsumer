@@ -46,8 +46,8 @@ func main() {
       return nil
     }
     
-    cronsumer := kcronsumer.NewCronsumer(kafkaConfig, consumeFn)
-    cronsumer.Run()
+    c := cronsumer.New(kafkaConfig, consumeFn)
+    c.Run()
 }
 ```
 
@@ -61,8 +61,8 @@ func main() {
       return errors.New("error occurred")
     }
     
-    cronsumer := kcronsumer.NewCronsumer(kafkaConfig, consumeFn)
-    cronsumer.Run()
+    c := cronsumer.New(kafkaConfig, consumeFn)
+    c.Run()
 }
 ```
 
@@ -75,14 +75,14 @@ func main() {
       fmt.Printf("First consumer > Message received: %s\n", string(message.Value))
       return nil
     }
-    firstHandler := kcronsumer.NewCronsumer(firstCfg, firstConsumerFn)
+    firstHandler := cronsumer.New(firstCfg, firstConsumerFn)
     firstHandler.Start()
 
     var secondConsumerFn kafka.ConsumeFn = func(message kafka.Message) error {
       fmt.Printf("Second consumer > Message received: %s\n", string(message.Value))
       return nil
     }
-    secondHandler := kcronsumer.NewCronsumer(secondCfg, secondConsumerFn)
+    secondHandler := cronsumer.New(secondCfg, secondConsumerFn)
     secondHandler.Start()
     // ...    
 }
@@ -92,7 +92,7 @@ func main() {
 
 | config                       | description                                                                                        | default  | example                  |
 |------------------------------|----------------------------------------------------------------------------------------------------|----------|--------------------------|
-| `logLevel`                   | Describes log level, valid options are `debug`, `info`, `warn`, and `error`                        | warn     |                          |
+| `logLevel`                   | Describes log level, valid options are `debug`, `info`, `warn`, and `error`                        | info     |                          |
 | `consumer.cron`              | Cron expression when exception consumer starts to work at                                          |          | */1 * * * *              |
 | `consumer.duration`          | Work duration exception consumer actively consuming messages                                       |          | 20s, 15m, 1h             |
 | `consumer.topic`             | Exception topic names                                                                              |          | exception-topic          |

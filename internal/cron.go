@@ -29,7 +29,6 @@ func (s *cronsumer) WithLogger(logger logger.Interface) {
 	s.cfg.Logger = logger
 }
 
-// Start starts the kafka consumer KafkaCronsumer with a new goroutine so its asynchronous operation (non-blocking)
 func (s *cronsumer) Start() {
 	cfg := s.cfg.Consumer
 	checkRequiredParams(cfg)
@@ -41,7 +40,6 @@ func (s *cronsumer) Start() {
 	s.cron.Start()
 }
 
-// Run runs the kafka consumer KafkaCronsumer with the caller goroutine so its synchronous operation (blocking)
 func (s *cronsumer) Run() {
 	cfg := s.cfg.Consumer
 	checkRequiredParams(cfg)
@@ -62,7 +60,6 @@ func checkRequiredParams(cfg kafka.ConsumerConfig) {
 	}
 }
 
-// Stop stops the cron and kafka KafkaCronsumer consumer
 func (s *cronsumer) Stop() {
 	s.cron.Stop()
 	s.consumer.Stop()

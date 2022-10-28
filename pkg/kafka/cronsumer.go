@@ -7,13 +7,20 @@ import (
 	"github.com/segmentio/kafka-go/protocol"
 )
 
-// ConsumeFn This function describes how to consume messages from specified topic
+// ConsumeFn function describes how to consume messages from specified topic
 type ConsumeFn func(message Message) error
 
 type Cronsumer interface {
+	// Start starts the kafka consumer KafkaCronsumer with a new goroutine so its asynchronous operation (non-blocking)
 	Start()
+
+	// Run runs the kafka consumer KafkaCronsumer with the caller goroutine so its synchronous operation (blocking)
 	Run()
+
+	// Stop stops the cron and kafka KafkaCronsumer consumer
 	Stop()
+
+	// WithLogger for injecting custom log implementation
 	WithLogger(logger logger.Interface)
 }
 
