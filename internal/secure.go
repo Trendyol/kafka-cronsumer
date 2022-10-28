@@ -27,8 +27,7 @@ func NewTLSConfig(sasl kafka.SASLConfig) *tls.Config {
 	caCertPool.AppendCertsFromPEM(interCA)
 
 	return &tls.Config{
-		RootCAs:    caCertPool,
-		MinVersion: tls.VersionTLS13,
+		RootCAs: caCertPool,
 	}
 }
 
