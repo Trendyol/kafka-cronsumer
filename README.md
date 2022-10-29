@@ -1,43 +1,40 @@
-# 🔥 Kafka C[r]onsumer 🔥
+# Kafka C[r]onsumer
 
-## Description 📖
+## Description
 
 Kafka Cronsumer is mainly used for retry/exception strategy management.
 It works based on cron expression and consumes messages in a timely manner
-with the power of auto pause and concurrency configurations.
+with the power of auto pause and concurrency.
 
 [For details check our blog post]()
 
-## How Kafka Cronsumer Works 💡
-
+## How Kafka Cronsumer Works
 ![How Kafka Cronsumer Works](.github/images/architecture.png)
 
-## 🖥 Use cases
+## When to use it?
+- Iteration-based back-off strategies are applicable
+- Messages could be processed in an eventually consistent state
+- Max retry exceeded messages could be ignored
+- To increase consumer resiliency
+- To increase consumer performance with concurrency
 
-In this library, we implement an iteration-based process with a back-off strategy. As you already know back-off strategy
-is helpful to
-
-- limit the impact of the additional load on dependencies
-- increase upstream resilience and keep healthy
-- resolve transient network errors
-- allows doing hotfixes if there is a temporary bug in the code
-
-If the order of messages is unnecessary, it is very appropriate for these scenarios.
+## When to avoid?
+- Messages should be processed in order
+- Messages should be certainly processed (we discard messages if max retry is exceeded)
+- Messages should be committed (we use auto-commit interval for increasing performance)
+- Messages with TTL (Time to Live)
 
 ## Guide
 
-### Installation 🧰
-
+### Installation
 ```sh
-go get -u github.com/Trendyol/kafka-cronsumer@latest
+go get github.com/Trendyol/kafka-cronsumer@latest
 ```
 
-### Examples 🛠
-
+### Examples
 You can find a number of ready-to-run examples at [this directory](examples).
 
 #### Single Consumer
-
 ```go
 func main() {
     // ...
@@ -52,7 +49,6 @@ func main() {
 ```
 
 #### Single Consumer With Dead Letter
-
 ```go
 func main() {
     // ...
@@ -67,7 +63,6 @@ func main() {
 ```
 
 #### Multiple Consumers
-
 ```go
 func main() {
     // ...
@@ -88,8 +83,7 @@ func main() {
 }
 ```
 
-## Configs
-
+## Configurations
 | config                       | description                                                                                        | default  | example                  |
 |------------------------------|----------------------------------------------------------------------------------------------------|----------|--------------------------|
 | `logLevel`                   | Describes log level, valid options are `debug`, `info`, `warn`, and `error`                        | info     |                          |
@@ -119,9 +113,7 @@ func main() {
 | `sasl.rack`                  | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.32#RackAffinityGroupBalancer)      | ""       |                          |
 
 ## Contribute
-
 **Use issues for everything**
-
 - For a small change, just send a PR.
 - For bigger changes open an issue for discussion before sending a PR.
 - PR should have:
@@ -136,28 +128,19 @@ func main() {
 Please adhere to this project's `code of conduct`.
 
 ## Maintainers
-
 - [@Abdulsametileri](https://github.com/Abdulsametileri)
 - [@emreodabas](https://github.com/emreodabas)
 
 ## Code of Conduct
-
 [Contributor Code of Conduct](CODE-OF-CONDUCT.md). By participating in this project you agree to abide by its terms.
 
-## Libraries Used For This Project 💪
-
+## Libraries Used For This Project
 - [segmentio/kafka-go](https://github.com/segmentio/kafka-go)
-
 - [robfig/cron](https://github.com/robfig/cron)
-
 - [uber-go/zap](https://github.com/uber-go/zap)
 
-## Additional References 🤘
-
+## Additional References
 - [Kcat](https://github.com/edenhill/kcat)
-
 - [jq](https://stedolan.github.io/jq/)
-
 - [golangci-lint](https://github.com/golangci/golangci-lint)
-
 - [Kafka Console Producer](https://kafka.apache.org/quickstart)
