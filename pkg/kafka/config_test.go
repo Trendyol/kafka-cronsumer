@@ -3,7 +3,7 @@ package kafka
 import (
 	"github.com/Trendyol/kafka-cronsumer/pkg/logger"
 	segmentio "github.com/segmentio/kafka-go"
-	"github.com/stretchr/testify/assert"
+	"reflect"
 	"testing"
 	"time"
 )
@@ -54,12 +54,24 @@ func TestConfig_SetDefaults(t *testing.T) {
 			}
 			k.SetDefaults()
 
-			assert.Equal(t, tt.expected.Consumer, k.Consumer)
-			assert.Equal(t, tt.expected.SASL, k.SASL)
-			assert.Equal(t, tt.expected.Producer, k.Producer)
-			assert.Equal(t, tt.expected.Logger, k.Logger)
-			assert.Equal(t, tt.expected.LogLevel, k.LogLevel)
-			assert.Equal(t, tt.expected.Brokers, k.Brokers)
+			if !reflect.DeepEqual(tt.expected.Consumer, k.Consumer) {
+				t.Errorf("Expected: %+v, Actual: %+v", tt.expected.Consumer, k.Consumer)
+			}
+			if !reflect.DeepEqual(tt.expected.SASL, k.SASL) {
+				t.Errorf("Expected: %+v, Actual: %+v", tt.expected.SASL, k.SASL)
+			}
+			if !reflect.DeepEqual(tt.expected.Producer, k.Producer) {
+				t.Errorf("Expected: %+v, Actual: %+v", tt.expected.Producer, k.Producer)
+			}
+			if !reflect.DeepEqual(tt.expected.Logger, k.Logger) {
+				t.Errorf("Expected: %+v, Actual: %+v", tt.expected.Logger, k.Logger)
+			}
+			if !reflect.DeepEqual(tt.expected.LogLevel, k.LogLevel) {
+				t.Errorf("Expected: %+v, Actual: %+v", tt.expected.LogLevel, k.LogLevel)
+			}
+			if !reflect.DeepEqual(tt.expected.Brokers, k.Brokers) {
+				t.Errorf("Expected: %+v, Actual: %+v", tt.expected.Brokers, k.Brokers)
+			}
 		})
 	}
 }
@@ -84,15 +96,33 @@ func TestConfig_Validate(t *testing.T) {
 		},
 		{
 			name:  "should be throw panic when consumer topic value is empty",
-			panic: "you have to set consumer group id",
+			panic: "you have to set topic",
+			fields: fields{
+				Consumer: ConsumerConfig{
+					GroupID: "groupId",
+				},
+			},
 		},
 		{
 			name:  "should be throw panic when consumer cron value is empty",
 			panic: "you have to set cron expression",
+			fields: fields{
+				Consumer: ConsumerConfig{
+					GroupID: "groupId",
+					Topic:   "topic",
+				},
+			},
 		},
 		{
 			name:  "should be throw panic when consumer duration value is empty",
 			panic: "you have to set panic duration",
+			fields: fields{
+				Consumer: ConsumerConfig{
+					GroupID: "groupId",
+					Topic:   "topic",
+					Cron:    "cron",
+				},
+			},
 		},
 		{
 			name: "should be success when consumer topic and groupId value is not empty",
@@ -116,11 +146,16 @@ func TestConfig_Validate(t *testing.T) {
 				LogLevel: tt.fields.LogLevel,
 				Logger:   tt.fields.Logger,
 			}
-			if len(tt.panic) > 0 {
-				assert.Panicsf(t, k.Validate, tt.panic)
-			} else {
-				assert.NotPanics(t, k.Validate)
-			}
+
+			defer func() {
+				if r := recover(); r != nil {
+					if tt.panic != r || len(tt.panic) == 0 {
+						t.Errorf("Expected: %+v, Actual: %+v", tt.panic, r)
+					}
+				}
+			}()
+
+			k.Validate()
 		})
 	}
 }
@@ -159,7 +194,10 @@ func TestOffset_Value(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, tt.o.Value(), "Value()")
+			actual := tt.o.Value()
+			if !reflect.DeepEqual(tt.want, actual) {
+				t.Errorf("Expected: %+v, Actual: %+v", tt.want, actual)
+			}
 		})
 	}
 }
