@@ -6,7 +6,7 @@ Kafka Cronsumer is mainly used for retry/exception strategy management.
 It works based on cron expression and consumes messages in a timely manner
 with the power of auto pause and concurrency.
 
-[For details check our blog post]()
+[For details check our blog post](https://medium.com/trendyol-tech/kafka-exception-c-r-onsumer-37c459e4849d)
 
 ## How Kafka Cronsumer Works
 ![How Kafka Cronsumer Works](.github/images/architecture.png)
