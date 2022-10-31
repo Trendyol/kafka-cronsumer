@@ -1,9 +1,10 @@
 package kafka
 
 import (
-	segmentio "github.com/segmentio/kafka-go"
 	"strconv"
 	"time"
+
+	segmentio "github.com/segmentio/kafka-go"
 
 	"github.com/Trendyol/kafka-cronsumer/pkg/logger"
 )

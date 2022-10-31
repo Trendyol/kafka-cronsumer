@@ -3,9 +3,10 @@ package internal
 import (
 	"context"
 	"errors"
+	"io"
+
 	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 	segmentio "github.com/segmentio/kafka-go"
-	"io"
 )
 
 type Consumer interface {

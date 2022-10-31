@@ -1,11 +1,12 @@
 package kafka
 
 import (
-	"github.com/Trendyol/kafka-cronsumer/pkg/logger"
-	segmentio "github.com/segmentio/kafka-go"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/Trendyol/kafka-cronsumer/pkg/logger"
+	segmentio "github.com/segmentio/kafka-go"
 )
 
 func TestConfig_SetDefaults(t *testing.T) {
