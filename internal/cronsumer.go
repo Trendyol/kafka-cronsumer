@@ -23,6 +23,8 @@ type kafkaCronsumer struct {
 }
 
 func newKafkaCronsumer(cfg *kafka.Config, c func(message kafka.Message) error) *kafkaCronsumer {
+	cfg.SetDefaults()
+	cfg.Validate()
 	return &kafkaCronsumer{
 		cfg:             cfg,
 		paused:          false,

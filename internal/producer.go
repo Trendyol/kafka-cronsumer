@@ -2,7 +2,6 @@ package internal
 
 import (
 	"context"
-	"time"
 
 	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 
@@ -26,8 +25,6 @@ automatically create a topic under the following circumstances:
   - When any client requests metadata for the topic
 */
 func newProducer(kafkaConfig *kafka.Config) Producer {
-	setProducerConfigDefaults(kafkaConfig)
-
 	producer := &segmentio.Writer{
 		Addr:                   segmentio.TCP(kafkaConfig.Brokers...),
 		Balancer:               &segmentio.LeastBytes{},
@@ -46,15 +43,6 @@ func newProducer(kafkaConfig *kafka.Config) Producer {
 	return &kafkaProducer{
 		w:   producer,
 		cfg: kafkaConfig,
-	}
-}
-
-func setProducerConfigDefaults(kafkaConfig *kafka.Config) {
-	if kafkaConfig.Producer.BatchSize == 0 {
-		kafkaConfig.Producer.BatchSize = 100
-	}
-	if kafkaConfig.Producer.BatchTimeout == 0 {
-		kafkaConfig.Producer.BatchTimeout = 500 * time.Microsecond
 	}
 }
 

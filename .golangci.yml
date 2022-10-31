@@ -47,6 +47,7 @@ issues:
     - path: _test\.go
       linters:
         - errcheck
+        - funlen
 
 service:
   golangci-lint-version: 1.50.x # use the fixed version to not introduce new linters unexpectedly

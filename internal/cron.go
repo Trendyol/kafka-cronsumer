@@ -31,7 +31,6 @@ func (s *cronsumer) WithLogger(logger logger.Interface) {
 
 func (s *cronsumer) Start() {
 	cfg := s.cfg.Consumer
-	checkRequiredParams(cfg)
 	_, _ = s.cron.AddFunc(cfg.Cron, func() {
 		s.cfg.Logger.Info("Topic started at time: " + time.Now().String())
 		s.consumer.Start(setConcurrency(cfg.Concurrency))
@@ -42,22 +41,12 @@ func (s *cronsumer) Start() {
 
 func (s *cronsumer) Run() {
 	cfg := s.cfg.Consumer
-	checkRequiredParams(cfg)
 	_, _ = s.cron.AddFunc(cfg.Cron, func() {
 		s.cfg.Logger.Info("Topic started at time: " + time.Now().String())
 		s.consumer.Start(setConcurrency(cfg.Concurrency))
 		time.AfterFunc(cfg.Duration, s.consumer.Pause)
 	})
 	s.cron.Run()
-}
-
-func checkRequiredParams(cfg kafka.ConsumerConfig) {
-	if cfg.Cron == "" {
-		panic("you have to set cron expression")
-	}
-	if cfg.Duration == 0 {
-		panic("you have to set panic duration")
-	}
 }
 
 func (s *cronsumer) Stop() {
