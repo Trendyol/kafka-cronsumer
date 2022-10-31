@@ -1,10 +1,14 @@
 package kafka
 
 import (
+	segmentio "github.com/segmentio/kafka-go"
+	"strconv"
 	"time"
 
 	"github.com/Trendyol/kafka-cronsumer/pkg/logger"
 )
+
+type Offset string
 
 type Config struct {
 	Brokers  []string         `yaml:"brokers"`
@@ -37,7 +41,7 @@ type ConsumerConfig struct {
 	HeartbeatInterval time.Duration `yaml:"heartbeatInterval"`
 	SessionTimeout    time.Duration `yaml:"sessionTimeout"`
 	RebalanceTimeout  time.Duration `yaml:"rebalanceTimeout"`
-	StartOffset       string        `yaml:"startOffset"`
+	StartOffset       Offset        `yaml:"startOffset"`
 	RetentionTime     time.Duration `yaml:"retentionTime"`
 	Concurrency       int           `yaml:"concurrency"`
 	Duration          time.Duration `yaml:"duration"`
@@ -47,4 +51,69 @@ type ConsumerConfig struct {
 type ProducerConfig struct {
 	BatchSize    int           `yaml:"batchSize"`
 	BatchTimeout time.Duration `yaml:"batchTimeout"`
+}
+
+func (c *Config) SetDefaults() {
+	if c.Consumer.MinBytes == 0 {
+		c.Consumer.MinBytes = 10e3
+	}
+	if c.Consumer.MaxBytes == 0 {
+		c.Consumer.MaxBytes = 10e6
+	}
+	if c.Consumer.MaxWait == 0 {
+		c.Consumer.MaxWait = 2 * time.Second
+	}
+	if c.Consumer.CommitInterval == 0 {
+		c.Consumer.CommitInterval = time.Second
+	}
+	if c.Consumer.HeartbeatInterval == 0 {
+		c.Consumer.HeartbeatInterval = 3 * time.Second
+	}
+	if c.Consumer.SessionTimeout == 0 {
+		c.Consumer.SessionTimeout = 30 * time.Second
+	}
+	if c.Consumer.RebalanceTimeout == 0 {
+		c.Consumer.RebalanceTimeout = 30 * time.Second
+	}
+	if c.Consumer.RetentionTime == 0 {
+		c.Consumer.RetentionTime = 24 * time.Hour
+	}
+	if c.Producer.BatchSize == 0 {
+		c.Producer.BatchSize = 100
+	}
+	if c.Producer.BatchTimeout == 0 {
+		c.Producer.BatchTimeout = 500 * time.Microsecond
+	}
+}
+
+func (c *Config) Validate() {
+	if c.Consumer.GroupID == "" {
+		panic("you have to set consumer group id")
+	}
+	if c.Consumer.Topic == "" {
+		panic("you have to set topic")
+	}
+	if c.Consumer.Cron == "" {
+		panic("you have to set cron expression")
+	}
+	if c.Consumer.Duration == 0 {
+		panic("you have to set panic duration")
+	}
+}
+
+func (o Offset) Value() int64 {
+	switch o {
+	case "earliest":
+		return segmentio.FirstOffset
+	case "latest":
+		return segmentio.LastOffset
+	case "":
+		return segmentio.FirstOffset
+	default:
+		offsetValue, err := strconv.ParseInt(string(o), 10, 64)
+		if err == nil {
+			return offsetValue
+		}
+		return segmentio.FirstOffset
+	}
 }
