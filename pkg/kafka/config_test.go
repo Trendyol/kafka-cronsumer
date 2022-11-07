@@ -27,6 +27,8 @@ func TestConfig_SetDefaults(t *testing.T) {
 			name: "should be set to default values when any value is empty",
 			expected: fields{
 				Consumer: ConsumerConfig{
+					MaxRetry:          3,
+					Concurrency:       1,
 					MinBytes:          10e3,
 					MaxBytes:          10e6,
 					MaxWait:           2 * time.Second,

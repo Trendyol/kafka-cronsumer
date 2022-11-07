@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"context"
 	"time"
 
 	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
@@ -30,22 +31,12 @@ func (s *cronsumer) WithLogger(logger logger.Interface) {
 }
 
 func (s *cronsumer) Start() {
-	cfg := s.cfg.Consumer
-	_, _ = s.cron.AddFunc(cfg.Cron, func() {
-		s.cfg.Logger.Info("Topic started at time: " + time.Now().String())
-		s.consumer.Start(setConcurrency(cfg.Concurrency))
-		time.AfterFunc(cfg.Duration, s.consumer.Pause)
-	})
+	s.setup()
 	s.cron.Start()
 }
 
 func (s *cronsumer) Run() {
-	cfg := s.cfg.Consumer
-	_, _ = s.cron.AddFunc(cfg.Cron, func() {
-		s.cfg.Logger.Info("Topic started at time: " + time.Now().String())
-		s.consumer.Start(setConcurrency(cfg.Concurrency))
-		time.AfterFunc(cfg.Duration, s.consumer.Pause)
-	})
+	s.setup()
 	s.cron.Run()
 }
 
@@ -54,9 +45,20 @@ func (s *cronsumer) Stop() {
 	s.consumer.Stop()
 }
 
-func setConcurrency(concurrency int) int {
-	if concurrency == 0 {
-		return 1
-	}
-	return concurrency
+func (s *cronsumer) setup() {
+	cfg := s.cfg.Consumer
+
+	s.consumer.SetupConcurrentWorkers(cfg.Concurrency)
+
+	_, _ = s.cron.AddFunc(cfg.Cron, func() {
+		s.cfg.Logger.Info("Topic started at time: " + time.Now().String())
+
+		ctx, cancelFunc := context.WithCancel(context.Background())
+		go s.consumer.Listen(ctx)
+
+		time.AfterFunc(cfg.Duration, func() {
+			s.cfg.Logger.Info("Process Topic PAUSED")
+			cancelFunc()
+		})
+	})
 }
