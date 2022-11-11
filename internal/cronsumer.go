@@ -2,13 +2,12 @@ package internal
 
 import (
 	"context"
-	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 	"time"
+
+	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 )
 
 type kafkaCronsumer struct {
-	paused         bool
-	quitChannel    chan bool
 	messageChannel chan MessageWrapper
 
 	kafkaConsumer Consumer
@@ -36,6 +35,7 @@ func newKafkaCronsumer(cfg *kafka.Config, c func(message kafka.Message) error) *
 		deadLetterTopic: cfg.Consumer.DeadLetterTopic,
 	}
 }
+
 func (k *kafkaCronsumer) SetupConcurrentWorkers(concurrency int) {
 	for i := 0; i < concurrency; i++ {
 		go k.processMessage()
