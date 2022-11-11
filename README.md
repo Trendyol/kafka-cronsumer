@@ -1,5 +1,7 @@
 # Kafka C[r]onsumer
 
+<div style="text-align:center"><img src=".github/images/cronsumer.png"/></div>
+
 ## Description
 
 Kafka Cronsumer is mainly used for retry/exception strategy management.
