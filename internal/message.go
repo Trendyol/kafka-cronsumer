@@ -17,8 +17,8 @@ type MessageWrapper struct {
 
 const RetryHeaderKey = "x-retry-count"
 
-func newMessage(msg segmentio.Message) MessageWrapper {
-	return MessageWrapper{
+func newMessage(msg segmentio.Message) *MessageWrapper {
+	return &MessageWrapper{
 		RetryCount: getRetryCount(&msg),
 		Message: kafka.Message{
 			Topic:         msg.Topic,

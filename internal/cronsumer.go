@@ -1,14 +1,13 @@
 package internal
 
 import (
+	"context"
 	"time"
 
 	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 )
 
 type kafkaCronsumer struct {
-	paused         bool
-	quitChannel    chan bool
 	messageChannel chan MessageWrapper
 
 	kafkaConsumer Consumer
@@ -25,75 +24,49 @@ type kafkaCronsumer struct {
 func newKafkaCronsumer(cfg *kafka.Config, c func(message kafka.Message) error) *kafkaCronsumer {
 	cfg.SetDefaults()
 	cfg.Validate()
+
 	return &kafkaCronsumer{
 		cfg:             cfg,
-		paused:          false,
-		quitChannel:     make(chan bool),
 		messageChannel:  make(chan MessageWrapper),
 		kafkaConsumer:   newConsumer(cfg),
 		kafkaProducer:   newProducer(cfg),
 		consumeFn:       c,
-		maxRetry:        setMaxRetry(cfg.Consumer.MaxRetry),
+		maxRetry:        cfg.Consumer.MaxRetry,
 		deadLetterTopic: cfg.Consumer.DeadLetterTopic,
 	}
 }
 
-func setMaxRetry(maxRetry int) int {
-	if maxRetry == 0 {
-		return 3
-	}
-	return maxRetry
-}
-
-func (k *kafkaCronsumer) Start(concurrency int) {
-	k.Resume()
-	go k.Listen()
-
+func (k *kafkaCronsumer) SetupConcurrentWorkers(concurrency int) {
 	for i := 0; i < concurrency; i++ {
 		go k.processMessage()
 	}
 }
 
-func (k *kafkaCronsumer) Resume() {
-	k.messageChannel = make(chan MessageWrapper)
-	k.paused = false
-	k.quitChannel = make(chan bool)
-}
-
-func (k *kafkaCronsumer) Listen() {
+func (k *kafkaCronsumer) Listen(ctx context.Context) {
 	startTime := time.Now()
 
 	for {
-		select {
-		case <-k.quitChannel:
+		msg, err := k.kafkaConsumer.ReadMessage(ctx)
+		if err != nil {
+			k.cfg.Logger.Errorf("Message could not read, error %v", err)
 			return
-		default:
-			msg, err := k.kafkaConsumer.ReadMessage()
-			if err != nil {
-				continue
-			}
-
-			if msg.Time.Before(startTime) {
-				k.sendToMessageChannel(msg)
-			} else {
-				k.Pause()
-
-				if err := k.kafkaProducer.Produce(msg, false); err != nil {
-					k.cfg.Logger.Errorf("Error sending next iteration KafkaMessage: %v", err)
-				}
-
-				return
-			}
 		}
-	}
-}
 
-func (k *kafkaCronsumer) Pause() {
-	if !k.paused {
-		k.cfg.Logger.Info("Process Topic PAUSED")
-		close(k.messageChannel)
-		k.paused = true
-		k.quitChannel <- true
+		if msg == nil {
+			return
+		}
+
+		if msg.Time.After(startTime) {
+			k.cfg.Logger.Info("Next iteration KafkaMessage has been detected, resending exception topic")
+
+			if err = k.kafkaProducer.Produce(*msg, false); err != nil {
+				k.cfg.Logger.Errorf("Error sending next iteration KafkaMessage: %v", err)
+			}
+
+			return
+		}
+
+		k.sendToMessageChannel(*msg)
 	}
 }
 

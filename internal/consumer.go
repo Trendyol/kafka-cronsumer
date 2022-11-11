@@ -3,14 +3,13 @@ package internal
 import (
 	"context"
 	"errors"
-	"io"
 
 	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 	segmentio "github.com/segmentio/kafka-go"
 )
 
 type Consumer interface {
-	ReadMessage() (MessageWrapper, error)
+	ReadMessage(ctx context.Context) (*MessageWrapper, error)
 	Stop()
 }
 
@@ -52,22 +51,21 @@ func newConsumer(kafkaConfig *kafka.Config) *kafkaConsumer {
 	}
 }
 
-func (k kafkaConsumer) ReadMessage() (MessageWrapper, error) {
-	msg, err := k.consumer.ReadMessage(context.Background())
+func (k kafkaConsumer) ReadMessage(ctx context.Context) (*MessageWrapper, error) {
+	msg, err := k.consumer.ReadMessage(ctx)
 	if err != nil {
-		if k.IsReaderHasBeenClosed(err) {
-			return MessageWrapper{}, err
+		if isContextCancelled(err) {
+			k.cfg.Logger.Info("kafka-go context is cancelled")
+			return nil, nil
 		}
-
-		k.cfg.Logger.Errorf("Message not read %v", err)
-		return MessageWrapper{}, err
+		return nil, err
 	}
 
-	return newMessage(msg), err
+	return newMessage(msg), nil
 }
 
-func (k kafkaConsumer) IsReaderHasBeenClosed(err error) bool {
-	return errors.Is(err, io.EOF)
+func isContextCancelled(err error) bool {
+	return errors.Is(err, context.Canceled)
 }
 
 func (k kafkaConsumer) Stop() {

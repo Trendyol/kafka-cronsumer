@@ -55,6 +55,12 @@ type ProducerConfig struct {
 }
 
 func (c *Config) SetDefaults() {
+	if c.Consumer.MaxRetry == 0 {
+		c.Consumer.MaxRetry = 3
+	}
+	if c.Consumer.Concurrency == 0 {
+		c.Consumer.Concurrency = 1
+	}
 	if c.Consumer.MinBytes == 0 {
 		c.Consumer.MinBytes = 10e3
 	}
