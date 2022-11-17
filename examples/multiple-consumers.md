@@ -1,14 +1,47 @@
+`config-1.yml`
+
+```
+brokers:
+  - "localhost:9092"
+consumer:
+  groupId: "sample-consumer-1"
+  topic: "exception-1"
+  maxRetry: 3
+  concurrency: 1
+  cron: "*/1 * * * *"
+  duration: 20s
+logLevel: warn
+```
+
+`config-2.yml`
+
+```
+brokers:
+  - "localhost:9092"
+consumer:
+  groupId: "sample-consumer-2"
+  topic: "exception-2"
+  maxRetry: 3
+  concurrency: 1
+  cron: "*/1 * * * *"
+  duration: 20s
+logLevel: info
+```
+
+
+`main.go`
+
+```
 package main
 
 import (
 	"fmt"
+	"github.com/Trendyol/kafka-cronsumer"
 	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
+	"gopkg.in/yaml.v3"
 	"os"
 	"path/filepath"
 	"runtime"
-
-	"github.com/Trendyol/kafka-cronsumer"
-	"gopkg.in/yaml.v3"
 )
 
 func main() {
@@ -48,3 +81,4 @@ func getConfig(configFileName string) *kafka.Config {
 
 	return cfg
 }
+```
