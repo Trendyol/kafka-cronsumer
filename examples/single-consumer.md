@@ -1,14 +1,31 @@
+`config.yml`
+
+```
+brokers:
+  - "localhost:9092"
+consumer:
+  groupId: "sample-consumer"
+  topic: "exception"
+  maxRetry: 3
+  concurrency: 1
+  cron: "*/1 * * * *"
+  duration: 20s
+logLevel: debug
+```
+
+`main.go`
+
+```
 package main
 
 import (
 	"fmt"
-	"github.com/Trendyol/kafka-cronsumer"
+	cronsumer "github.com/Trendyol/kafka-cronsumer"
 	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
+	"gopkg.in/yaml.v3"
 	"os"
 	"path/filepath"
 	"runtime"
-
-	"gopkg.in/yaml.v3"
 )
 
 func main() {
@@ -20,7 +37,6 @@ func main() {
 	}
 
 	c := cronsumer.New(kafkaConfig, consumeFn)
-	c.WithLogger(&myLogger{})
 	c.Run()
 }
 
@@ -40,3 +56,4 @@ func getConfig() *kafka.Config {
 
 	return cfg
 }
+```
