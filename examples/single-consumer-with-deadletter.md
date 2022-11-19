@@ -1,3 +1,22 @@
+`config.yml`
+
+```
+brokers:
+  - "localhost:9092"
+consumer:
+  groupId: "sample-consumer"
+  topic: "exception"
+  maxRetry: 1
+  deadLetterTopic: "deadletter"
+  concurrency: 1
+  cron: "*/1 * * * *"
+  duration: 20s
+logLevel: debug
+```
+
+`main.go`
+
+```
 package main
 
 import (
@@ -39,3 +58,4 @@ func getConfig() *kafka.Config {
 
 	return cfg
 }
+```
