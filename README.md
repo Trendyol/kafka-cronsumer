@@ -1,4 +1,4 @@
-# Kafka C[r]onsumer
+# Kafka C[r]onsumer [![Go Reference](https://pkg.go.dev/badge/github.com/Trendyol/kafka-cronsumer.svg)](https://pkg.go.dev/github.com/Trendyol/kafka-cronsumer) [![Go Report Card](https://goreportcard.com/badge/github.com/Trendyol/kafka-cronsumer)](https://goreportcard.com/report/github.com/Trendyol/kafka-cronsumer)
 
 <div style="text-align:center"><img src=".github/images/cronsumer.png"/></div>
 
