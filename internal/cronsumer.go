@@ -42,8 +42,9 @@ func (k *kafkaCronsumer) SetupConcurrentWorkers(concurrency int) {
 	}
 }
 
-func (k *kafkaCronsumer) Listen(ctx context.Context) {
+func (k *kafkaCronsumer) Listen(ctx context.Context, cancelFuncWrapper *func()) {
 	startTime := time.Now()
+	startTimeUnixNano := startTime.UnixNano()
 
 	for {
 		msg, err := k.kafkaConsumer.ReadMessage(ctx)
@@ -51,15 +52,16 @@ func (k *kafkaCronsumer) Listen(ctx context.Context) {
 			k.cfg.Logger.Errorf("Message could not read, error %v", err)
 			return
 		}
-
 		if msg == nil {
 			return
 		}
 
-		if msg.Time.After(startTime) {
-			k.cfg.Logger.Info("Next iteration KafkaMessage has been detected, resending exception topic")
+		if msg.MessageUnixNanoTime >= startTimeUnixNano {
+			(*cancelFuncWrapper)()
 
-			if err = k.kafkaProducer.Produce(*msg, false); err != nil {
+			k.cfg.Logger.Info("Next iteration message has been detected, resending the message to exception")
+
+			if err = k.kafkaProducer.ProduceWithRetryOption(*msg, false); err != nil {
 				k.cfg.Logger.Errorf("Error sending next iteration KafkaMessage: %v", err)
 			}
 
@@ -71,6 +73,7 @@ func (k *kafkaCronsumer) Listen(ctx context.Context) {
 }
 
 func (k *kafkaCronsumer) Stop() {
+	close(k.messageChannel)
 	k.kafkaConsumer.Stop()
 }
 
@@ -98,15 +101,18 @@ func (k *kafkaCronsumer) recoverMessage(msg MessageWrapper) {
 func (k *kafkaCronsumer) produce(msg MessageWrapper) {
 	if msg.IsExceedMaxRetryCount(k.maxRetry) {
 		k.cfg.Logger.Infof("Message exceeds to retry limit %d. KafkaMessage: %s", k.maxRetry, msg.Value)
+
 		if k.isDeadLetterTopicFeatureEnabled() {
 			msg.RouteMessageToTopic(k.deadLetterTopic)
-			if err := k.kafkaProducer.Produce(msg, true); err != nil {
+			if err := k.kafkaProducer.ProduceWithRetryOption(msg, true); err != nil {
 				k.cfg.Logger.Errorf("Error sending KafkaMessage to dead letter topic %v", err)
 			}
 		}
+
 		return
 	}
-	if err := k.kafkaProducer.Produce(msg, true); err != nil {
+
+	if err := k.kafkaProducer.ProduceWithRetryOption(msg, true); err != nil {
 		k.cfg.Logger.Errorf("Error sending KafkaMessage to topic %v", err)
 	}
 }

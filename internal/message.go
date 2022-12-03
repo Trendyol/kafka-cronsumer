@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 	"unsafe"
@@ -10,16 +11,21 @@ import (
 	segmentio "github.com/segmentio/kafka-go"
 )
 
+const (
+	RetryHeaderKey       = "x-retry-count"
+	MessageTimeHeaderKey = "x-time"
+)
+
 type MessageWrapper struct {
 	kafka.Message
-	RetryCount int
+	RetryCount          int
+	MessageUnixNanoTime int64
 }
 
-const RetryHeaderKey = "x-retry-count"
-
-func newMessage(msg segmentio.Message) *MessageWrapper {
+func NewMessageWrapper(msg segmentio.Message) *MessageWrapper {
 	return &MessageWrapper{
-		RetryCount: getRetryCount(&msg),
+		RetryCount:          getRetryCount(&msg),
+		MessageUnixNanoTime: getMessageUnixNanoTime(&msg),
 		Message: kafka.Message{
 			Topic:         msg.Topic,
 			Partition:     msg.Partition,
@@ -36,41 +42,14 @@ func newMessage(msg segmentio.Message) *MessageWrapper {
 func (m *MessageWrapper) To(increaseRetry bool) segmentio.Message {
 	if increaseRetry {
 		m.IncreaseRetryCount()
+		m.SetCreatedTime()
 	}
+
 	return segmentio.Message{
 		Topic:   m.Topic,
 		Value:   m.Value,
 		Headers: m.Headers,
-		Time:    time.Now(),
 	}
-}
-
-func (m *MessageWrapper) GetTime() time.Time {
-	return m.Time
-}
-
-func (m *MessageWrapper) GetValue() []byte {
-	return m.Value
-}
-
-func (m *MessageWrapper) GetHeaders() map[string][]byte {
-	mp := map[string][]byte{}
-	for i := range m.Headers {
-		mp[m.Headers[i].Key] = m.Headers[i].Value
-	}
-	return mp
-}
-
-func (m *MessageWrapper) GetTopic() string {
-	return m.Topic
-}
-
-func (m *MessageWrapper) IsExceedMaxRetryCount(maxRetry int) bool {
-	return m.RetryCount > maxRetry
-}
-
-func (m *MessageWrapper) RouteMessageToTopic(topic string) {
-	m.Topic = topic
 }
 
 func (m *MessageWrapper) IncreaseRetryCount() {
@@ -82,6 +61,30 @@ func (m *MessageWrapper) IncreaseRetryCount() {
 			m.Headers[i].Value = []byte(x)
 		}
 	}
+}
+
+func (m *MessageWrapper) SetCreatedTime() {
+	for i := range m.Headers {
+		if m.Headers[i].Key == MessageTimeHeaderKey {
+			m.Headers[i].Value = []byte(fmt.Sprint(time.Now().UnixNano()))
+		}
+	}
+}
+
+func (m *MessageWrapper) GetHeaders() map[string][]byte {
+	mp := map[string][]byte{}
+	for i := range m.Headers {
+		mp[m.Headers[i].Key] = m.Headers[i].Value
+	}
+	return mp
+}
+
+func (m *MessageWrapper) IsExceedMaxRetryCount(maxRetry int) bool {
+	return m.RetryCount > maxRetry
+}
+
+func (m *MessageWrapper) RouteMessageToTopic(topic string) {
+	m.Topic = topic
 }
 
 func getRetryCount(message *segmentio.Message) int {
@@ -96,6 +99,24 @@ func getRetryCount(message *segmentio.Message) int {
 
 	message.Headers = append(message.Headers, segmentio.Header{
 		Key:   RetryHeaderKey,
+		Value: []byte("0"),
+	})
+
+	return 0
+}
+
+func getMessageUnixNanoTime(message *segmentio.Message) int64 {
+	for i := range message.Headers {
+		if message.Headers[i].Key != MessageTimeHeaderKey {
+			continue
+		}
+
+		ts, _ := strconv.Atoi(string(message.Headers[i].Value))
+		return int64(ts)
+	}
+
+	message.Headers = append(message.Headers, segmentio.Header{
+		Key:   MessageTimeHeaderKey,
 		Value: []byte("0"),
 	})
 
