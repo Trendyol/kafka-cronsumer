@@ -61,7 +61,7 @@ func (k kafkaConsumer) ReadMessage(ctx context.Context) (*MessageWrapper, error)
 		return nil, err
 	}
 
-	return newMessage(msg), nil
+	return NewMessageWrapper(msg), nil
 }
 
 func isContextCancelled(err error) bool {

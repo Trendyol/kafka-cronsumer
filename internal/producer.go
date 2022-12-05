@@ -9,7 +9,7 @@ import (
 )
 
 type Producer interface {
-	Produce(message MessageWrapper, increaseRetry bool) error
+	ProduceWithRetryOption(message MessageWrapper, increaseRetry bool) error
 }
 
 type kafkaProducer struct {
@@ -17,13 +17,6 @@ type kafkaProducer struct {
 	cfg *kafka.Config
 }
 
-/*
-Allow Auto Topic Creation: The default kafka.Config configuration specifies that the broker should
-automatically create a topic under the following circumstances:
-  - When a kafkaProducer starts writing messages to the topic
-  - When a kafkaConsumer starts reading messages from the topic
-  - When any client requests metadata for the topic
-*/
 func newProducer(kafkaConfig *kafka.Config) Producer {
 	producer := &segmentio.Writer{
 		Addr:                   segmentio.TCP(kafkaConfig.Brokers...),
@@ -46,6 +39,6 @@ func newProducer(kafkaConfig *kafka.Config) Producer {
 	}
 }
 
-func (k *kafkaProducer) Produce(message MessageWrapper, increaseRetry bool) error {
+func (k *kafkaProducer) ProduceWithRetryOption(message MessageWrapper, increaseRetry bool) error {
 	return k.w.WriteMessages(context.Background(), message.To(increaseRetry))
 }
