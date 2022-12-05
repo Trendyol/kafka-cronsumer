@@ -18,14 +18,14 @@ const (
 
 type MessageWrapper struct {
 	kafka.Message
-	RetryCount          int
-	MessageUnixNanoTime int64
+	RetryCount  int
+	ProduceTime int64 // Nano time
 }
 
 func NewMessageWrapper(msg segmentio.Message) *MessageWrapper {
 	return &MessageWrapper{
-		RetryCount:          getRetryCount(&msg),
-		MessageUnixNanoTime: getMessageUnixNanoTime(&msg),
+		RetryCount:  getRetryCount(&msg),
+		ProduceTime: getMessageProduceTime(&msg),
 		Message: kafka.Message{
 			Topic:         msg.Topic,
 			Partition:     msg.Partition,
@@ -42,7 +42,7 @@ func NewMessageWrapper(msg segmentio.Message) *MessageWrapper {
 func (m *MessageWrapper) To(increaseRetry bool) segmentio.Message {
 	if increaseRetry {
 		m.IncreaseRetryCount()
-		m.SetCreatedTime()
+		m.NewProduceTime()
 	}
 
 	return segmentio.Message{
@@ -63,7 +63,7 @@ func (m *MessageWrapper) IncreaseRetryCount() {
 	}
 }
 
-func (m *MessageWrapper) SetCreatedTime() {
+func (m *MessageWrapper) NewProduceTime() {
 	for i := range m.Headers {
 		if m.Headers[i].Key == MessageProduceTimeHeaderKey {
 			m.Headers[i].Value = []byte(fmt.Sprint(time.Now().UnixNano()))
@@ -105,7 +105,7 @@ func getRetryCount(message *segmentio.Message) int {
 	return 0
 }
 
-func getMessageUnixNanoTime(message *segmentio.Message) int64 {
+func getMessageProduceTime(message *segmentio.Message) int64 {
 	for i := range message.Headers {
 		if message.Headers[i].Key != MessageProduceTimeHeaderKey {
 			continue

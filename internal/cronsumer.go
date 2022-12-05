@@ -56,7 +56,7 @@ func (k *kafkaCronsumer) Listen(ctx context.Context, cancelFuncWrapper *func()) 
 			return
 		}
 
-		if msg.MessageUnixNanoTime >= startTimeUnixNano {
+		if msg.ProduceTime >= startTimeUnixNano {
 			(*cancelFuncWrapper)()
 
 			k.cfg.Logger.Info("Next iteration message has been detected, resending the message to exception")
