@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	RetryHeaderKey       = "x-retry-count"
-	MessageTimeHeaderKey = "x-time"
+	RetryHeaderKey              = "x-retry-count"
+	MessageProduceTimeHeaderKey = "x-produce-time"
 )
 
 type MessageWrapper struct {
@@ -65,7 +65,7 @@ func (m *MessageWrapper) IncreaseRetryCount() {
 
 func (m *MessageWrapper) SetCreatedTime() {
 	for i := range m.Headers {
-		if m.Headers[i].Key == MessageTimeHeaderKey {
+		if m.Headers[i].Key == MessageProduceTimeHeaderKey {
 			m.Headers[i].Value = []byte(fmt.Sprint(time.Now().UnixNano()))
 		}
 	}
@@ -107,7 +107,7 @@ func getRetryCount(message *segmentio.Message) int {
 
 func getMessageUnixNanoTime(message *segmentio.Message) int64 {
 	for i := range message.Headers {
-		if message.Headers[i].Key != MessageTimeHeaderKey {
+		if message.Headers[i].Key != MessageProduceTimeHeaderKey {
 			continue
 		}
 
@@ -116,7 +116,7 @@ func getMessageUnixNanoTime(message *segmentio.Message) int64 {
 	}
 
 	message.Headers = append(message.Headers, segmentio.Header{
-		Key:   MessageTimeHeaderKey,
+		Key:   MessageProduceTimeHeaderKey,
 		Value: []byte("0"),
 	})
 
