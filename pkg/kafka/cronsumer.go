@@ -1,7 +1,6 @@
 package kafka
 
 import (
-	segmentio "github.com/segmentio/kafka-go"
 	"time"
 
 	"github.com/Trendyol/kafka-cronsumer/pkg/logger"
@@ -37,14 +36,4 @@ type Message struct {
 	Value         []byte
 	Headers       []protocol.Header
 	Time          time.Time
-}
-
-func (m *Message) To() segmentio.Message {
-	return segmentio.Message{
-		Topic:         m.Topic,
-		Partition:     m.Partition,
-		HighWaterMark: m.HighWaterMark,
-		Value:         m.Value,
-		Headers:       m.Headers,
-	}
 }

@@ -34,15 +34,13 @@ func main() {
 	var c kafka.Cronsumer
 	var consumerFn kafka.ConsumeFn = func(message kafka.Message) error {
 		fmt.Printf("Consumer > Message received: %s\n", string(message.Value))
-
-		err := c.Produce(message)
-		if err != nil {
-			return err
-		}
 		return nil
 	}
 	c = cronsumer.New(config, consumerFn)
 	c.Start()
+	
+	// If we want to produce a message to exception topic
+	c.Produce(kafka.Message{Topic: "exception", Key: nil, Value: nil})
 
 	select {} // block main goroutine (we did to show it by on purpose)
 }

@@ -43,6 +43,12 @@ func (k *kafkaProducer) ProduceWithRetryOption(message MessageWrapper, increaseR
 	return k.w.WriteMessages(context.Background(), message.To(increaseRetry))
 }
 
-func (k *kafkaProducer) Produce(message kafka.Message) error {
-	return k.w.WriteMessages(context.Background(), message.To())
+func (k *kafkaProducer) Produce(m kafka.Message) error {
+	return k.w.WriteMessages(context.Background(), segmentio.Message{
+		Topic:         m.Topic,
+		Partition:     m.Partition,
+		HighWaterMark: m.HighWaterMark,
+		Value:         m.Value,
+		Headers:       m.Headers,
+	})
 }
