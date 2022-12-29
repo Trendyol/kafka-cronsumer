@@ -1,6 +1,7 @@
 package kafka
 
 import (
+	segmentio "github.com/segmentio/kafka-go"
 	"time"
 
 	"github.com/Trendyol/kafka-cronsumer/pkg/logger"
@@ -22,6 +23,9 @@ type Cronsumer interface {
 
 	// WithLogger for injecting custom log implementation
 	WithLogger(logger logger.Interface)
+
+	// Produce produces the message to kafka KafkaCronsumer producer. Offset and Time fields will be ignored in the message.
+	Produce(message Message) error
 }
 
 type Message struct {
@@ -33,4 +37,14 @@ type Message struct {
 	Value         []byte
 	Headers       []protocol.Header
 	Time          time.Time
+}
+
+func (m *Message) To() segmentio.Message {
+	return segmentio.Message{
+		Topic:         m.Topic,
+		Partition:     m.Partition,
+		HighWaterMark: m.HighWaterMark,
+		Value:         m.Value,
+		Headers:       m.Headers,
+	}
 }

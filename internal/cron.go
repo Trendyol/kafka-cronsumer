@@ -45,6 +45,10 @@ func (s *cronsumer) Stop() {
 	s.consumer.Stop()
 }
 
+func (s *cronsumer) Produce(message kafka.Message) error {
+	return s.consumer.kafkaProducer.Produce(message)
+}
+
 func (s *cronsumer) setup() {
 	cfg := s.cfg.Consumer
 
