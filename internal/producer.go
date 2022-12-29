@@ -2,8 +2,8 @@ package internal
 
 import (
 	"context"
-	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 
+	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 	segmentio "github.com/segmentio/kafka-go"
 )
 
@@ -49,6 +49,6 @@ func (k *kafkaProducer) Produce(m kafka.Message) error {
 		Partition:     m.Partition,
 		HighWaterMark: m.HighWaterMark,
 		Value:         m.Value,
-		Headers:       m.Headers,
+		Headers:       ToHeaders(m.Headers),
 	})
 }

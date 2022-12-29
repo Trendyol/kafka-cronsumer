@@ -40,7 +40,12 @@ func main() {
 	c.Start()
 	
 	// If we want to produce a message to exception topic
-	c.Produce(kafka.Message{Topic: "exception", Key: nil, Value: nil})
+	message := kafka.NewMessageBuilder().
+		WithTopic(kafkaConfig.Consumer.Topic).
+		WithKey(nil).
+		WithValue([]byte(`{ "foo": "bar" }`)).
+		Build()
+	c.Produce(message)
 
 	select {} // block main goroutine (we did to show it by on purpose)
 }
