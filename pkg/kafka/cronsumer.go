@@ -1,10 +1,7 @@
 package kafka
 
 import (
-	"time"
-
 	"github.com/Trendyol/kafka-cronsumer/pkg/logger"
-	"github.com/segmentio/kafka-go/protocol"
 )
 
 // ConsumeFn function describes how to consume messages from specified topic
@@ -22,15 +19,7 @@ type Cronsumer interface {
 
 	// WithLogger for injecting custom log implementation
 	WithLogger(logger logger.Interface)
-}
 
-type Message struct {
-	Topic         string
-	Partition     int
-	Offset        int64
-	HighWaterMark int64
-	Key           []byte
-	Value         []byte
-	Headers       []protocol.Header
-	Time          time.Time
+	// Produce produces the message to kafka KafkaCronsumer producer. Offset and Time fields will be ignored in the message.
+	Produce(message Message) error
 }

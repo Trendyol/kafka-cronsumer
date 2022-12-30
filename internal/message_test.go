@@ -16,7 +16,7 @@ func Test_increaseRetryCount(t *testing.T) {
 	// Given
 	m := MessageWrapper{
 		Message: Message{
-			Headers: []protocol.Header{
+			Headers: []Header{
 				{Key: RetryHeaderKey, Value: []byte("1")},
 			},
 			Topic: "exception",

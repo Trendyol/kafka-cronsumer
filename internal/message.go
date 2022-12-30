@@ -33,7 +33,7 @@ func NewMessageWrapper(msg segmentio.Message) *MessageWrapper {
 			HighWaterMark: msg.HighWaterMark,
 			Key:           msg.Key,
 			Value:         msg.Value,
-			Headers:       msg.Headers,
+			Headers:       FromHeaders(msg.Headers),
 			Time:          msg.Time,
 		},
 	}
@@ -48,7 +48,7 @@ func (m *MessageWrapper) To(increaseRetry bool) segmentio.Message {
 	return segmentio.Message{
 		Topic:   m.Topic,
 		Value:   m.Value,
-		Headers: m.Headers,
+		Headers: ToHeaders(m.Headers),
 	}
 }
 
@@ -85,40 +85,4 @@ func (m *MessageWrapper) IsExceedMaxRetryCount(maxRetry int) bool {
 
 func (m *MessageWrapper) RouteMessageToTopic(topic string) {
 	m.Topic = topic
-}
-
-func getRetryCount(message *segmentio.Message) int {
-	for i := range message.Headers {
-		if message.Headers[i].Key != RetryHeaderKey {
-			continue
-		}
-
-		retryCount, _ := strconv.Atoi(string(message.Headers[i].Value))
-		return retryCount
-	}
-
-	message.Headers = append(message.Headers, segmentio.Header{
-		Key:   RetryHeaderKey,
-		Value: []byte("0"),
-	})
-
-	return 0
-}
-
-func getMessageProduceTime(message *segmentio.Message) int64 {
-	for i := range message.Headers {
-		if message.Headers[i].Key != MessageProduceTimeHeaderKey {
-			continue
-		}
-
-		ts, _ := strconv.Atoi(string(message.Headers[i].Value))
-		return int64(ts)
-	}
-
-	message.Headers = append(message.Headers, segmentio.Header{
-		Key:   MessageProduceTimeHeaderKey,
-		Value: []byte("0"),
-	})
-
-	return 0
 }

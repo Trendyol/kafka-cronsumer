@@ -4,12 +4,12 @@ import (
 	"context"
 
 	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
-
 	segmentio "github.com/segmentio/kafka-go"
 )
 
 type Producer interface {
 	ProduceWithRetryOption(message MessageWrapper, increaseRetry bool) error
+	Produce(message kafka.Message) error
 }
 
 type kafkaProducer struct {
@@ -41,4 +41,14 @@ func newProducer(kafkaConfig *kafka.Config) Producer {
 
 func (k *kafkaProducer) ProduceWithRetryOption(message MessageWrapper, increaseRetry bool) error {
 	return k.w.WriteMessages(context.Background(), message.To(increaseRetry))
+}
+
+func (k *kafkaProducer) Produce(m kafka.Message) error {
+	return k.w.WriteMessages(context.Background(), segmentio.Message{
+		Topic:         m.Topic,
+		Partition:     m.Partition,
+		HighWaterMark: m.HighWaterMark,
+		Value:         m.Value,
+		Headers:       ToHeaders(m.Headers),
+	})
 }
