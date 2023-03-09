@@ -62,13 +62,13 @@ func (c *Config) SetDefaults() {
 		c.Consumer.Concurrency = 1
 	}
 	if c.Consumer.MinBytes == 0 {
-		c.Consumer.MinBytes = 10e3
+		c.Consumer.MinBytes = 1
 	}
 	if c.Consumer.MaxBytes == 0 {
-		c.Consumer.MaxBytes = 10e6
+		c.Consumer.MaxBytes = 1e6 // 1MB
 	}
 	if c.Consumer.MaxWait == 0 {
-		c.Consumer.MaxWait = 2 * time.Second
+		c.Consumer.MaxWait = 10 * time.Second
 	}
 	if c.Consumer.CommitInterval == 0 {
 		c.Consumer.CommitInterval = time.Second
@@ -89,7 +89,7 @@ func (c *Config) SetDefaults() {
 		c.Producer.BatchSize = 100
 	}
 	if c.Producer.BatchTimeout == 0 {
-		c.Producer.BatchTimeout = 500 * time.Microsecond
+		c.Producer.BatchTimeout = time.Second
 	}
 }
 

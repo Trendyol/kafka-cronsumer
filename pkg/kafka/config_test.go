@@ -29,9 +29,9 @@ func TestConfig_SetDefaults(t *testing.T) {
 				Consumer: ConsumerConfig{
 					MaxRetry:          3,
 					Concurrency:       1,
-					MinBytes:          10e3,
-					MaxBytes:          10e6,
-					MaxWait:           2 * time.Second,
+					MinBytes:          1,
+					MaxBytes:          1e6,
+					MaxWait:           10 * time.Second,
 					CommitInterval:    time.Second,
 					HeartbeatInterval: 3 * time.Second,
 					SessionTimeout:    30 * time.Second,
@@ -40,7 +40,7 @@ func TestConfig_SetDefaults(t *testing.T) {
 				},
 				Producer: ProducerConfig{
 					BatchSize:    100,
-					BatchTimeout: 500 * time.Microsecond,
+					BatchTimeout: time.Second,
 				},
 			},
 		},
