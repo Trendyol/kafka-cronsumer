@@ -11,6 +11,11 @@ import (
 
 type Offset string
 
+const (
+	OffsetEarliest = "earliest"
+	OffsetLatest   = "latest"
+)
+
 type Config struct {
 	Brokers  []string         `yaml:"brokers"`
 	Consumer ConsumerConfig   `yaml:"consumer"`
@@ -110,9 +115,9 @@ func (c *Config) Validate() {
 
 func (o Offset) Value() int64 {
 	switch o {
-	case "earliest":
+	case OffsetEarliest:
 		return segmentio.FirstOffset
-	case "latest":
+	case OffsetLatest:
 		return segmentio.LastOffset
 	case "":
 		return segmentio.FirstOffset
@@ -128,10 +133,10 @@ func (o Offset) Value() int64 {
 func ToStringOffset(offset int64) Offset {
 	switch offset {
 	case segmentio.FirstOffset:
-		return "earliest"
+		return OffsetEarliest
 	case segmentio.LastOffset:
-		return "latest"
+		return OffsetLatest
 	default:
-		return "earliest"
+		return OffsetEarliest
 	}
 }
