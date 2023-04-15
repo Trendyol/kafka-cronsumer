@@ -104,24 +104,24 @@ func main() {
 | `consumer.groupId`           | Exception consumer group id                                                                        |          | exception-consumer-group |
 | `consumer.maxRetry`          | Maximum retry value for attempting to retry a message                                              | 3        |                          |
 | `consumer.concurrency`       | Number of goroutines used at listeners                                                             | 1        |                          |
-| `consumer.minBytes`          | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.35#ReaderConfig.MinBytes)          | 1        |                          |
-| `consumer.maxBytes`          | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.35#ReaderConfig.MaxBytes)          | 1 MB     |                          |
-| `consumer.maxWait`           | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.35#ReaderConfig.MaxWait)           | 10s      |                          |
-| `consumer.commitInterval`    | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.35#ReaderConfig.CommitInterval)    | 1s       |                          |
-| `consumer.heartbeatInterval` | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.35#ReaderConfig.HeartbeatInterval) | 3s       |                          |
-| `consumer.sessionTimeout`    | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.35#ReaderConfig.SessionTimeout)    | 30s      |                          |
-| `consumer.rebalanceTimeout`  | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.35#ReaderConfig.RebalanceTimeout)  | 30s      |                          |
-| `consumer.startOffset`       | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.35#ReaderConfig.StartOffset)       | earliest |                          |
-| `consumer.retentionTime`     | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.35#ReaderConfig.RetentionTime)     | 24h      |                          |
-| `producer.batchSize`         | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.35#Writer.BatchSize)               | 100      |                          |
-| `producer.batchTimeout`      | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.35#Writer.BatchTimeout)            | 1s       |                          |
+| `consumer.minBytes`          | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.39#ReaderConfig.MinBytes)          | 1        |                          |
+| `consumer.maxBytes`          | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.39#ReaderConfig.MaxBytes)          | 1 MB     |                          |
+| `consumer.maxWait`           | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.39#ReaderConfig.MaxWait)           | 10s      |                          |
+| `consumer.commitInterval`    | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.39#ReaderConfig.CommitInterval)    | 1s       |                          |
+| `consumer.heartbeatInterval` | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.39#ReaderConfig.HeartbeatInterval) | 3s       |                          |
+| `consumer.sessionTimeout`    | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.39#ReaderConfig.SessionTimeout)    | 30s      |                          |
+| `consumer.rebalanceTimeout`  | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.39#ReaderConfig.RebalanceTimeout)  | 30s      |                          |
+| `consumer.startOffset`       | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.39#ReaderConfig.StartOffset)       | earliest |                          |
+| `consumer.retentionTime`     | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.39#ReaderConfig.RetentionTime)     | 24h      |                          |
+| `producer.batchSize`         | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.39#Writer.BatchSize)               | 100      |                          |
+| `producer.batchTimeout`      | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.39#Writer.BatchTimeout)            | 1s       |                          |
 | `sasl.enabled`               | It enables sasl authentication mechanism                                                           | false    |                          |
 | `sasl.authType`              | Currently we only support `SCRAM`                                                                  | ""       |                          |
 | `sasl.username`              | SCRAM username                                                                                     | ""       |                          |
 | `sasl.password`              | SCRAM password                                                                                     | ""       |                          |
 | `sasl.rootCAPath`            | [see doc](https://pkg.go.dev/crypto/tls#Config.RootCAs)                                            | ""       |                          |
 | `sasl.intermediateCAPath`    |                                                                                                    | ""       |                          |
-| `sasl.rack`                  | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.32#RackAffinityGroupBalancer)      | ""       |                          |
+| `sasl.rack`                  | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.39#RackAffinityGroupBalancer)      | ""       |                          |
 
 ## Contribute
 
