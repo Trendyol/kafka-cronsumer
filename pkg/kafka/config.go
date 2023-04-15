@@ -124,3 +124,14 @@ func (o Offset) Value() int64 {
 		return segmentio.FirstOffset
 	}
 }
+
+func ToStringOffset(offset int64) Offset {
+	switch offset {
+	case segmentio.FirstOffset:
+		return "earliest"
+	case segmentio.LastOffset:
+		return "latest"
+	default:
+		return "earliest"
+	}
+}
