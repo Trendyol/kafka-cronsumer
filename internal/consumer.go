@@ -70,6 +70,6 @@ func isContextCancelled(err error) bool {
 
 func (k kafkaConsumer) Stop() {
 	if err := k.consumer.Close(); err != nil {
-		k.cfg.Logger.Errorf("Error while closing kafka kafkaConsumer %v", err)
+		k.cfg.Logger.Errorf("Error while closing kafka consumer %v", err)
 	}
 }

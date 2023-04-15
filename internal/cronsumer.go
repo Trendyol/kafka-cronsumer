@@ -75,6 +75,7 @@ func (k *kafkaCronsumer) Listen(ctx context.Context, cancelFuncWrapper *func()) 
 func (k *kafkaCronsumer) Stop() {
 	close(k.messageChannel)
 	k.kafkaConsumer.Stop()
+	k.kafkaProducer.Close()
 }
 
 func (k *kafkaCronsumer) processMessage() {

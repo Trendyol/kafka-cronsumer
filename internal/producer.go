@@ -10,6 +10,7 @@ import (
 type Producer interface {
 	ProduceWithRetryOption(message MessageWrapper, increaseRetry bool) error
 	Produce(message kafka.Message) error
+	Close()
 }
 
 type kafkaProducer struct {
@@ -51,4 +52,11 @@ func (k *kafkaProducer) Produce(m kafka.Message) error {
 		Value:         m.Value,
 		Headers:       ToHeaders(m.Headers),
 	})
+}
+
+func (k *kafkaProducer) Close() {
+	err := k.w.Close()
+	if err != nil {
+		k.cfg.Logger.Errorf("Error while closing kafka producer %v", err)
+	}
 }
