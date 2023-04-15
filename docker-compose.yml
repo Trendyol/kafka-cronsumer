@@ -1,36 +1,51 @@
-version: '3.9'
+version: '3.8'
 services:
   zookeeper:
-    image: confluentinc/cp-zookeeper:7.0.1
-    container_name: zookeeper
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-
-  broker:
-    image: confluentinc/cp-kafka:7.0.1
-    container_name: broker
+    image: debezium/zookeeper
     ports:
-      - "9092:9092"
+      - "2181:2181"
+
+  kafka:
+    image: confluentinc/cp-kafka:6.1.1
     depends_on:
       - zookeeper
+    ports:
+      - "9092:9092"
+      - "29092:29092"
     environment:
       KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://broker:29092
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
 
   kafka-ui:
     image: quay.io/cloudhut/kowl:master
-    container_name: kafka-ui
+    restart: on-failure
     depends_on:
       - zookeeper
-      - broker
+      - kafka
     ports:
-      - "8080:8080"
-    restart: always
+      - 8080:8080
     environment:
-      KAFKA_BROKERS: broker:29092
+      KAFKA_BROKERS: kafka:9092
+
+  kafka-create-topics:
+    image: confluentinc/cp-kafka:6.1.1
+    restart: on-failure
+    depends_on:
+      - zookeeper
+      - kafka
+    command: "bash -c 'echo Waiting for Kafka to be ready... && \
+                           cub kafka-ready -b kafka:9092 1 20 && \
+                           kafka-topics --create --topic exception --if-not-exists --zookeeper zookeeper:2181 --partitions 1 --replication-factor 1 && \
+                           kafka-topics --create --topic exception-1 --if-not-exists --zookeeper zookeeper:2181 --partitions 1 --replication-factor 1 && \
+                           kafka-topics --create --topic exception-2 --if-not-exists --zookeeper zookeeper:2181 --partitions 1 --replication-factor 1 && \
+                           kafka-topics --create --topic dead-letter --if-not-exists --zookeeper zookeeper:2181 --partitions 1 --replication-factor 1 && \
+                           sleep infinity'"
+    environment:
+      KAFKA_BROKER_ID: ignored
+      KAFKA_ZOOKEEPER_CONNECT: ignored

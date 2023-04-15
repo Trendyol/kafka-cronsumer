@@ -41,6 +41,9 @@ go get github.com/Trendyol/kafka-cronsumer@latest
 
 You can find a number of ready-to-run examples at [this directory](examples).
 
+After running `docker-compose up` command, you can run any application you want. 
+Don't forget its cron based :)
+
 #### Single Consumer
 
 ```go
