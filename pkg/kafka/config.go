@@ -23,6 +23,7 @@ type Config struct {
 	SASL     SASLConfig       `yaml:"sasl"`
 	LogLevel logger.Level     `yaml:"logLevel"`
 	Logger   logger.Interface `yaml:"-"`
+	ClientId string           `yaml:"clientId"`
 }
 
 type SASLConfig struct {

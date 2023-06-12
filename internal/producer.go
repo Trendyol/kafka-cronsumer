@@ -29,8 +29,9 @@ func newProducer(kafkaConfig *kafka.Config) Producer {
 
 	if kafkaConfig.SASL.Enabled {
 		producer.Transport = &segmentio.Transport{
-			TLS:  NewTLSConfig(kafkaConfig.SASL),
-			SASL: Mechanism(kafkaConfig.SASL),
+			TLS:      NewTLSConfig(kafkaConfig.SASL),
+			SASL:     Mechanism(kafkaConfig.SASL),
+			ClientID: kafkaConfig.ClientId,
 		}
 	}
 
