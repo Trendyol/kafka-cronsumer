@@ -36,5 +36,14 @@ func main() {
 		Build()
 	c.Produce(message)
 
+	// If we want to produce list of messages as batch
+	c.ProduceBatch([]kafka.Message{
+		{Topic: config.Consumer.Topic, Value: []byte(`{ "foo": "bar1" }`)},
+		{Topic: config.Consumer.Topic, Value: []byte(`{ "foo": "bar2" }`)},
+		{Topic: config.Consumer.Topic, Value: []byte(`{ "foo": "bar3" }`)},
+		{Topic: config.Consumer.Topic, Value: []byte(`{ "foo": "bar4" }`)},
+		{Topic: config.Consumer.Topic, Value: []byte(`{ "foo": "bar5" }`)},
+	})
+
 	select {} // showing purpose
 }

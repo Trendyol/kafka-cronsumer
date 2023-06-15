@@ -10,6 +10,7 @@ import (
 type Producer interface {
 	ProduceWithRetryOption(message MessageWrapper, increaseRetry bool) error
 	Produce(message kafka.Message) error
+	ProduceBatch(messages []kafka.Message) error
 	Close()
 }
 
@@ -52,6 +53,20 @@ func (k *kafkaProducer) Produce(m kafka.Message) error {
 		Value:         m.Value,
 		Headers:       ToHeaders(m.Headers),
 	})
+}
+
+func (k *kafkaProducer) ProduceBatch(messages []kafka.Message) error {
+	segmentioMessages := make([]segmentio.Message, 0, len(messages))
+	for i := range messages {
+		segmentioMessages = append(segmentioMessages, segmentio.Message{
+			Topic:         messages[i].Topic,
+			Partition:     messages[i].Partition,
+			HighWaterMark: messages[i].HighWaterMark,
+			Value:         messages[i].Value,
+			Headers:       ToHeaders(messages[i].Headers),
+		})
+	}
+	return k.w.WriteMessages(context.Background(), segmentioMessages...)
 }
 
 func (k *kafkaProducer) Close() {

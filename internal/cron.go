@@ -49,6 +49,10 @@ func (s *cronsumer) Produce(message kafka.Message) error {
 	return s.consumer.kafkaProducer.Produce(message)
 }
 
+func (s *cronsumer) ProduceBatch(messages []kafka.Message) error {
+	return s.consumer.kafkaProducer.ProduceBatch(messages)
+}
+
 func (s *cronsumer) setup() {
 	cfg := s.cfg.Consumer
 

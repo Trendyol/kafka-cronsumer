@@ -22,4 +22,7 @@ type Cronsumer interface {
 
 	// Produce produces the message to kafka KafkaCronsumer producer. Offset and Time fields will be ignored in the message.
 	Produce(message Message) error
+
+	// ProduceBatch produces the list of messages to kafka KafkaCronsumer producer.
+	ProduceBatch(messages []Message) error
 }
