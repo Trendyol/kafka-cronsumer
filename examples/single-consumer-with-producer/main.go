@@ -9,10 +9,8 @@ import (
 
 func main() {
 	config := &kafka.Config{
-		ClientID: "producer-client-id",
-		Brokers:  []string{"localhost:29092"},
+		Brokers: []string{"localhost:29092"},
 		Consumer: kafka.ConsumerConfig{
-			ClientID: "consumer-client-id",
 			GroupID:  "sample-consumer-with-producer",
 			Topic:    "exception",
 			MaxRetry: 3,
