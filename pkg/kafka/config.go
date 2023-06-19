@@ -37,6 +37,7 @@ type SASLConfig struct {
 }
 
 type ConsumerConfig struct {
+	ClientID          string        `yaml:"clientId"`
 	GroupID           string        `yaml:"groupId"`
 	Topic             string        `yaml:"topic"`
 	DeadLetterTopic   string        `yaml:"deadLetterTopic"`

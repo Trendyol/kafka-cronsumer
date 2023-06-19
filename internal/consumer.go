@@ -34,11 +34,13 @@ func newConsumer(kafkaConfig *kafka.Config) *kafkaConsumer {
 		RetentionTime:     kafkaConfig.Consumer.RetentionTime,
 	}
 
+	readerConfig.Dialer = &segmentio.Dialer{
+		ClientID: kafkaConfig.Consumer.ClientID,
+	}
+
 	if kafkaConfig.SASL.Enabled {
-		readerConfig.Dialer = &segmentio.Dialer{
-			TLS:           NewTLSConfig(kafkaConfig.SASL),
-			SASLMechanism: Mechanism(kafkaConfig.SASL),
-		}
+		readerConfig.Dialer.TLS = NewTLSConfig(kafkaConfig.SASL)
+		readerConfig.Dialer.SASLMechanism = Mechanism(kafkaConfig.SASL)
 
 		if kafkaConfig.SASL.Rack != "" {
 			readerConfig.GroupBalancers = []segmentio.GroupBalancer{segmentio.RackAffinityGroupBalancer{Rack: kafkaConfig.SASL.Rack}}
