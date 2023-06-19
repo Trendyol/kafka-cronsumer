@@ -105,6 +105,7 @@ func main() {
 | config                       | description                                                                                        | default  | example                  |
 |------------------------------|----------------------------------------------------------------------------------------------------|----------|--------------------------|
 | `logLevel`                   | Describes log level, valid options are `debug`, `info`, `warn`, and `error`                        | info     |                          |
+| `consumer.clientId`          | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.39#Dialer)                         |          |                          |
 | `consumer.cron`              | Cron expression when exception consumer starts to work at                                          |          | */1 * * * *              |
 | `consumer.duration`          | Work duration exception consumer actively consuming messages                                       |          | 20s, 15m, 1h             |
 | `consumer.topic`             | Exception topic names                                                                              |          | exception-topic          |
@@ -120,6 +121,7 @@ func main() {
 | `consumer.rebalanceTimeout`  | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.39#ReaderConfig.RebalanceTimeout)  | 30s      |                          |
 | `consumer.startOffset`       | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.39#ReaderConfig.StartOffset)       | earliest |                          |
 | `consumer.retentionTime`     | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.39#ReaderConfig.RetentionTime)     | 24h      |                          |
+| `producer.clientId`          | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.39#Transport)                      |          |                          |
 | `producer.batchSize`         | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.39#Writer.BatchSize)               | 100      |                          |
 | `producer.batchTimeout`      | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.39#Writer.BatchTimeout)            | 1s       |                          |
 | `sasl.enabled`               | It enables sasl authentication mechanism                                                           | false    |                          |

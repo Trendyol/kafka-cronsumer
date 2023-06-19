@@ -28,13 +28,16 @@ func newProducer(kafkaConfig *kafka.Config) Producer {
 		AllowAutoTopicCreation: true,
 	}
 
-	if kafkaConfig.SASL.Enabled {
-		producer.Transport = &segmentio.Transport{
-			TLS:      NewTLSConfig(kafkaConfig.SASL),
-			SASL:     Mechanism(kafkaConfig.SASL),
-			ClientID: kafkaConfig.ClientID,
-		}
+	transport := &segmentio.Transport{
+		ClientID: kafkaConfig.ClientID,
 	}
+
+	if kafkaConfig.SASL.Enabled {
+		transport.TLS = NewTLSConfig(kafkaConfig.SASL)
+		transport.SASL = Mechanism(kafkaConfig.SASL)
+	}
+
+	producer.Transport = transport
 
 	return &kafkaProducer{
 		w:   producer,
