@@ -2,9 +2,9 @@ name: IntegrationTest
 
 on:
   push:
-    branches: [master]
+    branches: [main]
   pull_request:
-    branches: [master]
+    branches: [main]
 
 jobs:
   test:
@@ -22,7 +22,7 @@ jobs:
 
       - uses: actions/checkout@v3
       - name: Start containers
-        run: integration-compose
+        run: make integration-compose
 
       - uses: actions/checkout@v3
       - name: Integration Test
