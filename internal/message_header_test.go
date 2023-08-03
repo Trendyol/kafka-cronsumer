@@ -1,10 +1,11 @@
 package internal
 
 import (
-	"github.com/segmentio/kafka-go"
-	"github.com/segmentio/kafka-go/protocol"
 	"strconv"
 	"testing"
+
+	"github.com/segmentio/kafka-go"
+	"github.com/segmentio/kafka-go/protocol"
 )
 
 func Test_getMessageProduceTime(t *testing.T) {
