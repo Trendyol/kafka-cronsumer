@@ -171,17 +171,17 @@ func TestOffset_Value(t *testing.T) {
 	}{
 		{
 			name: "should be returned first offset when the value is equal to earliest",
-			o:    "earliest",
+			o:    OffsetEarliest,
 			want: segmentio.FirstOffset,
 		},
 		{
 			name: "should be returned last offset when the value is equal to latest",
-			o:    "latest",
+			o:    OffsetLatest,
 			want: segmentio.LastOffset,
 		},
 		{
 			name: "should be returned first offset when the value is empty",
-			o:    "earliest",
+			o:    "",
 			want: segmentio.FirstOffset,
 		},
 		{
@@ -200,6 +200,40 @@ func TestOffset_Value(t *testing.T) {
 			actual := tt.o.Value()
 			if !reflect.DeepEqual(tt.want, actual) {
 				t.Errorf("Expected: %+v, Actual: %+v", tt.want, actual)
+			}
+		})
+	}
+}
+
+func TestToStringOffset(t *testing.T) {
+	type args struct {
+		offset int64
+	}
+	tests := []struct {
+		name string
+		args args
+		want Offset
+	}{
+		{
+			name: "should return `earliest` when the value is -2",
+			args: args{offset: -2},
+			want: OffsetEarliest,
+		},
+		{
+			name: "should return `latest` when the value is -1",
+			args: args{offset: -1},
+			want: OffsetLatest,
+		},
+		{
+			name: "should return `latest` when the value is not equal -2 or -1",
+			args: args{offset: 0},
+			want: OffsetEarliest,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := ToStringOffset(tt.args.offset); got != tt.want {
+				t.Errorf("ToStringOffset() = %v, want %v", got, tt.want)
 			}
 		})
 	}

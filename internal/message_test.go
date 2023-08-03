@@ -3,13 +3,8 @@ package internal
 import (
 	"bytes"
 	_ "embed"
-	"strconv"
-	"testing"
-
 	. "github.com/Trendyol/kafka-cronsumer/pkg/kafka"
-
-	"github.com/segmentio/kafka-go"
-	"github.com/segmentio/kafka-go/protocol"
+	"testing"
 )
 
 func Test_increaseRetryCount(t *testing.T) {
@@ -35,56 +30,41 @@ func Test_increaseRetryCount(t *testing.T) {
 	}
 }
 
-func Test_getRetryCount(t *testing.T) {
-	t.Parallel()
+func TestMessageWrapper_NewProduceTime(t *testing.T) {
+	// Given
+	mw := MessageWrapper{
+		Message: Message{Headers: []Header{
+			{Key: MessageProduceTimeHeaderKey, Value: []byte("some value")},
+		}},
+	}
 
-	t.Run("When X-Retry-Count not found with existent headers", func(t *testing.T) {
-		// Given
-		km := &kafka.Message{
-			Headers: []protocol.Header{
-				{Key: "Some Header", Value: []byte("Some Value")},
-			},
-		}
+	// When
+	mw.NewProduceTime()
 
-		// When
-		rc := getRetryCount(km)
+	// Then
+	actual := mw.GetHeaders()[MessageProduceTimeHeaderKey]
+	notExpected := []byte("some value")
 
-		// Then
-		if rc != 0 {
-			t.Errorf("Expected: %d, Actual: %d", 0, rc)
-		}
-	})
-	t.Run("When X-Retry-Count not found", func(t *testing.T) {
-		// Given
-		km := &kafka.Message{
-			Headers: nil,
-		}
+	if bytes.Equal(actual, notExpected) {
+		t.Errorf("Not Expected: %s, Actual: %s", notExpected, actual)
+	}
+}
 
-		// When
-		rc := getRetryCount(km)
+func TestMessageWrapper_IsExceedMaxRetryCount(t *testing.T) {
+	// Given
+	maxRetry := 2
+	m1 := MessageWrapper{RetryCount: 3}
+	m2 := MessageWrapper{RetryCount: 1}
 
-		// Then
-		if rc != 0 {
-			t.Errorf("Expected: %d, Actual: %d", 0, rc)
-		}
-	})
-	t.Run("When X-Retry-Count exists", func(t *testing.T) {
-		// Given
-		km := &kafka.Message{
-			Headers: []protocol.Header{
-				{Key: RetryHeaderKey, Value: []byte("2")},
-			},
-		}
+	// When
+	actual1 := m1.IsExceedMaxRetryCount(maxRetry)
+	actual2 := m2.IsExceedMaxRetryCount(maxRetry)
 
-		// When
-		rc := getRetryCount(km)
-
-		// Then
-		actual := strconv.Itoa(rc)
-		expected := string(km.Headers[0].Value)
-
-		if expected != actual {
-			t.Errorf("Expected: %s, Actual: %s", expected, actual)
-		}
-	})
+	// Then
+	if actual1 != true {
+		t.Fatal()
+	}
+	if actual2 != false {
+		t.Fatal()
+	}
 }
