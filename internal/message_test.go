@@ -3,8 +3,9 @@ package internal
 import (
 	"bytes"
 	_ "embed"
-	. "github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 	"testing"
+
+	. "github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 )
 
 func Test_increaseRetryCount(t *testing.T) {
