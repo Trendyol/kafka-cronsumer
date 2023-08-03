@@ -39,3 +39,8 @@ export topic=exception
 .PHONY: produce-with-header
 produce-with-header:
 	jq -rc . ./testdata/message.json | kcat -b 127.0.0.1:9092 -t ${topic} -P -H x-retry-count=1
+
+
+.PHONY: integration-compose
+integration-compose:
+	docker compose -f test/integration/docker-compose.yml up --wait --build --force-recreate --remove-orphans
