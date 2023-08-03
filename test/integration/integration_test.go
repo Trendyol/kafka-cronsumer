@@ -13,7 +13,7 @@ import (
 
 func Test_Should_Consume_Exception_Message_Successfully(t *testing.T) {
 	topic := "exception"
-	cleanUp := createTopic(t, topic)
+	_, cleanUp := createTopic(t, topic)
 	defer cleanUp()
 
 	config := &kafka.Config{
@@ -49,7 +49,7 @@ func Test_Should_Consume_Exception_Message_Successfully(t *testing.T) {
 	}
 }
 
-func createTopic(t *testing.T, topicName string) func() {
+func createTopic(t *testing.T, topicName string) (*segmentio.Conn, func()) {
 	conn, err := segmentio.DialLeader(context.Background(), "tcp", "localhost:9092", topicName, 0)
 	if err != nil {
 		t.Fatalf("error while creating topic %s", err)
@@ -61,5 +61,5 @@ func createTopic(t *testing.T, topicName string) func() {
 		}
 	}
 
-	return cleanUp
+	return conn, cleanUp
 }

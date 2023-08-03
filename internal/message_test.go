@@ -58,8 +58,8 @@ func TestMessageWrapper_IsExceedMaxRetryCount(t *testing.T) {
 	m2 := MessageWrapper{RetryCount: 1}
 
 	// When
-	actual1 := m1.IsExceedMaxRetryCount(maxRetry)
-	actual2 := m2.IsExceedMaxRetryCount(maxRetry)
+	actual1 := m1.IsGteMaxRetryCount(maxRetry)
+	actual2 := m2.IsGteMaxRetryCount(maxRetry)
 
 	// Then
 	if actual1 != true {

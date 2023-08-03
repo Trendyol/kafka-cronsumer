@@ -100,7 +100,7 @@ func (k *kafkaCronsumer) recoverMessage(msg MessageWrapper) {
 }
 
 func (k *kafkaCronsumer) produce(msg MessageWrapper) {
-	if msg.IsExceedMaxRetryCount(k.maxRetry) {
+	if msg.IsGteMaxRetryCount(k.maxRetry) {
 		k.cfg.Logger.Infof("Message exceeds to retry limit %d. KafkaMessage: %s", k.maxRetry, msg.Value)
 
 		if k.isDeadLetterTopicFeatureEnabled() {

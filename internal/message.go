@@ -79,8 +79,8 @@ func (m *MessageWrapper) GetHeaders() map[string][]byte {
 	return mp
 }
 
-func (m *MessageWrapper) IsExceedMaxRetryCount(maxRetry int) bool {
-	return m.RetryCount > maxRetry
+func (m *MessageWrapper) IsGteMaxRetryCount(maxRetry int) bool {
+	return m.RetryCount >= maxRetry
 }
 
 func (m *MessageWrapper) RouteMessageToTopic(topic string) {
