@@ -26,10 +26,7 @@ jobs:
 
       - uses: actions/checkout@v3
       - name: Integration Test
-        run: go test -v test/integration/integration_test.go -coverprofile=coverage.txt -covermode=atomic
+        run: go test -v test/integration/integration_test.go
         env:
           INPUT_PUBLISH: false
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload coverage
-        run: bash <(curl -s https://codecov.io/bash)
