@@ -15,10 +15,16 @@ type kafkaCronsumer struct {
 
 	consumeFn func(message kafka.Message) error
 
+	metric          *CronsumerMetric
 	maxRetry        int
 	deadLetterTopic string
 
 	cfg *kafka.Config
+}
+
+type CronsumerMetric struct {
+	TotalRetriedMessagesCounter int64
+	TotalIgnoredMessagesCounter int64
 }
 
 func newKafkaCronsumer(cfg *kafka.Config, c func(message kafka.Message) error) *kafkaCronsumer {
@@ -65,9 +71,11 @@ func (k *kafkaCronsumer) Listen(ctx context.Context, cancelFuncWrapper *func()) 
 				k.cfg.Logger.Errorf("Error sending next iteration KafkaMessage: %v", err)
 			}
 
+			k.metric.TotalIgnoredMessagesCounter++
 			return
 		}
 
+		k.metric.TotalRetriedMessagesCounter++
 		k.sendToMessageChannel(*msg)
 	}
 }
@@ -76,6 +84,10 @@ func (k *kafkaCronsumer) Stop() {
 	close(k.messageChannel)
 	k.kafkaConsumer.Stop()
 	k.kafkaProducer.Close()
+}
+
+func (k *kafkaCronsumer) GetMetric() *CronsumerMetric {
+	return k.metric
 }
 
 func (k *kafkaCronsumer) processMessage() {

@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
+
 	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 
 	"github.com/Trendyol/kafka-cronsumer/pkg/logger"
@@ -12,17 +14,20 @@ import (
 )
 
 type cronsumer struct {
-	cfg      *kafka.Config
-	cron     *gocron.Cron
-	consumer *kafkaCronsumer
+	cfg              *kafka.Config
+	cron             *gocron.Cron
+	consumer         *kafkaCronsumer
+	metricCollectors []prometheus.Collector
 }
 
 func NewCronsumer(cfg *kafka.Config, fn kafka.ConsumeFn) kafka.Cronsumer {
 	cfg.Logger = logger.New(cfg.LogLevel)
+	c := newKafkaCronsumer(cfg, fn)
 	return &cronsumer{
-		cron:     gocron.New(),
-		consumer: newKafkaCronsumer(cfg, fn),
-		cfg:      cfg,
+		cron:             gocron.New(),
+		consumer:         c,
+		cfg:              cfg,
+		metricCollectors: []prometheus.Collector{NewCollector(*c)},
 	}
 }
 
@@ -51,6 +56,10 @@ func (s *cronsumer) Produce(message kafka.Message) error {
 
 func (s *cronsumer) ProduceBatch(messages []kafka.Message) error {
 	return s.consumer.kafkaProducer.ProduceBatch(messages)
+}
+
+func (s *cronsumer) GetMetricCollectors() []prometheus.Collector {
+	return s.metricCollectors
 }
 
 func (s *cronsumer) setup() {
