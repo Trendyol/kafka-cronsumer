@@ -37,6 +37,7 @@ func newKafkaCronsumer(cfg *kafka.Config, c func(message kafka.Message) error) *
 		kafkaConsumer:   newConsumer(cfg),
 		kafkaProducer:   newProducer(cfg),
 		consumeFn:       c,
+		metric:          &CronsumerMetric{},
 		maxRetry:        cfg.Consumer.MaxRetry,
 		deadLetterTopic: cfg.Consumer.DeadLetterTopic,
 	}
