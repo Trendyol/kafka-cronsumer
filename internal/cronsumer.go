@@ -22,11 +22,6 @@ type kafkaCronsumer struct {
 	cfg *kafka.Config
 }
 
-type CronsumerMetric struct {
-	TotalRetriedMessagesCounter int64
-	TotalIgnoredMessagesCounter int64
-}
-
 func newKafkaCronsumer(cfg *kafka.Config, c func(message kafka.Message) error) *kafkaCronsumer {
 	cfg.SetDefaults()
 	cfg.Validate()
@@ -72,11 +67,9 @@ func (k *kafkaCronsumer) Listen(ctx context.Context, cancelFuncWrapper *func()) 
 				k.cfg.Logger.Errorf("Error sending next iteration KafkaMessage: %v", err)
 			}
 
-			k.metric.TotalIgnoredMessagesCounter++
 			return
 		}
 
-		k.metric.TotalRetriedMessagesCounter++
 		k.sendToMessageChannel(*msg)
 	}
 }
@@ -123,12 +116,16 @@ func (k *kafkaCronsumer) produce(msg MessageWrapper) {
 			}
 		}
 
+		k.metric.TotalIgnoredMessagesCounter++
+
 		return
 	}
 
 	if err := k.kafkaProducer.ProduceWithRetryOption(msg, true); err != nil {
 		k.cfg.Logger.Errorf("Error sending KafkaMessage to topic %v", err)
 	}
+
+	k.metric.TotalRetriedMessagesCounter++
 }
 
 func (k *kafkaCronsumer) isDeadLetterTopicFeatureEnabled() bool {
