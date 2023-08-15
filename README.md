@@ -132,6 +132,14 @@ func main() {
 | `sasl.intermediateCAPath`    |                                                                                                    | ""       |                          |
 | `sasl.rack`                  | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.39#RackAffinityGroupBalancer)      | ""       |                          |
 
+### Exposed Metrics
+
+| Metric Name                            | Description                        | Value Type |
+|----------------------------------------|------------------------------------|------------|
+| kafka_cronsumer_retried_messages_total | Total number of retried messages.  | Counter    |
+| kafka_cronsumer_ignored_messages_total | Total number of ignored  messages. | Counter    |
+
+
 ## Contribute
 
 **Use issues for everything**
