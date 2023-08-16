@@ -10,9 +10,7 @@ with the power of auto pause and concurrency.
 
 [For details check our blog post](https://medium.com/trendyol-tech/kafka-exception-c-r-onsumer-37c459e4849d)
 
-### If you need a whole consumer lifecycle with exception management, check [Kafka Konsumer](https://github.com/Trendyol/kafka-konsumer)
-
-
+#### If you need a whole consumer lifecycle with exception management, check [Kafka Konsumer](https://github.com/Trendyol/kafka-konsumer)
 
 ## How Kafka Cronsumer Works
 
@@ -22,7 +20,7 @@ with the power of auto pause and concurrency.
 
 - Iteration-based back-off strategies are applicable
 - Messages could be processed in an eventually consistent state
-- Max retry exceeded messages could be ignored
+- Max retry exceeded messages could be ignored and send to dead letter topic
 - To increase consumer resiliency
 - To increase consumer performance with concurrency
 
