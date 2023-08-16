@@ -7,8 +7,8 @@ const Name = "kafka_cronsumer_"
 type Collector struct {
 	kafkaCronsumer kafkaCronsumer
 
-	totalRetriedMessagesCounter *prometheus.Desc
-	totalIgnoredMessagesCounter *prometheus.Desc
+	totalRetriedMessagesCounter   *prometheus.Desc
+	totalDiscardedMessagesCounter *prometheus.Desc
 }
 
 func (s *Collector) Describe(ch chan<- *prometheus.Desc) {
@@ -26,16 +26,16 @@ func (s *Collector) Collect(ch chan<- prometheus.Metric) {
 	)
 
 	ch <- prometheus.MustNewConstMetric(
-		s.totalIgnoredMessagesCounter,
+		s.totalDiscardedMessagesCounter,
 		prometheus.CounterValue,
-		float64(producerMetric.TotalIgnoredMessagesCounter),
+		float64(producerMetric.TotalDiscardedMessagesCounter),
 		[]string{}...,
 	)
 }
 
 type CronsumerMetric struct {
-	TotalRetriedMessagesCounter int64
-	TotalIgnoredMessagesCounter int64
+	TotalRetriedMessagesCounter   int64
+	TotalDiscardedMessagesCounter int64
 }
 
 func NewCollector(kafkaCronsumer kafkaCronsumer) *Collector {
@@ -48,9 +48,9 @@ func NewCollector(kafkaCronsumer kafkaCronsumer) *Collector {
 			[]string{},
 			nil,
 		),
-		totalIgnoredMessagesCounter: prometheus.NewDesc(
-			prometheus.BuildFQName(Name, "ignored_messages_total", "current"),
-			"Total number of ignored messages.",
+		totalDiscardedMessagesCounter: prometheus.NewDesc(
+			prometheus.BuildFQName(Name, "discarded_messages_total", "current"),
+			"Total number of discarded messages.",
 			[]string{},
 			nil,
 		),

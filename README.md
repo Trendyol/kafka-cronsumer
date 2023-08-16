@@ -134,10 +134,10 @@ func main() {
 
 ### Exposed Metrics
 
-| Metric Name                            | Description                        | Value Type |
-|----------------------------------------|------------------------------------|------------|
-| kafka_cronsumer_retried_messages_total | Total number of retried messages.  | Counter    |
-| kafka_cronsumer_ignored_messages_total | Total number of ignored  messages. | Counter    |
+| Metric Name                              | Description                          | Value Type |
+|------------------------------------------|--------------------------------------|------------|
+| kafka_cronsumer_retried_messages_total   | Total number of retried messages.    | Counter    |
+| kafka_cronsumer_discarded_messages_total | Total number of discarded  messages. | Counter    |
 
 
 ## Contribute

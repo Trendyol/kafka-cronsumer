@@ -116,7 +116,7 @@ func (k *kafkaCronsumer) produce(msg MessageWrapper) {
 			}
 		}
 
-		k.metric.TotalIgnoredMessagesCounter++
+		k.metric.TotalDiscardedMessagesCounter++
 
 		return
 	}
