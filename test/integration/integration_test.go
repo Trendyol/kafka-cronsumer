@@ -151,6 +151,63 @@ func Test_Should_Discard_Message_When_Retry_Count_Is_Equal_To_MaxRetrys_Value(t 
 	assertEventually(t, conditionFunc, 30*time.Second, time.Second)
 }
 
+func Test_Should_Send_DeadLetter_Topic_When_Retry_Count_Is_Equal_To_MaxRetrys_Value(t *testing.T) {
+	// Given
+	topic := "exception-max-retry-for-deadletter"
+	_, cleanUp := createTopic(t, topic)
+	defer cleanUp()
+
+	deadLetterTopic := "dead-letter"
+	deadLetterConn, cleanUpThisToo := createTopic(t, deadLetterTopic)
+	defer cleanUpThisToo()
+
+	maxRetry := 1
+	config := &kafka.Config{
+		Brokers: []string{"localhost:9092"},
+		Consumer: kafka.ConsumerConfig{
+			GroupID:         "sample-consumer",
+			Topic:           topic,
+			Cron:            "*/1 * * * *",
+			Duration:        20 * time.Second,
+			MaxRetry:        maxRetry,
+			DeadLetterTopic: deadLetterTopic,
+		},
+		LogLevel: "info",
+	}
+
+	errCh := make(chan struct{})
+	var consumeFn kafka.ConsumeFn = func(message kafka.Message) error {
+		fmt.Printf("consumer > Message received: %s\n", string(message.Value))
+
+		if getRetryCount(message) == maxRetry {
+			errCh <- struct{}{}
+		}
+
+		return errors.New("err occurred")
+	}
+
+	c := cronsumer.New(config, consumeFn)
+	c.Start()
+
+	// When
+	expectedMessage := kafka.Message{Topic: topic, Value: []byte("some message")}
+	if err := c.Produce(expectedMessage); err != nil {
+		fmt.Println("Produce err", err.Error())
+	}
+
+	// Then
+	<-errCh
+
+	var expectedOffset int64 = 1
+	conditionFunc := func() bool {
+		lastOffset, _ := deadLetterConn.ReadLastOffset()
+		fmt.Println("lastOffset", lastOffset)
+		return lastOffset == expectedOffset
+	}
+
+	assertEventually(t, conditionFunc, 30*time.Second, time.Second)
+}
+
 func getRetryCount(message kafka.Message) int {
 	for _, header := range message.Headers {
 		if header.Key == "x-retry-count" {
