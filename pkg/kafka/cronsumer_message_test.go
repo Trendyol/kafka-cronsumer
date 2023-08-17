@@ -5,8 +5,8 @@ import (
 	"testing"
 )
 
-func TestMessageBuilder_Build(t *testing.T) {
-	t.Run("BuildsMessageWithAllFields", func(t *testing.T) {
+func Test_Should_Build_Message_With_All_Fields(t *testing.T) {
+	t.Run("Builds message with all fields", func(t *testing.T) {
 		// Given
 		topic := "test-topic"
 		key := []byte("test-key")
@@ -42,7 +42,7 @@ func TestMessageBuilder_Build(t *testing.T) {
 		}
 	})
 
-	t.Run("BuildsMessageWithDefaultValues", func(t *testing.T) {
+	t.Run("Builds message with default values", func(t *testing.T) {
 		// When
 		builder := NewMessageBuilder()
 		message := builder.Build()

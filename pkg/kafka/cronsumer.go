@@ -27,5 +27,6 @@ type Cronsumer interface {
 	// ProduceBatch produces the list of messages to kafka KafkaCronsumer producer.
 	ProduceBatch(messages []Message) error
 
+	// GetMetricCollectors  for the purpose of making metric collectors available to other libraries
 	GetMetricCollectors() []prometheus.Collector
 }

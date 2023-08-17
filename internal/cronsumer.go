@@ -123,9 +123,9 @@ func (k *kafkaCronsumer) produce(msg MessageWrapper) {
 
 	if err := k.kafkaProducer.ProduceWithRetryOption(msg, true); err != nil {
 		k.cfg.Logger.Errorf("Error sending KafkaMessage to topic %v", err)
+	} else {
+		k.metric.TotalRetriedMessagesCounter++
 	}
-
-	k.metric.TotalRetriedMessagesCounter++
 }
 
 func (k *kafkaCronsumer) isDeadLetterTopicFeatureEnabled() bool {
