@@ -98,6 +98,34 @@ func main() {
 }
 ```
 
+#### Single Consumer With Metric collector
+
+```go
+func main() {
+  // ...
+  var consumeFn kafka.ConsumeFn = func(message kafka.Message) error {
+    return errors.New("err occurred")
+  }
+  
+  c := cronsumer.New(config, consumeFn)
+  StartAPI(*config, c.GetMetricCollectors()...)
+  c.Start()
+  // ...    
+}
+
+func StartAPI(cfg kafka.Config, metricCollectors ...prometheus.Collector) {
+  // ...
+  f := fiber.New(
+    fiber.Config{},
+  )
+  
+  metricMiddleware, err := NewMetricMiddleware(cfg, f, metricCollectors...)
+  
+  f.Use(metricMiddleware)
+  // ...
+}
+```
+
 ## Configurations
 
 | config                       | description                                                                                        | default  | example                  |
@@ -129,6 +157,14 @@ func main() {
 | `sasl.rootCAPath`            | [see doc](https://pkg.go.dev/crypto/tls#Config.RootCAs)                                            | ""       |                          |
 | `sasl.intermediateCAPath`    |                                                                                                    | ""       |                          |
 | `sasl.rack`                  | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.39#RackAffinityGroupBalancer)      | ""       |                          |
+
+### Exposed Metrics
+
+| Metric Name                              | Description                          | Value Type |
+|------------------------------------------|--------------------------------------|------------|
+| kafka_cronsumer_retried_messages_total   | Total number of retried messages.    | Counter    |
+| kafka_cronsumer_discarded_messages_total | Total number of discarded  messages. | Counter    |
+
 
 ## Contribute
 
