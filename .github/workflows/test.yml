@@ -35,5 +35,5 @@ jobs:
       - name: Test
         run: go test ./... -v -race -coverprofile=coverage.txt -covermode=atomic
 
-      - name: Upload coverage
-        run: bash <(curl -s https://codecov.io/bash)
+      #- name: Upload coverage
+      #  run: bash <(curl -s https://codecov.io/bash)
