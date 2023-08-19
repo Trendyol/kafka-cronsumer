@@ -100,6 +100,34 @@ func main() {
 }
 ```
 
+#### Single Consumer With Metric collector
+
+```go
+func main() {
+  // ...
+  var consumeFn kafka.ConsumeFn = func(message kafka.Message) error {
+    return errors.New("err occurred")
+  }
+  
+  c := cronsumer.New(config, consumeFn)
+  StartAPI(*config, c.GetMetricCollectors()...)
+  c.Start()
+  // ...    
+}
+
+func StartAPI(cfg kafka.Config, metricCollectors ...prometheus.Collector) {
+  // ...
+  f := fiber.New(
+    fiber.Config{},
+  )
+  
+  metricMiddleware, err := NewMetricMiddleware(cfg, f, metricCollectors...)
+  
+  f.Use(metricMiddleware)
+  // ...
+}
+```
+
 ## Configurations
 
 | config                       | description                                                                                        | default  | example                  |

@@ -28,6 +28,10 @@ func StartAPI(cfg kafka.Config, metricCollectors ...prometheus.Collector) {
 
 	fmt.Printf("server starting on port %d", port)
 
+	go listen(f)
+}
+
+func listen(f *fiber.App) {
 	if err := f.Listen(fmt.Sprintf(":%d", port)); err != nil {
 		fmt.Printf("server cannot start on port %d, err: %v", port, err)
 	}
