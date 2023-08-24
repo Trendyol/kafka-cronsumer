@@ -3,15 +3,16 @@ package internal
 import (
 	"bytes"
 	_ "embed"
-	segmentio "github.com/segmentio/kafka-go"
 	"testing"
 	"time"
+
+	segmentio "github.com/segmentio/kafka-go"
 
 	. "github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 )
 
 func Test_NewMessageWrapper(t *testing.T) {
-	//Given
+	// Given
 	expected := segmentio.Message{
 		Topic:         "topic",
 		Partition:     1,
@@ -25,13 +26,11 @@ func Test_NewMessageWrapper(t *testing.T) {
 		WriterData: "1",
 		Time:       time.Now(),
 	}
-
-	//When
+	// When
 	actual := NewMessageWrapper(expected)
 	actualHeader := actual.Headers[0]
 	expectedHeader := expected.Headers[0]
-
-	//Then
+	// Then
 	if actual.Topic != expected.Topic {
 		t.Errorf("Expected: %s, Actual: %s", expected.Topic, actual.Topic)
 	}
@@ -61,6 +60,7 @@ func Test_NewMessageWrapper(t *testing.T) {
 		t.Errorf("Expected: %s, Actual: %s", expected.Value, actual.Value)
 	}
 }
+
 func Test_increaseRetryCount(t *testing.T) {
 	// Given
 	m := MessageWrapper{
@@ -124,22 +124,22 @@ func TestMessageWrapper_IsExceedMaxRetryCount(t *testing.T) {
 }
 
 func TestMessageWrapper_To_With_Increase_Retry(t *testing.T) {
-	//Given
-	expected := MessageWrapper{Message: Message{
-		Topic: "topic",
-		Value: []byte("1"),
-		Headers: []Header{
-			{Key: "x-retry-count", Value: []byte("1")},
+	// Given
+	expected := MessageWrapper{
+		Message: Message{
+			Topic: "topic",
+			Value: []byte("1"),
+			Headers: []Header{
+				{Key: "x-retry-count", Value: []byte("1")},
+			},
 		},
-	},
-		RetryCount: 1}
-
-	//When
+		RetryCount: 1,
+	}
+	// When
 	actual := expected.To(true)
 	actualHeader := actual.Headers[0]
 	expectedHeader := expected.Headers[0]
-
-	//Then
+	// Then
 	if actual.Topic != expected.Topic {
 		t.Errorf("Expected: %s, Actual: %s", expected.Topic, actual.Topic)
 	}

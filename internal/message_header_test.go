@@ -2,11 +2,12 @@ package internal
 
 import (
 	"bytes"
+	"strconv"
+	"testing"
+
 	pkg "github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 	"github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/protocol"
-	"strconv"
-	"testing"
 )
 
 func Test_getMessageProduceTime(t *testing.T) {
@@ -100,15 +101,15 @@ func Test_getRetryCount(t *testing.T) {
 }
 
 func Test_FromHeaders(t *testing.T) {
-	//Given
+	// Given
 	expected := []pkg.Header{
 		{Key: "x-retry-count", Value: []byte("1")},
 	}
-	//When
+	// When
 	actual := ToHeaders(expected)
 	actualHeader := actual[0]
 	expectedHeader := expected[0]
-	//Then
+	// Then
 	if actualHeader.Key != expectedHeader.Key {
 		t.Errorf("Expected: %s, Actual: %s", actualHeader.Key, expectedHeader.Key)
 	}
@@ -118,15 +119,15 @@ func Test_FromHeaders(t *testing.T) {
 }
 
 func Test_ToHeaders(t *testing.T) {
-	//Given
+	// Given
 	expected := []kafka.Header{
 		{Key: "x-retry-count", Value: []byte("1")},
 	}
-	//When
+	// When
 	actual := FromHeaders(expected)
 	actualHeader := actual[0]
 	expectedHeader := expected[0]
-	//Then
+	// Then
 	if actualHeader.Key != expectedHeader.Key {
 		t.Errorf("Expected: %s, Actual: %s", actualHeader.Key, expectedHeader.Key)
 	}
