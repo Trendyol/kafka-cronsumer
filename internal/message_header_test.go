@@ -1,11 +1,12 @@
 package internal
 
 import (
-	"strconv"
-	"testing"
-
+	"bytes"
+	pkg "github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 	"github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/protocol"
+	"strconv"
+	"testing"
 )
 
 func Test_getMessageProduceTime(t *testing.T) {
@@ -96,4 +97,40 @@ func Test_getRetryCount(t *testing.T) {
 			t.Errorf("Expected: %s, Actual: %s", expected, actual)
 		}
 	})
+}
+
+func Test_FromHeaders(t *testing.T) {
+	//Given
+	expected := []pkg.Header{
+		{Key: "x-retry-count", Value: []byte("1")},
+	}
+	//When
+	actual := ToHeaders(expected)
+	actualHeader := actual[0]
+	expectedHeader := expected[0]
+	//Then
+	if actualHeader.Key != expectedHeader.Key {
+		t.Errorf("Expected: %s, Actual: %s", actualHeader.Key, expectedHeader.Key)
+	}
+	if !bytes.Equal(actualHeader.Value, expectedHeader.Value) {
+		t.Errorf("Expected: %s, Actual: %s", expectedHeader.Value, expectedHeader.Value)
+	}
+}
+
+func Test_ToHeaders(t *testing.T) {
+	//Given
+	expected := []kafka.Header{
+		{Key: "x-retry-count", Value: []byte("1")},
+	}
+	//When
+	actual := FromHeaders(expected)
+	actualHeader := actual[0]
+	expectedHeader := expected[0]
+	//Then
+	if actualHeader.Key != expectedHeader.Key {
+		t.Errorf("Expected: %s, Actual: %s", actualHeader.Key, expectedHeader.Key)
+	}
+	if !bytes.Equal(actualHeader.Value, expectedHeader.Value) {
+		t.Errorf("Expected: %s, Actual: %s", expectedHeader.Value, expectedHeader.Value)
+	}
 }

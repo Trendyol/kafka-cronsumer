@@ -3,11 +3,64 @@ package internal
 import (
 	"bytes"
 	_ "embed"
+	segmentio "github.com/segmentio/kafka-go"
 	"testing"
+	"time"
 
 	. "github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 )
 
+func Test_NewMessageWrapper(t *testing.T) {
+	//Given
+	expected := segmentio.Message{
+		Topic:         "topic",
+		Partition:     1,
+		Offset:        1,
+		HighWaterMark: 1,
+		Key:           []byte("1"),
+		Value:         []byte("1"),
+		Headers: []segmentio.Header{
+			{Key: RetryHeaderKey, Value: []byte("1")},
+		},
+		WriterData: "1",
+		Time:       time.Now(),
+	}
+
+	//When
+	actual := NewMessageWrapper(expected)
+	actualHeader := actual.Headers[0]
+	expectedHeader := expected.Headers[0]
+
+	//Then
+	if actual.Topic != expected.Topic {
+		t.Errorf("Expected: %s, Actual: %s", expected.Topic, actual.Topic)
+	}
+	if actual.Partition != expected.Partition {
+		t.Errorf("Expected: %d, Actual: %d", expected.Partition, actual.Partition)
+	}
+
+	if actual.Offset != expected.Offset {
+		t.Errorf("Expected: %d, Actual: %d", expected.Offset, actual.Offset)
+	}
+	if actual.HighWaterMark != expected.HighWaterMark {
+		t.Errorf("Expected: %d, Actual: %d", expected.HighWaterMark, actual.HighWaterMark)
+	}
+	if !bytes.Equal(actual.Key, expected.Key) {
+		t.Errorf("Expected: %s, Actual: %s", expected.Value, actual.Value)
+	}
+	if !bytes.Equal(actual.Value, expected.Value) {
+		t.Errorf("Expected: %s, Actual: %s", expected.Value, actual.Value)
+	}
+	if actualHeader.Key != expectedHeader.Key {
+		t.Errorf("Expected: %s, Actual: %s", actualHeader.Key, expectedHeader.Key)
+	}
+	if !bytes.Equal(actualHeader.Value, expectedHeader.Value) {
+		t.Errorf("Expected: %s, Actual: %s", expectedHeader.Value, expectedHeader.Value)
+	}
+	if actual.Time != expected.Time {
+		t.Errorf("Expected: %s, Actual: %s", expected.Value, actual.Value)
+	}
+}
 func Test_increaseRetryCount(t *testing.T) {
 	// Given
 	m := MessageWrapper{
@@ -67,5 +120,36 @@ func TestMessageWrapper_IsExceedMaxRetryCount(t *testing.T) {
 	}
 	if actual2 != false {
 		t.Fatal()
+	}
+}
+
+func TestMessageWrapper_To_With_Increase_Retry(t *testing.T) {
+	//Given
+	expected := MessageWrapper{Message: Message{
+		Topic: "topic",
+		Value: []byte("1"),
+		Headers: []Header{
+			{Key: "x-retry-count", Value: []byte("1")},
+		},
+	},
+		RetryCount: 1}
+
+	//When
+	actual := expected.To(true)
+	actualHeader := actual.Headers[0]
+	expectedHeader := expected.Headers[0]
+
+	//Then
+	if actual.Topic != expected.Topic {
+		t.Errorf("Expected: %s, Actual: %s", expected.Topic, actual.Topic)
+	}
+	if !bytes.Equal(actual.Value, expected.Value) {
+		t.Errorf("Expected: %s, Actual: %s", expected.Value, actual.Value)
+	}
+	if actualHeader.Key != expectedHeader.Key {
+		t.Errorf("Expected: %s, Actual: %s", actualHeader.Key, expectedHeader.Key)
+	}
+	if !bytes.Equal(actualHeader.Value, expectedHeader.Value) {
+		t.Errorf("Expected: %s, Actual: %s", expectedHeader.Value, expectedHeader.Value)
 	}
 }
