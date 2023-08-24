@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"github.com/Trendyol/kafka-cronsumer/pkg/logger"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 // ConsumeFn function describes how to consume messages from specified topic
@@ -25,4 +26,7 @@ type Cronsumer interface {
 
 	// ProduceBatch produces the list of messages to kafka KafkaCronsumer producer.
 	ProduceBatch(messages []Message) error
+
+	// GetMetricCollectors  for the purpose of making metric collectors available to other libraries
+	GetMetricCollectors() []prometheus.Collector
 }

@@ -15,6 +15,7 @@ type kafkaCronsumer struct {
 
 	consumeFn func(message kafka.Message) error
 
+	metric          *CronsumerMetric
 	maxRetry        int
 	deadLetterTopic string
 
@@ -31,6 +32,7 @@ func newKafkaCronsumer(cfg *kafka.Config, c func(message kafka.Message) error) *
 		kafkaConsumer:   newConsumer(cfg),
 		kafkaProducer:   newProducer(cfg),
 		consumeFn:       c,
+		metric:          &CronsumerMetric{},
 		maxRetry:        cfg.Consumer.MaxRetry,
 		deadLetterTopic: cfg.Consumer.DeadLetterTopic,
 	}
@@ -78,6 +80,10 @@ func (k *kafkaCronsumer) Stop() {
 	k.kafkaProducer.Close()
 }
 
+func (k *kafkaCronsumer) GetMetric() *CronsumerMetric {
+	return k.metric
+}
+
 func (k *kafkaCronsumer) processMessage() {
 	for msg := range k.messageChannel {
 		if err := k.consumeFn(msg.Message); err != nil {
@@ -110,11 +116,15 @@ func (k *kafkaCronsumer) produce(msg MessageWrapper) {
 			}
 		}
 
+		k.metric.TotalDiscardedMessagesCounter++
+
 		return
 	}
 
 	if err := k.kafkaProducer.ProduceWithRetryOption(msg, true); err != nil {
 		k.cfg.Logger.Errorf("Error sending KafkaMessage to topic %v", err)
+	} else {
+		k.metric.TotalRetriedMessagesCounter++
 	}
 }
 
