@@ -1,6 +1,6 @@
 package internal
 
-const Name = "kafka_cronsumer_"
+const Name = "kafka_cronsumer"
 
 type CronsumerMetric struct {
 	TotalRetriedMessagesCounter   int64
