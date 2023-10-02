@@ -8,7 +8,6 @@ import (
 )
 
 func Test_NewCollector(t *testing.T) {
-
 	cronsumerMetric := &CronsumerMetric{
 		TotalRetriedMessagesCounter:   0,
 		TotalDiscardedMessagesCounter: 0,
