@@ -2,7 +2,6 @@ package internal
 
 import (
 	"context"
-	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -27,7 +26,6 @@ func Test_Produce_Max_Retry_Count_Reach(t *testing.T) {
 	}
 
 	var firstConsumerFn kafka.ConsumeFn = func(message kafka.Message) error {
-		fmt.Printf("First consumer > Message received: %s\n", string(message.Value))
 		return nil
 	}
 	c := &kafkaCronsumer{
@@ -61,27 +59,17 @@ func Test_Produce_Max_Retry_Count_Reach(t *testing.T) {
 
 func Test_Produce_Max_Retry_Count_Reach_Dead_Letter_Topic_Feature_Enabled(t *testing.T) {
 	// Given
-	kafkaConfig := &kafka.Config{
-		Brokers: []string{"localhost:29092"},
-		Consumer: kafka.ConsumerConfig{
-			GroupID:  "sample-consumer",
-			Topic:    "exception",
-			Cron:     "@every 1s",
-			Duration: 20 * time.Second,
-		},
-		LogLevel: "info",
-		Logger:   logger.New("info"),
-	}
 
 	var firstConsumerFn kafka.ConsumeFn = func(message kafka.Message) error {
-		fmt.Printf("First consumer > Message received: %s\n", string(message.Value))
 		return nil
 	}
 	c := &kafkaCronsumer{
-		cfg:             kafkaConfig,
+		cfg: &kafka.Config{
+			Logger: logger.New("info"),
+		},
 		messageChannel:  make(chan MessageWrapper),
 		kafkaConsumer:   mockConsumer{},
-		kafkaProducer:   newProducer(kafkaConfig),
+		kafkaProducer:   &mockProducer{},
 		consumeFn:       firstConsumerFn,
 		metric:          &CronsumerMetric{},
 		maxRetry:        1,
@@ -121,7 +109,6 @@ func Test_Produce_With_Retry(t *testing.T) {
 	}
 
 	var firstConsumerFn kafka.ConsumeFn = func(message kafka.Message) error {
-		fmt.Printf("First consumer > Message received: %s\n", string(message.Value))
 		return nil
 	}
 	producer := newMockProducer()
@@ -169,7 +156,6 @@ func Test_Recover_Message(t *testing.T) {
 	}
 
 	var firstConsumerFn kafka.ConsumeFn = func(message kafka.Message) error {
-		fmt.Printf("First consumer > Message received: %s\n", string(message.Value))
 		return nil
 	}
 	producer := newMockProducer()
