@@ -63,7 +63,7 @@ func getRetryAttemptCount(message *segmentio.Message) int {
 
 	message.Headers = append(message.Headers, segmentio.Header{
 		Key:   RetryAttemptHeaderKey,
-		Value: []byte("0"),
+		Value: []byte("1"),
 	})
 
 	return 0

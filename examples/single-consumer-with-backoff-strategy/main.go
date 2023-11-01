@@ -32,7 +32,7 @@ func main() {
 	messageWithRetryAttempt := kafka.NewMessageBuilder().
 		WithHeaders([]kafka.Header{
 			{Key: "x-retry-count", Value: []byte("2")},
-			{Key: "x-retry-attempt-count", Value: []byte("0")},
+			{Key: "x-retry-attempt-count", Value: []byte("1")},
 		}).
 		WithTopic(config.Consumer.Topic).
 		WithKey(nil).

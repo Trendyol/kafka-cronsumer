@@ -46,7 +46,7 @@ func main() {
 	messageForFirstConsumer := kafka.NewMessageBuilder().
 		WithHeaders([]kafka.Header{
 			{Key: "x-retry-count", Value: []byte("2")},
-			{Key: "x-retry-attempt-count", Value: []byte("0")},
+			{Key: "x-retry-attempt-count", Value: []byte("1")},
 		}).
 		WithTopic(firstCfg.Consumer.Topic).
 		WithKey(nil).
@@ -58,7 +58,7 @@ func main() {
 	messageForSecondConsumer := kafka.NewMessageBuilder().
 		WithHeaders([]kafka.Header{
 			{Key: "x-retry-count", Value: []byte("2")},
-			{Key: "x-retry-attempt-count", Value: []byte("0")},
+			{Key: "x-retry-attempt-count", Value: []byte("1")},
 		}).
 		WithTopic(secondCfg.Consumer.Topic).
 		WithKey(nil).

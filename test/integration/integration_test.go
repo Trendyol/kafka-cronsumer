@@ -278,7 +278,7 @@ func Test_Should_Discard_Message_When_Retry_Count_Is_Equal_To_MaxRetrys_Value_Wi
 		return lastOffset == expectedOffset
 	}
 
-	assert.Equal(t, 2, retryAttemptCount)
+	assert.Equal(t, 3, retryAttemptCount)
 	assertEventually(t, conditionFunc, 30*time.Second, time.Second)
 }
 

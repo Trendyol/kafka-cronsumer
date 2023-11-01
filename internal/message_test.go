@@ -161,7 +161,7 @@ func TestMessageWrapper_To_With_Increase_Retry(t *testing.T) {
 			Value: []byte("1"),
 			Headers: []Header{
 				{Key: "x-retry-count", Value: []byte("1")},
-				{Key: "x-retry-attempt-count", Value: []byte("0")},
+				{Key: "x-retry-attempt-count", Value: []byte("1")},
 			},
 		},
 		RetryCount:        1,
@@ -204,11 +204,11 @@ func TestMessageWrapper_To_With_Increase_Retry_Attempt(t *testing.T) {
 			Value: []byte("1"),
 			Headers: []Header{
 				{Key: "x-retry-count", Value: []byte("1")},
-				{Key: "x-retry-attempt-count", Value: []byte("0")},
+				{Key: "x-retry-attempt-count", Value: []byte("1")},
 			},
 		},
 		RetryCount:        1,
-		RetryAttemptCount: 0,
+		RetryAttemptCount: 1,
 	}
 	// When
 	actual := expected.To(false, true)

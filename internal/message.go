@@ -63,7 +63,7 @@ func (m *MessageWrapper) To(increaseRetry bool, increaseRetryAttempt bool) segme
 func (m *MessageWrapper) ResetRetryAttempt() {
 	for i := range m.Headers {
 		if m.Headers[i].Key == RetryAttemptHeaderKey {
-			m.Headers[i].Value = []byte("0")
+			m.Headers[i].Value = []byte("1")
 		}
 	}
 }

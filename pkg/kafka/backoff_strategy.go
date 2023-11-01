@@ -5,18 +5,18 @@ import (
 )
 
 type BackoffStrategyInterface interface {
-	ShouldRetry(retryCount int, retryAttemptCount int) bool
+	ShouldIncreaseRetryAttemptCount(retryCount int, retryAttemptCount int) bool
 }
 
 type LinearBackoffStrategy struct{}
 
-func (s *LinearBackoffStrategy) ShouldRetry(retryCount int, retryAttemptCount int) bool {
-	return retryCount > 0 && retryCount > retryAttemptCount
+func (s *LinearBackoffStrategy) ShouldIncreaseRetryAttemptCount(retryCount int, retryAttemptCount int) bool {
+	return retryCount > 0 && retryCount >= retryAttemptCount
 }
 
 type ExponentialBackoffStrategy struct{}
 
-func (s *ExponentialBackoffStrategy) ShouldRetry(retryCount int, retryAttemptCount int) bool {
+func (s *ExponentialBackoffStrategy) ShouldIncreaseRetryAttemptCount(retryCount int, retryAttemptCount int) bool {
 	return retryCount > 0 && int(math.Pow(2, float64(retryCount))) > retryAttemptCount
 }
 
