@@ -43,7 +43,7 @@ func Test_Should_Consume_Exception_Message_Successfully(t *testing.T) {
 	c.Start()
 
 	// When
-	expectedMessage := kafka.Message{Topic: topic, Value: []byte("some message")}
+	expectedMessage := kafka.Message{Topic: topic, Value: []byte("some message"), Key: []byte("some key")}
 	if err := c.Produce(expectedMessage); err != nil {
 		fmt.Println("Produce err", err.Error())
 	}
@@ -52,6 +52,9 @@ func Test_Should_Consume_Exception_Message_Successfully(t *testing.T) {
 	actualMessage := <-waitMessageCh
 	if !bytes.Equal(actualMessage.Value, expectedMessage.Value) {
 		t.Errorf("Expected: %s, Actual: %s", expectedMessage.Value, actualMessage.Value)
+	}
+	if !bytes.Equal(actualMessage.Key, expectedMessage.Key) {
+		t.Errorf("Expected: %s, Actual: %s", expectedMessage.Key, actualMessage.Key)
 	}
 }
 
@@ -83,7 +86,7 @@ func Test_Should_Retry_Message_When_Error_Occurred_During_Consuming(t *testing.T
 	c.Start()
 
 	// When
-	expectedMessage := kafka.Message{Topic: topic, Value: []byte("some message")}
+	expectedMessage := kafka.Message{Topic: topic, Value: []byte("some message"), Key: []byte("some key")}
 	if err := c.Produce(expectedMessage); err != nil {
 		fmt.Println("Produce err", err.Error())
 	}
@@ -134,7 +137,7 @@ func Test_Should_Discard_Message_When_Retry_Count_Is_Equal_To_MaxRetrys_Value(t 
 	c.Start()
 
 	// When
-	expectedMessage := kafka.Message{Topic: topic, Value: []byte("some message")}
+	expectedMessage := kafka.Message{Topic: topic, Value: []byte("some message"), Key: []byte("some key")}
 	if err := c.Produce(expectedMessage); err != nil {
 		fmt.Println("Produce err", err.Error())
 	}
@@ -191,7 +194,7 @@ func Test_Should_Send_DeadLetter_Topic_When_Retry_Count_Is_Equal_To_MaxRetrys_Va
 	c.Start()
 
 	// When
-	expectedMessage := kafka.Message{Topic: topic, Value: []byte("some message")}
+	expectedMessage := kafka.Message{Topic: topic, Value: []byte("some message"), Key: []byte("some key")}
 	if err := c.Produce(expectedMessage); err != nil {
 		fmt.Println("Produce err", err.Error())
 	}

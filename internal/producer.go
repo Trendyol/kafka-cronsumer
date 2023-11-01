@@ -54,6 +54,7 @@ func (k *kafkaProducer) Produce(m kafka.Message) error {
 		Topic:         m.Topic,
 		Partition:     m.Partition,
 		HighWaterMark: m.HighWaterMark,
+		Key:           m.Key,
 		Value:         m.Value,
 		Headers:       ToHeaders(m.Headers),
 	})
@@ -66,6 +67,7 @@ func (k *kafkaProducer) ProduceBatch(messages []kafka.Message) error {
 			Topic:         messages[i].Topic,
 			Partition:     messages[i].Partition,
 			HighWaterMark: messages[i].HighWaterMark,
+			Key:           messages[i].Key,
 			Value:         messages[i].Value,
 			Headers:       ToHeaders(messages[i].Headers),
 		})
