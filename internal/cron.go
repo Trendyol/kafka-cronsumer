@@ -77,7 +77,7 @@ func (s *cronsumer) setup() {
 			cancel()
 		}
 
-		go s.consumer.Listen(ctx, &cancelFuncWrapper)
+		go s.consumer.Listen(ctx, cfg.BackOffStrategy, &cancelFuncWrapper)
 
 		time.AfterFunc(cfg.Duration, cancelFuncWrapper)
 	})

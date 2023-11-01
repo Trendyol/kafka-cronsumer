@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
@@ -44,7 +45,7 @@ func (k *kafkaCronsumer) SetupConcurrentWorkers(concurrency int) {
 	}
 }
 
-func (k *kafkaCronsumer) Listen(ctx context.Context, cancelFuncWrapper *func()) {
+func (k *kafkaCronsumer) Listen(ctx context.Context, strategyName string, cancelFuncWrapper *func()) {
 	startTime := time.Now()
 	startTimeUnixNano := startTime.UnixNano()
 
@@ -63,11 +64,27 @@ func (k *kafkaCronsumer) Listen(ctx context.Context, cancelFuncWrapper *func()) 
 
 			k.cfg.Logger.Info("Next iteration message has been detected, resending the message to exception")
 
-			if err = k.kafkaProducer.ProduceWithRetryOption(*msg, false); err != nil {
+			if err = k.kafkaProducer.ProduceWithRetryOption(*msg, false, false); err != nil {
 				k.cfg.Logger.Errorf("Error sending next iteration KafkaMessage: %v", err)
 			}
 
 			return
+		}
+
+		if msg.RetryCount > 0 {
+			retryStrategy := kafka.GetBackoffStrategy(strategyName)
+
+			if retryStrategy != nil && retryStrategy.ShouldRetry(msg.RetryCount, msg.RetryAttemptCount) {
+				(*cancelFuncWrapper)()
+
+				k.cfg.Logger.Info(fmt.Printf("Listener run but not process the message cause of %s backoff strategy retryCount: %d retryAttempt %d\n", strategyName, msg.RetryCount, msg.RetryAttemptCount))
+
+				if err = k.kafkaProducer.ProduceWithRetryOption(*msg, false, true); err != nil {
+					k.cfg.Logger.Errorf("Error sending next iteration KafkaMessage: %v", err)
+				}
+
+				return
+			}
 		}
 
 		k.sendToMessageChannel(*msg)
@@ -111,7 +128,7 @@ func (k *kafkaCronsumer) produce(msg MessageWrapper) {
 
 		if k.isDeadLetterTopicFeatureEnabled() {
 			msg.RouteMessageToTopic(k.deadLetterTopic)
-			if err := k.kafkaProducer.ProduceWithRetryOption(msg, true); err != nil {
+			if err := k.kafkaProducer.ProduceWithRetryOption(msg, true, false); err != nil {
 				k.cfg.Logger.Errorf("Error sending KafkaMessage to dead letter topic %v", err)
 			}
 		}
@@ -121,7 +138,7 @@ func (k *kafkaCronsumer) produce(msg MessageWrapper) {
 		return
 	}
 
-	if err := k.kafkaProducer.ProduceWithRetryOption(msg, true); err != nil {
+	if err := k.kafkaProducer.ProduceWithRetryOption(msg, true, false); err != nil {
 		k.cfg.Logger.Errorf("Error sending KafkaMessage to topic %v", err)
 	} else {
 		k.metric.TotalRetriedMessagesCounter++

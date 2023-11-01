@@ -12,8 +12,11 @@ import (
 type Offset string
 
 const (
-	OffsetEarliest = "earliest"
-	OffsetLatest   = "latest"
+	OffsetEarliest             = "earliest"
+	OffsetLatest               = "latest"
+	ExponentialBackOffStrategy = "exponential"
+	LinearBackOffStrategy      = "linear"
+	FixedBackOffStrategy       = "fixed"
 )
 
 type Config struct {
@@ -54,6 +57,7 @@ type ConsumerConfig struct {
 	Concurrency       int           `yaml:"concurrency"`
 	Duration          time.Duration `yaml:"duration"`
 	Cron              string        `yaml:"cron"`
+	BackOffStrategy   string        `yaml:"backOffStrategy" default:"fixed"`
 }
 
 type ProducerConfig struct {

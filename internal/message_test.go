@@ -84,6 +84,36 @@ func Test_increaseRetryCount(t *testing.T) {
 	}
 }
 
+func Test_increaseRetryAttemptCount(t *testing.T) {
+	// Given
+	m := MessageWrapper{
+		Message: Message{
+			Headers: []Header{
+				{Key: RetryHeaderKey, Value: []byte("2")},
+				{Key: RetryAttemptHeaderKey, Value: []byte("1")},
+			},
+			Topic: "exception",
+		},
+		RetryCount: 1,
+	}
+
+	// When
+	m.IncreaseRetryAttemptCount()
+
+	// Then
+	actualRetryCount := m.GetHeaders()[RetryHeaderKey]
+	expectedRetryCount := []byte("2")
+	if !bytes.Equal(expectedRetryCount, actualRetryCount) {
+		t.Errorf("Expected: %s, Actual: %s", expectedRetryCount, actualRetryCount)
+	}
+
+	actualRetryAttempt := m.GetHeaders()[RetryAttemptHeaderKey]
+	expectedRetryAttempt := []byte("2")
+	if !bytes.Equal(expectedRetryAttempt, actualRetryAttempt) {
+		t.Errorf("Expected: %s, Actual: %s", expectedRetryAttempt, actualRetryAttempt)
+	}
+}
+
 func TestMessageWrapper_NewProduceTime(t *testing.T) {
 	// Given
 	mw := MessageWrapper{
@@ -131,14 +161,20 @@ func TestMessageWrapper_To_With_Increase_Retry(t *testing.T) {
 			Value: []byte("1"),
 			Headers: []Header{
 				{Key: "x-retry-count", Value: []byte("1")},
+				{Key: "x-retry-attempt-count", Value: []byte("0")},
 			},
 		},
-		RetryCount: 1,
+		RetryCount:        1,
+		RetryAttemptCount: 0,
 	}
 	// When
-	actual := expected.To(true)
+	actual := expected.To(true, false)
 	actualHeader := actual.Headers[0]
 	expectedHeader := expected.Headers[0]
+
+	retryAttemptHeader := actual.Headers[1]
+	expectedRetryAttemptHeader := expected.Headers[1]
+
 	// Then
 	if actual.Topic != expected.Topic {
 		t.Errorf("Expected: %s, Actual: %s", expected.Topic, actual.Topic)
@@ -150,6 +186,55 @@ func TestMessageWrapper_To_With_Increase_Retry(t *testing.T) {
 		t.Errorf("Expected: %s, Actual: %s", actualHeader.Key, expectedHeader.Key)
 	}
 	if !bytes.Equal(actualHeader.Value, expectedHeader.Value) {
+		t.Errorf("Expected: %s, Actual: %s", expectedHeader.Value, expectedHeader.Value)
+	}
+	if retryAttemptHeader.Key != expectedRetryAttemptHeader.Key {
+		t.Errorf("Expected: %s, Actual: %s", actualHeader.Key, expectedHeader.Key)
+	}
+	if !bytes.Equal(retryAttemptHeader.Value, expectedRetryAttemptHeader.Value) {
+		t.Errorf("Expected: %s, Actual: %s", expectedHeader.Value, expectedHeader.Value)
+	}
+}
+
+func TestMessageWrapper_To_With_Increase_Retry_Attempt(t *testing.T) {
+	// Given
+	expected := MessageWrapper{
+		Message: Message{
+			Topic: "topic",
+			Value: []byte("1"),
+			Headers: []Header{
+				{Key: "x-retry-count", Value: []byte("1")},
+				{Key: "x-retry-attempt-count", Value: []byte("0")},
+			},
+		},
+		RetryCount:        1,
+		RetryAttemptCount: 0,
+	}
+	// When
+	actual := expected.To(false, true)
+	actualHeader := actual.Headers[0]
+	expectedHeader := expected.Headers[0]
+
+	retryAttemptHeader := actual.Headers[1]
+	expectedRetryAttemptHeader := expected.Headers[1]
+
+	// Then
+	if actual.Topic != expected.Topic {
+		t.Errorf("Expected: %s, Actual: %s", expected.Topic, actual.Topic)
+	}
+	if !bytes.Equal(actual.Value, expected.Value) {
+		t.Errorf("Expected: %s, Actual: %s", expected.Value, actual.Value)
+	}
+	if actualHeader.Key != expectedHeader.Key {
+		t.Errorf("Expected: %s, Actual: %s", actualHeader.Key, expectedHeader.Key)
+	}
+	if !bytes.Equal(actualHeader.Value, []byte("1")) {
+		t.Errorf("Expected: %s, Actual: %s", expectedHeader.Value, expectedHeader.Value)
+	}
+	if retryAttemptHeader.Key != expectedRetryAttemptHeader.Key {
+		t.Errorf("Expected: %s, Actual: %s", actualHeader.Key, expectedHeader.Key)
+	}
+	if !bytes.Equal(retryAttemptHeader.Value, []byte("1")) {
 		t.Errorf("Expected: %s, Actual: %s", expectedHeader.Value, expectedHeader.Value)
 	}
 }

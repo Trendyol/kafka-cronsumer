@@ -220,7 +220,7 @@ func newMockProducer() mockProducer {
 	}
 }
 
-func (k *mockProducer) ProduceWithRetryOption(message MessageWrapper, increaseRetry bool) error {
+func (k *mockProducer) ProduceWithRetryOption(message MessageWrapper, increaseRetry bool, increaseRetryAttempt bool) error {
 	return nil
 }
 

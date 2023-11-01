@@ -13,19 +13,22 @@ import (
 
 const (
 	RetryHeaderKey              = "x-retry-count"
+	RetryAttemptHeaderKey       = "x-retry-attempt-count"
 	MessageProduceTimeHeaderKey = "x-produce-time"
 )
 
 type MessageWrapper struct {
 	kafka.Message
-	RetryCount  int
-	ProduceTime int64 // Nano time
+	RetryCount        int
+	ProduceTime       int64 // Nano time
+	RetryAttemptCount int
 }
 
 func NewMessageWrapper(msg segmentio.Message) *MessageWrapper {
 	return &MessageWrapper{
-		RetryCount:  getRetryCount(&msg),
-		ProduceTime: getMessageProduceTime(&msg),
+		RetryCount:        getRetryCount(&msg),
+		RetryAttemptCount: getRetryAttemptCount(&msg),
+		ProduceTime:       getMessageProduceTime(&msg),
 		Message: kafka.Message{
 			Topic:         msg.Topic,
 			Partition:     msg.Partition,
@@ -39,16 +42,40 @@ func NewMessageWrapper(msg segmentio.Message) *MessageWrapper {
 	}
 }
 
-func (m *MessageWrapper) To(increaseRetry bool) segmentio.Message {
+func (m *MessageWrapper) To(increaseRetry bool, increaseRetryAttempt bool) segmentio.Message {
 	if increaseRetry {
 		m.IncreaseRetryCount()
 		m.NewProduceTime()
+		m.ResetRetryAttempt()
+	}
+
+	if increaseRetryAttempt {
+		m.IncreaseRetryAttemptCount()
 	}
 
 	return segmentio.Message{
 		Topic:   m.Topic,
 		Value:   m.Value,
 		Headers: ToHeaders(m.Headers),
+	}
+}
+
+func (m *MessageWrapper) ResetRetryAttempt() {
+	for i := range m.Headers {
+		if m.Headers[i].Key == RetryAttemptHeaderKey {
+			m.Headers[i].Value = []byte("0")
+		}
+	}
+}
+
+func (m *MessageWrapper) IncreaseRetryAttemptCount() {
+	for i := range m.Headers {
+		if m.Headers[i].Key == RetryAttemptHeaderKey {
+			byteToStr := *((*string)(unsafe.Pointer(&m.Headers[i].Value)))
+			retryAttempt, _ := strconv.Atoi(byteToStr)
+			x := strconv.Itoa(retryAttempt + 1)
+			m.Headers[i].Value = []byte(x)
+		}
 	}
 }
 

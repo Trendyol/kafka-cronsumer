@@ -135,3 +135,57 @@ func Test_ToHeaders(t *testing.T) {
 		t.Errorf("Expected: %s, Actual: %s", expectedHeader.Value, expectedHeader.Value)
 	}
 }
+
+func Test_getRetryAttempt(t *testing.T) {
+	t.Parallel()
+
+	t.Run("When X-Retry-Attempt-Count not found with existent headers", func(t *testing.T) {
+		// Given
+		km := &kafka.Message{
+			Headers: []protocol.Header{
+				{Key: "Some Header", Value: []byte("Some Value")},
+			},
+		}
+
+		// When
+		rc := getRetryAttemptCount(km)
+
+		// Then
+		if rc != 0 {
+			t.Errorf("Expected: %d, Actual: %d", 0, rc)
+		}
+	})
+	t.Run("When X-Retry-Attempt-Count not found", func(t *testing.T) {
+		// Given
+		km := &kafka.Message{
+			Headers: nil,
+		}
+
+		// When
+		rc := getRetryAttemptCount(km)
+
+		// Then
+		if rc != 0 {
+			t.Errorf("Expected: %d, Actual: %d", 0, rc)
+		}
+	})
+	t.Run("When X-Retry-Attempt-Count exists", func(t *testing.T) {
+		// Given
+		km := &kafka.Message{
+			Headers: []protocol.Header{
+				{Key: RetryAttemptHeaderKey, Value: []byte("2")},
+			},
+		}
+
+		// When
+		rc := getRetryAttemptCount(km)
+
+		// Then
+		actual := strconv.Itoa(rc)
+		expected := string(km.Headers[0].Value)
+
+		if expected != actual {
+			t.Errorf("Expected: %s, Actual: %s", expected, actual)
+		}
+	})
+}

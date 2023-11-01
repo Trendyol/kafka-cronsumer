@@ -51,6 +51,24 @@ func getRetryCount(message *segmentio.Message) int {
 	return 0
 }
 
+func getRetryAttemptCount(message *segmentio.Message) int {
+	for i := range message.Headers {
+		if message.Headers[i].Key != RetryAttemptHeaderKey {
+			continue
+		}
+
+		retryCount, _ := strconv.Atoi(string(message.Headers[i].Value))
+		return retryCount
+	}
+
+	message.Headers = append(message.Headers, segmentio.Header{
+		Key:   RetryAttemptHeaderKey,
+		Value: []byte("0"),
+	})
+
+	return 0
+}
+
 func getMessageProduceTime(message *segmentio.Message) int64 {
 	for i := range message.Headers {
 		if message.Headers[i].Key != MessageProduceTimeHeaderKey {

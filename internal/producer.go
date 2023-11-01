@@ -8,7 +8,7 @@ import (
 )
 
 type Producer interface {
-	ProduceWithRetryOption(message MessageWrapper, increaseRetry bool) error
+	ProduceWithRetryOption(message MessageWrapper, increaseRetry bool, increaseRetryAttempt bool) error
 	Produce(message kafka.Message) error
 	ProduceBatch(messages []kafka.Message) error
 	Close()
@@ -45,8 +45,8 @@ func newProducer(kafkaConfig *kafka.Config) Producer {
 	}
 }
 
-func (k *kafkaProducer) ProduceWithRetryOption(message MessageWrapper, increaseRetry bool) error {
-	return k.w.WriteMessages(context.Background(), message.To(increaseRetry))
+func (k *kafkaProducer) ProduceWithRetryOption(message MessageWrapper, increaseRetry bool, increaseRetryAttempt bool) error {
+	return k.w.WriteMessages(context.Background(), message.To(increaseRetry, increaseRetryAttempt))
 }
 
 func (k *kafkaProducer) Produce(m kafka.Message) error {
