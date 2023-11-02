@@ -11,13 +11,13 @@ type BackoffStrategyInterface interface {
 type LinearBackoffStrategy struct{}
 
 func (s *LinearBackoffStrategy) ShouldIncreaseRetryAttemptCount(retryCount int, retryAttemptCount int) bool {
-	return retryCount > 0 && retryCount >= retryAttemptCount
+	return retryCount >= retryAttemptCount
 }
 
 type ExponentialBackoffStrategy struct{}
 
 func (s *ExponentialBackoffStrategy) ShouldIncreaseRetryAttemptCount(retryCount int, retryAttemptCount int) bool {
-	return retryCount > 0 && int(math.Pow(2, float64(retryCount))) > retryAttemptCount
+	return int(math.Pow(2, float64(retryCount))) > retryAttemptCount
 }
 
 func GetBackoffStrategy(strategyName string) BackoffStrategyInterface {

@@ -208,7 +208,7 @@ func TestMessageWrapper_To_With_Increase_Retry_Attempt(t *testing.T) {
 			},
 		},
 		RetryCount:        1,
-		RetryAttemptCount: 1,
+		RetryAttemptCount: 2,
 	}
 	// When
 	actual := expected.To(false, true)
@@ -234,7 +234,7 @@ func TestMessageWrapper_To_With_Increase_Retry_Attempt(t *testing.T) {
 	if retryAttemptHeader.Key != expectedRetryAttemptHeader.Key {
 		t.Errorf("Expected: %s, Actual: %s", actualHeader.Key, expectedHeader.Key)
 	}
-	if !bytes.Equal(retryAttemptHeader.Value, []byte("1")) {
+	if !bytes.Equal(retryAttemptHeader.Value, []byte("2")) {
 		t.Errorf("Expected: %s, Actual: %s", expectedHeader.Value, expectedHeader.Value)
 	}
 }
