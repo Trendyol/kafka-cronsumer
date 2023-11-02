@@ -259,7 +259,7 @@ func Test_Should_Discard_Message_When_Retry_Count_Is_Equal_To_MaxRetrys_Value_Wi
 			},
 			{
 				Key:   "x-retry-attempt-count",
-				Value: []byte("1"),
+				Value: []byte("2"),
 			},
 		},
 	}
