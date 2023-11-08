@@ -158,6 +158,7 @@ func TestMessageWrapper_To_With_Increase_Retry(t *testing.T) {
 	expected := MessageWrapper{
 		Message: Message{
 			Topic: "topic",
+			Key:   []byte("key"),
 			Value: []byte("1"),
 			Headers: []Header{
 				{Key: "x-retry-count", Value: []byte("1")},
@@ -178,6 +179,9 @@ func TestMessageWrapper_To_With_Increase_Retry(t *testing.T) {
 	// Then
 	if actual.Topic != expected.Topic {
 		t.Errorf("Expected: %s, Actual: %s", expected.Topic, actual.Topic)
+	}
+	if !bytes.Equal(actual.Key, expected.Key) {
+		t.Errorf("Expected: %s, Actual: %s", expected.Key, actual.Key)
 	}
 	if !bytes.Equal(actual.Value, expected.Value) {
 		t.Errorf("Expected: %s, Actual: %s", expected.Value, actual.Value)
