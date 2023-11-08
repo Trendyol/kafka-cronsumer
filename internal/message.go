@@ -47,6 +47,7 @@ func (m *MessageWrapper) To(increaseRetry bool) segmentio.Message {
 
 	return segmentio.Message{
 		Topic:   m.Topic,
+		Key:     m.Key,
 		Value:   m.Value,
 		Headers: ToHeaders(m.Headers),
 	}
