@@ -151,8 +151,8 @@ func Test_getRetryAttempt(t *testing.T) {
 		rc := getRetryAttemptCount(km)
 
 		// Then
-		if rc != 0 {
-			t.Errorf("Expected: %d, Actual: %d", 0, rc)
+		if rc != 1 {
+			t.Errorf("Expected: %d, Actual: %d", 1, rc)
 		}
 	})
 	t.Run("When X-Retry-Attempt-Count not found", func(t *testing.T) {
@@ -165,8 +165,8 @@ func Test_getRetryAttempt(t *testing.T) {
 		rc := getRetryAttemptCount(km)
 
 		// Then
-		if rc != 0 {
-			t.Errorf("Expected: %d, Actual: %d", 0, rc)
+		if rc != 1 {
+			t.Errorf("Expected: %d, Actual: %d", 1, rc)
 		}
 	})
 	t.Run("When X-Retry-Attempt-Count exists", func(t *testing.T) {

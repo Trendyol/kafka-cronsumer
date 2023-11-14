@@ -248,6 +248,9 @@ func Test_Should_Discard_Message_When_Retry_Count_Is_Equal_To_MaxRetrys_Value_Wi
 	c := cronsumer.New(config, consumeFn)
 	c.Start()
 
+	produceTime := time.Now().UnixNano()
+	produceTimeStr := strconv.FormatInt(produceTime, 10)
+
 	// When
 	expectedMessage := kafka.Message{
 		Topic: topic,
@@ -261,6 +264,10 @@ func Test_Should_Discard_Message_When_Retry_Count_Is_Equal_To_MaxRetrys_Value_Wi
 				Key:   "x-retry-attempt-count",
 				Value: []byte("2"),
 			},
+			{
+				Key:   "x-produce-time",
+				Value: []byte(produceTimeStr),
+			},
 		},
 	}
 
@@ -271,7 +278,7 @@ func Test_Should_Discard_Message_When_Retry_Count_Is_Equal_To_MaxRetrys_Value_Wi
 	// Then
 	<-errCh
 
-	var expectedOffset int64 = 2
+	var expectedOffset int64 = 3
 	conditionFunc := func() bool {
 		lastOffset, _ := conn.ReadLastOffset()
 		fmt.Println("lastOffset", lastOffset)
@@ -318,8 +325,30 @@ func Test_Should_Discard_Message_When_Retry_Count_Is_Equal_To_MaxRetrys_Value_Wi
 	c := cronsumer.New(config, consumeFn)
 	c.Start()
 
+	produceTime := time.Now().UnixNano()
+	produceTimeStr := strconv.FormatInt(produceTime, 10)
+
 	// When
-	expectedMessage := kafka.Message{
+	firstMessage := kafka.Message{
+		Topic: topic,
+		Value: []byte("some message"),
+		Headers: []kafka.Header{
+			{
+				Key:   "x-retry-count",
+				Value: []byte("3"),
+			},
+			{
+				Key:   "x-retry-attempt-count",
+				Value: []byte("6"),
+			},
+			{
+				Key:   "x-produce-time",
+				Value: []byte(produceTimeStr),
+			},
+		},
+	}
+
+	secondMessage := kafka.Message{
 		Topic: topic,
 		Value: []byte("some message"),
 		Headers: []kafka.Header{
@@ -331,17 +360,21 @@ func Test_Should_Discard_Message_When_Retry_Count_Is_Equal_To_MaxRetrys_Value_Wi
 				Key:   "x-retry-attempt-count",
 				Value: []byte("7"),
 			},
+			{
+				Key:   "x-produce-time",
+				Value: []byte(produceTimeStr),
+			},
 		},
 	}
 
-	if err := c.Produce(expectedMessage); err != nil {
+	if err := c.ProduceBatch([]kafka.Message{firstMessage, secondMessage}); err != nil {
 		fmt.Println("Produce err", err.Error())
 	}
 
 	// Then
 	<-errCh
 
-	var expectedOffset int64 = 2
+	var expectedOffset int64 = 7
 	conditionFunc := func() bool {
 		lastOffset, _ := conn.ReadLastOffset()
 		fmt.Println("lastOffset", lastOffset)

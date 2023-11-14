@@ -4,6 +4,7 @@ import (
 	"fmt"
 	cronsumer "github.com/Trendyol/kafka-cronsumer"
 	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
+	"strconv"
 	"time"
 )
 
@@ -29,17 +30,32 @@ func main() {
 	c := cronsumer.New(config, consumeFn)
 	c.Start()
 
-	messageWithRetryAttempt := kafka.NewMessageBuilder().
+	produceTime := time.Now().UnixNano()
+	produceTimeStr := strconv.FormatInt(produceTime, 10)
+
+	firstMessageWithRetryAttempt := kafka.NewMessageBuilder().
 		WithHeaders([]kafka.Header{
-			{Key: "x-retry-count", Value: []byte("2")},
-			{Key: "x-retry-attempt-count", Value: []byte("1")},
+			{Key: "x-retry-count", Value: []byte("3")},
+			{Key: "x-retry-attempt-count", Value: []byte("6")},
+			{Key: "x-produce-time", Value: []byte(produceTimeStr)},
 		}).
 		WithTopic(config.Consumer.Topic).
 		WithKey(nil).
 		WithValue([]byte(`{ "foo": "bar" }`)).
 		Build()
 
-	c.Produce(messageWithRetryAttempt)
+	secondMessageWithRetryAttempt := kafka.NewMessageBuilder().
+		WithHeaders([]kafka.Header{
+			{Key: "x-retry-count", Value: []byte("3")},
+			{Key: "x-retry-attempt-count", Value: []byte("7")},
+			{Key: "x-produce-time", Value: []byte(produceTimeStr)},
+		}).
+		WithTopic(config.Consumer.Topic).
+		WithKey(nil).
+		WithValue([]byte(`{ "foo2": "bar2" }`)).
+		Build()
+
+	c.ProduceBatch([]kafka.Message{firstMessageWithRetryAttempt, secondMessageWithRetryAttempt})
 
 	select {} // showing purpose
 }

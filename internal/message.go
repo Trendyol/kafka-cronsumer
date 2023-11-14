@@ -51,6 +51,7 @@ func (m *MessageWrapper) To(increaseRetry bool, increaseRetryAttempt bool) segme
 
 	if increaseRetryAttempt {
 		m.IncreaseRetryAttemptCount()
+		m.NewProduceTime()
 	}
 
 	return segmentio.Message{

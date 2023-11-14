@@ -66,7 +66,7 @@ func getRetryAttemptCount(message *segmentio.Message) int {
 		Value: []byte("1"),
 	})
 
-	return 0
+	return 1
 }
 
 func getMessageProduceTime(message *segmentio.Message) int64 {
