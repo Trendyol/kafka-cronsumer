@@ -155,20 +155,6 @@ func Test_getRetryAttempt(t *testing.T) {
 			t.Errorf("Expected: %d, Actual: %d", 1, rc)
 		}
 	})
-	t.Run("When X-Retry-Attempt-Count not found", func(t *testing.T) {
-		// Given
-		km := &kafka.Message{
-			Headers: nil,
-		}
-
-		// When
-		rc := getRetryAttemptCount(km)
-
-		// Then
-		if rc != 1 {
-			t.Errorf("Expected: %d, Actual: %d", 1, rc)
-		}
-	})
 	t.Run("When X-Retry-Attempt-Count exists", func(t *testing.T) {
 		// Given
 		km := &kafka.Message{
@@ -186,6 +172,21 @@ func Test_getRetryAttempt(t *testing.T) {
 
 		if expected != actual {
 			t.Errorf("Expected: %s, Actual: %s", expected, actual)
+		}
+	})
+
+	t.Run("When X-Retry-Attempt-Count not found", func(t *testing.T) {
+		// Given
+		km := &kafka.Message{
+			Headers: nil,
+		}
+
+		// When
+		rc := getRetryAttemptCount(km)
+
+		// Then
+		if rc != 1 {
+			t.Errorf("Expected: %d, Actual: %d", 1, rc)
 		}
 	})
 }
