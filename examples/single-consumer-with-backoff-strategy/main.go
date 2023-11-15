@@ -9,6 +9,7 @@ import (
 )
 
 func main() {
+	strategy := kafka.ExponentialBackOffStrategy
 	config := &kafka.Config{
 		Brokers: []string{"localhost:29092"},
 		Consumer: kafka.ConsumerConfig{
@@ -17,7 +18,7 @@ func main() {
 			MaxRetry:        3,
 			Cron:            "*/1 * * * *",
 			Duration:        20 * time.Second,
-			BackOffStrategy: kafka.ExponentialBackOffStrategy,
+			BackOffStrategy: &strategy,
 		},
 		LogLevel: "info",
 	}

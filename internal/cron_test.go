@@ -10,6 +10,7 @@ import (
 func Test_GetMetricsCollector(t *testing.T) {
 	t.Parallel()
 	// Given
+	backOffStrategy := kafka.FixedBackOffStrategy
 	kafkaConfig := &kafka.Config{
 		Brokers: []string{"localhost:29092"},
 		Consumer: kafka.ConsumerConfig{
@@ -17,7 +18,7 @@ func Test_GetMetricsCollector(t *testing.T) {
 			Topic:           "exception",
 			Cron:            "@every 1s",
 			Duration:        20 * time.Second,
-			BackOffStrategy: kafka.FixedBackOffStrategy,
+			BackOffStrategy: &backOffStrategy,
 		},
 		LogLevel: "info",
 	}
@@ -40,7 +41,7 @@ func Test_GetMetricsCollector(t *testing.T) {
 	})
 
 	t.Run("with ExponentialBackOffStrategy", func(t *testing.T) {
-		kafkaConfig.Consumer.BackOffStrategy = kafka.ExponentialBackOffStrategy
+		kafkaConfig.Consumer.BackOffStrategy = &backOffStrategy
 		var firstConsumerFn kafka.ConsumeFn = func(message kafka.Message) error {
 			return nil
 		}
@@ -58,7 +59,7 @@ func Test_GetMetricsCollector(t *testing.T) {
 	})
 
 	t.Run("with LinearBackOffStrategy", func(t *testing.T) {
-		kafkaConfig.Consumer.BackOffStrategy = kafka.LinearBackOffStrategy
+		kafkaConfig.Consumer.BackOffStrategy = &backOffStrategy
 		var firstConsumerFn kafka.ConsumeFn = func(message kafka.Message) error {
 			return nil
 		}

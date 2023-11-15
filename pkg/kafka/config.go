@@ -57,7 +57,7 @@ type ConsumerConfig struct {
 	Concurrency       int           `yaml:"concurrency"`
 	Duration          time.Duration `yaml:"duration"`
 	Cron              string        `yaml:"cron"`
-	BackOffStrategy   string        `yaml:"backOffStrategy" default:"fixed"`
+	BackOffStrategy   *string       `yaml:"backOffStrategy"`
 }
 
 type ProducerConfig struct {
@@ -96,6 +96,10 @@ func (c *Config) SetDefaults() {
 	if c.Consumer.RetentionTime == 0 {
 		c.Consumer.RetentionTime = 24 * time.Hour
 	}
+	if c.Consumer.BackOffStrategy == nil {
+		backOffStrategy := FixedBackOffStrategy
+		c.Consumer.BackOffStrategy = &backOffStrategy
+	}
 	if c.Producer.BatchSize == 0 {
 		c.Producer.BatchSize = 100
 	}
@@ -116,6 +120,9 @@ func (c *Config) Validate() {
 	}
 	if c.Consumer.Duration == 0 {
 		panic("you have to set panic duration")
+	}
+	if !isValidBackOffStrategy(*c.Consumer.BackOffStrategy) {
+		panic("you have to set valid backoff strategy")
 	}
 }
 
@@ -144,5 +151,14 @@ func ToStringOffset(offset int64) Offset {
 		return OffsetLatest
 	default:
 		return OffsetEarliest
+	}
+}
+
+func isValidBackOffStrategy(strategy string) bool {
+	switch strategy {
+	case ExponentialBackOffStrategy, LinearBackOffStrategy, FixedBackOffStrategy:
+		return true
+	default:
+		return false
 	}
 }

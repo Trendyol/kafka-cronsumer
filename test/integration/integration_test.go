@@ -219,6 +219,7 @@ func Test_Should_Discard_Message_When_Retry_Count_Is_Equal_To_MaxRetrys_Value_Wi
 	defer cleanUp()
 
 	maxRetry := 2
+	backOffStrategy := kafka.LinearBackOffStrategy
 	config := &kafka.Config{
 		Brokers: []string{"localhost:9092"},
 		Consumer: kafka.ConsumerConfig{
@@ -227,7 +228,7 @@ func Test_Should_Discard_Message_When_Retry_Count_Is_Equal_To_MaxRetrys_Value_Wi
 			Cron:            "*/1 * * * *",
 			Duration:        10 * time.Second,
 			MaxRetry:        maxRetry,
-			BackOffStrategy: kafka.LinearBackOffStrategy,
+			BackOffStrategy: &backOffStrategy,
 		},
 		LogLevel: "info",
 	}
@@ -296,6 +297,7 @@ func Test_Should_Discard_Message_When_Retry_Count_Is_Equal_To_MaxRetrys_Value_Wi
 	defer cleanUp()
 
 	maxRetry := 3
+	backOffStrategy := kafka.ExponentialBackOffStrategy
 	config := &kafka.Config{
 		Brokers: []string{"localhost:9092"},
 		Consumer: kafka.ConsumerConfig{
@@ -304,7 +306,7 @@ func Test_Should_Discard_Message_When_Retry_Count_Is_Equal_To_MaxRetrys_Value_Wi
 			Cron:            "*/1 * * * *",
 			Duration:        10 * time.Second,
 			MaxRetry:        maxRetry,
-			BackOffStrategy: kafka.ExponentialBackOffStrategy,
+			BackOffStrategy: &backOffStrategy,
 		},
 		LogLevel: "info",
 	}

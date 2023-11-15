@@ -18,6 +18,7 @@ func TestConfig_SetDefaults(t *testing.T) {
 		LogLevel logger.Level
 		Logger   logger.Interface
 	}
+	backOffStrategy := FixedBackOffStrategy
 	tests := []struct {
 		name     string
 		fields   fields
@@ -37,6 +38,7 @@ func TestConfig_SetDefaults(t *testing.T) {
 					SessionTimeout:    30 * time.Second,
 					RebalanceTimeout:  30 * time.Second,
 					RetentionTime:     24 * time.Hour,
+					BackOffStrategy:   &backOffStrategy,
 				},
 				Producer: ProducerConfig{
 					BatchSize:    100,
@@ -88,6 +90,8 @@ func TestConfig_Validate(t *testing.T) {
 		LogLevel logger.Level
 		Logger   logger.Interface
 	}
+	backOffStrategy := FixedBackOffStrategy
+	wrongStrategy := "test"
 	tests := []struct {
 		name   string
 		panic  string
@@ -102,7 +106,8 @@ func TestConfig_Validate(t *testing.T) {
 			panic: "you have to set topic",
 			fields: fields{
 				Consumer: ConsumerConfig{
-					GroupID: "groupId",
+					GroupID:         "groupId",
+					BackOffStrategy: &backOffStrategy,
 				},
 			},
 		},
@@ -111,8 +116,9 @@ func TestConfig_Validate(t *testing.T) {
 			panic: "you have to set cron expression",
 			fields: fields{
 				Consumer: ConsumerConfig{
-					GroupID: "groupId",
-					Topic:   "topic",
+					GroupID:         "groupId",
+					Topic:           "topic",
+					BackOffStrategy: &backOffStrategy,
 				},
 			},
 		},
@@ -121,9 +127,10 @@ func TestConfig_Validate(t *testing.T) {
 			panic: "you have to set panic duration",
 			fields: fields{
 				Consumer: ConsumerConfig{
-					GroupID: "groupId",
-					Topic:   "topic",
-					Cron:    "cron",
+					GroupID:         "groupId",
+					Topic:           "topic",
+					Cron:            "cron",
+					BackOffStrategy: &backOffStrategy,
 				},
 			},
 		},
@@ -131,10 +138,24 @@ func TestConfig_Validate(t *testing.T) {
 			name: "should be success when consumer topic and groupId value is not empty",
 			fields: fields{
 				Consumer: ConsumerConfig{
-					GroupID:  "groupId",
-					Topic:    "topic",
-					Cron:     "cron",
-					Duration: time.Second,
+					GroupID:         "groupId",
+					Topic:           "topic",
+					Cron:            "cron",
+					Duration:        time.Second,
+					BackOffStrategy: &backOffStrategy,
+				},
+			},
+		},
+		{
+			name:  "should be throw panic when consumer backoff strategy is wrong",
+			panic: "you have to set valid backoff strategy",
+			fields: fields{
+				Consumer: ConsumerConfig{
+					GroupID:         "groupId",
+					Topic:           "topic",
+					Cron:            "cron",
+					Duration:        time.Second,
+					BackOffStrategy: &wrongStrategy,
 				},
 			},
 		},
