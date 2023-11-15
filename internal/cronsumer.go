@@ -74,7 +74,6 @@ func (k *kafkaCronsumer) Listen(ctx context.Context, strategyName string, cancel
 		retryStrategy := kafka.GetBackoffStrategy(strategyName)
 
 		if retryStrategy != nil && retryStrategy.ShouldIncreaseRetryAttemptCount(msg.RetryCount, msg.RetryAttemptCount) {
-
 			k.cfg.Logger.Info(fmt.Printf("Listener run but not process the message cause of %s backoff strategy retryCount: %d retryAttempt %d\n", strategyName, msg.RetryCount, msg.RetryAttemptCount))
 
 			if err = k.kafkaProducer.ProduceWithRetryOption(*msg, false, true); err != nil {
