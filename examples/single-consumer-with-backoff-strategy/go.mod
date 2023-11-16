@@ -1,4 +1,4 @@
-module single-consumer
+module single-consumer-with-producer
 
 go 1.19
 

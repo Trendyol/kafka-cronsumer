@@ -37,6 +37,7 @@ func TestConfig_SetDefaults(t *testing.T) {
 					SessionTimeout:    30 * time.Second,
 					RebalanceTimeout:  30 * time.Second,
 					RetentionTime:     24 * time.Hour,
+					BackOffStrategy:   GetBackoffStrategy(FixedBackOffStrategy),
 				},
 				Producer: ProducerConfig{
 					BatchSize:    100,
@@ -102,7 +103,8 @@ func TestConfig_Validate(t *testing.T) {
 			panic: "you have to set topic",
 			fields: fields{
 				Consumer: ConsumerConfig{
-					GroupID: "groupId",
+					GroupID:         "groupId",
+					BackOffStrategy: GetBackoffStrategy(FixedBackOffStrategy),
 				},
 			},
 		},
@@ -111,8 +113,9 @@ func TestConfig_Validate(t *testing.T) {
 			panic: "you have to set cron expression",
 			fields: fields{
 				Consumer: ConsumerConfig{
-					GroupID: "groupId",
-					Topic:   "topic",
+					GroupID:         "groupId",
+					Topic:           "topic",
+					BackOffStrategy: GetBackoffStrategy(FixedBackOffStrategy),
 				},
 			},
 		},
@@ -121,9 +124,10 @@ func TestConfig_Validate(t *testing.T) {
 			panic: "you have to set panic duration",
 			fields: fields{
 				Consumer: ConsumerConfig{
-					GroupID: "groupId",
-					Topic:   "topic",
-					Cron:    "cron",
+					GroupID:         "groupId",
+					Topic:           "topic",
+					Cron:            "cron",
+					BackOffStrategy: GetBackoffStrategy(FixedBackOffStrategy),
 				},
 			},
 		},
@@ -131,10 +135,11 @@ func TestConfig_Validate(t *testing.T) {
 			name: "should be success when consumer topic and groupId value is not empty",
 			fields: fields{
 				Consumer: ConsumerConfig{
-					GroupID:  "groupId",
-					Topic:    "topic",
-					Cron:     "cron",
-					Duration: time.Second,
+					GroupID:         "groupId",
+					Topic:           "topic",
+					Cron:            "cron",
+					Duration:        time.Second,
+					BackOffStrategy: GetBackoffStrategy(FixedBackOffStrategy),
 				},
 			},
 		},

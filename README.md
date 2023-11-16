@@ -133,6 +133,7 @@ func StartAPI(cfg kafka.Config, metricCollectors ...prometheus.Collector) {
 | `logLevel`                   | Describes log level, valid options are `debug`, `info`, `warn`, and `error`                        | info     |                          |
 | `consumer.clientId`          | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.39#Dialer)                         |          |                          |
 | `consumer.cron`              | Cron expression when exception consumer starts to work at                                          |          | */1 * * * *              |
+| `consumer.backOffStrategy`   | Define consumer backoff strategy for retry topics                                                  | fixed    | exponential, linear      |
 | `consumer.duration`          | Work duration exception consumer actively consuming messages                                       |          | 20s, 15m, 1h             |
 | `consumer.topic`             | Exception topic names                                                                              |          | exception-topic          |
 | `consumer.groupId`           | Exception consumer group id                                                                        |          | exception-consumer-group |

@@ -57,7 +57,7 @@ func (k kafkaConsumer) ReadMessage(ctx context.Context) (*MessageWrapper, error)
 	msg, err := k.consumer.ReadMessage(ctx)
 	if err != nil {
 		if isContextCancelled(err) {
-			k.cfg.Logger.Info("kafka-go context is cancelled")
+			k.cfg.Logger.Debug("kafka-go context is cancelled")
 			return nil, nil
 		}
 		return nil, err
