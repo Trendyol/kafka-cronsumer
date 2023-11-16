@@ -69,15 +69,15 @@ func (s *cronsumer) setup() {
 	s.consumer.SetupConcurrentWorkers(cfg.Concurrency)
 
 	_, _ = s.cron.AddFunc(cfg.Cron, func() {
-		s.cfg.Logger.Info("Consuming " + cfg.Topic + " started at time: " + time.Now().String())
+		s.cfg.Logger.Debug("Consuming " + cfg.Topic + " started at time: " + time.Now().String())
 
 		ctx, cancel := context.WithCancel(context.Background())
 		cancelFuncWrapper := func() {
-			s.cfg.Logger.Info("Consuming " + cfg.Topic + " paused!")
+			s.cfg.Logger.Debug("Consuming " + cfg.Topic + " paused!")
 			cancel()
 		}
 
-		go s.consumer.Listen(ctx, *cfg.BackOffStrategy, &cancelFuncWrapper)
+		go s.consumer.Listen(ctx, cfg.BackOffStrategy.String(), &cancelFuncWrapper)
 
 		time.AfterFunc(cfg.Duration, cancelFuncWrapper)
 	})

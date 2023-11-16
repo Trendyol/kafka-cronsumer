@@ -40,24 +40,24 @@ type SASLConfig struct {
 }
 
 type ConsumerConfig struct {
-	ClientID          string        `yaml:"clientId"`
-	GroupID           string        `yaml:"groupId"`
-	Topic             string        `yaml:"topic"`
-	DeadLetterTopic   string        `yaml:"deadLetterTopic"`
-	MinBytes          int           `yaml:"minBytes"`
-	MaxBytes          int           `yaml:"maxBytes"`
-	MaxRetry          int           `yaml:"maxRetry"`
-	MaxWait           time.Duration `yaml:"maxWait"`
-	CommitInterval    time.Duration `yaml:"commitInterval"`
-	HeartbeatInterval time.Duration `yaml:"heartbeatInterval"`
-	SessionTimeout    time.Duration `yaml:"sessionTimeout"`
-	RebalanceTimeout  time.Duration `yaml:"rebalanceTimeout"`
-	StartOffset       Offset        `yaml:"startOffset"`
-	RetentionTime     time.Duration `yaml:"retentionTime"`
-	Concurrency       int           `yaml:"concurrency"`
-	Duration          time.Duration `yaml:"duration"`
-	Cron              string        `yaml:"cron"`
-	BackOffStrategy   *string       `yaml:"backOffStrategy"`
+	ClientID          string                   `yaml:"clientId"`
+	GroupID           string                   `yaml:"groupId"`
+	Topic             string                   `yaml:"topic"`
+	DeadLetterTopic   string                   `yaml:"deadLetterTopic"`
+	MinBytes          int                      `yaml:"minBytes"`
+	MaxBytes          int                      `yaml:"maxBytes"`
+	MaxRetry          int                      `yaml:"maxRetry"`
+	MaxWait           time.Duration            `yaml:"maxWait"`
+	CommitInterval    time.Duration            `yaml:"commitInterval"`
+	HeartbeatInterval time.Duration            `yaml:"heartbeatInterval"`
+	SessionTimeout    time.Duration            `yaml:"sessionTimeout"`
+	RebalanceTimeout  time.Duration            `yaml:"rebalanceTimeout"`
+	StartOffset       Offset                   `yaml:"startOffset"`
+	RetentionTime     time.Duration            `yaml:"retentionTime"`
+	Concurrency       int                      `yaml:"concurrency"`
+	Duration          time.Duration            `yaml:"duration"`
+	Cron              string                   `yaml:"cron"`
+	BackOffStrategy   BackoffStrategyInterface `yaml:"backOffStrategy"`
 }
 
 type ProducerConfig struct {
@@ -97,8 +97,7 @@ func (c *Config) SetDefaults() {
 		c.Consumer.RetentionTime = 24 * time.Hour
 	}
 	if c.Consumer.BackOffStrategy == nil {
-		backOffStrategy := FixedBackOffStrategy
-		c.Consumer.BackOffStrategy = &backOffStrategy
+		c.Consumer.BackOffStrategy = GetBackoffStrategy(FixedBackOffStrategy)
 	}
 	if c.Producer.BatchSize == 0 {
 		c.Producer.BatchSize = 100
@@ -121,7 +120,7 @@ func (c *Config) Validate() {
 	if c.Consumer.Duration == 0 {
 		panic("you have to set panic duration")
 	}
-	if !isValidBackOffStrategy(*c.Consumer.BackOffStrategy) {
+	if !isValidBackOffStrategy(c.Consumer.BackOffStrategy) {
 		panic("you have to set valid backoff strategy")
 	}
 }
@@ -154,8 +153,8 @@ func ToStringOffset(offset int64) Offset {
 	}
 }
 
-func isValidBackOffStrategy(strategy string) bool {
-	switch strategy {
+func isValidBackOffStrategy(strategy BackoffStrategyInterface) bool {
+	switch strategy.String() {
 	case ExponentialBackOffStrategy, LinearBackOffStrategy, FixedBackOffStrategy:
 		return true
 	default:

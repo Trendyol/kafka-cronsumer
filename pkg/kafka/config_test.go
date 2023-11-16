@@ -18,7 +18,6 @@ func TestConfig_SetDefaults(t *testing.T) {
 		LogLevel logger.Level
 		Logger   logger.Interface
 	}
-	backOffStrategy := FixedBackOffStrategy
 	tests := []struct {
 		name     string
 		fields   fields
@@ -38,7 +37,7 @@ func TestConfig_SetDefaults(t *testing.T) {
 					SessionTimeout:    30 * time.Second,
 					RebalanceTimeout:  30 * time.Second,
 					RetentionTime:     24 * time.Hour,
-					BackOffStrategy:   &backOffStrategy,
+					BackOffStrategy:   GetBackoffStrategy(FixedBackOffStrategy),
 				},
 				Producer: ProducerConfig{
 					BatchSize:    100,
@@ -90,8 +89,6 @@ func TestConfig_Validate(t *testing.T) {
 		LogLevel logger.Level
 		Logger   logger.Interface
 	}
-	backOffStrategy := FixedBackOffStrategy
-	wrongStrategy := "test"
 	tests := []struct {
 		name   string
 		panic  string
@@ -107,7 +104,7 @@ func TestConfig_Validate(t *testing.T) {
 			fields: fields{
 				Consumer: ConsumerConfig{
 					GroupID:         "groupId",
-					BackOffStrategy: &backOffStrategy,
+					BackOffStrategy: GetBackoffStrategy(FixedBackOffStrategy),
 				},
 			},
 		},
@@ -118,7 +115,7 @@ func TestConfig_Validate(t *testing.T) {
 				Consumer: ConsumerConfig{
 					GroupID:         "groupId",
 					Topic:           "topic",
-					BackOffStrategy: &backOffStrategy,
+					BackOffStrategy: GetBackoffStrategy(FixedBackOffStrategy),
 				},
 			},
 		},
@@ -130,7 +127,7 @@ func TestConfig_Validate(t *testing.T) {
 					GroupID:         "groupId",
 					Topic:           "topic",
 					Cron:            "cron",
-					BackOffStrategy: &backOffStrategy,
+					BackOffStrategy: GetBackoffStrategy(FixedBackOffStrategy),
 				},
 			},
 		},
@@ -142,20 +139,7 @@ func TestConfig_Validate(t *testing.T) {
 					Topic:           "topic",
 					Cron:            "cron",
 					Duration:        time.Second,
-					BackOffStrategy: &backOffStrategy,
-				},
-			},
-		},
-		{
-			name:  "should be throw panic when consumer backoff strategy is wrong",
-			panic: "you have to set valid backoff strategy",
-			fields: fields{
-				Consumer: ConsumerConfig{
-					GroupID:         "groupId",
-					Topic:           "topic",
-					Cron:            "cron",
-					Duration:        time.Second,
-					BackOffStrategy: &wrongStrategy,
+					BackOffStrategy: GetBackoffStrategy(FixedBackOffStrategy),
 				},
 			},
 		},

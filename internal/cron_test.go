@@ -9,21 +9,20 @@ import (
 
 func Test_GetMetricsCollector(t *testing.T) {
 	t.Parallel()
-	// Given
-	backOffStrategy := kafka.FixedBackOffStrategy
-	kafkaConfig := &kafka.Config{
-		Brokers: []string{"localhost:29092"},
-		Consumer: kafka.ConsumerConfig{
-			GroupID:         "sample-consumer",
-			Topic:           "exception",
-			Cron:            "@every 1s",
-			Duration:        20 * time.Second,
-			BackOffStrategy: &backOffStrategy,
-		},
-		LogLevel: "info",
-	}
 
 	t.Run("with FixedBackOffStrategy", func(t *testing.T) {
+		kafkaConfig := &kafka.Config{
+			Brokers: []string{"localhost:29092"},
+			Consumer: kafka.ConsumerConfig{
+				GroupID:         "sample-consumer",
+				Topic:           "exception",
+				Cron:            "@every 1s",
+				Duration:        20 * time.Second,
+				BackOffStrategy: kafka.GetBackoffStrategy(kafka.FixedBackOffStrategy),
+			},
+			LogLevel: "info",
+		}
+
 		var firstConsumerFn kafka.ConsumeFn = func(message kafka.Message) error {
 			return nil
 		}
@@ -41,7 +40,18 @@ func Test_GetMetricsCollector(t *testing.T) {
 	})
 
 	t.Run("with ExponentialBackOffStrategy", func(t *testing.T) {
-		kafkaConfig.Consumer.BackOffStrategy = &backOffStrategy
+		kafkaConfig := &kafka.Config{
+			Brokers: []string{"localhost:29092"},
+			Consumer: kafka.ConsumerConfig{
+				GroupID:         "sample-consumer",
+				Topic:           "exception",
+				Cron:            "@every 1s",
+				Duration:        20 * time.Second,
+				BackOffStrategy: kafka.GetBackoffStrategy(kafka.ExponentialBackOffStrategy),
+			},
+			LogLevel: "info",
+		}
+
 		var firstConsumerFn kafka.ConsumeFn = func(message kafka.Message) error {
 			return nil
 		}
@@ -59,7 +69,18 @@ func Test_GetMetricsCollector(t *testing.T) {
 	})
 
 	t.Run("with LinearBackOffStrategy", func(t *testing.T) {
-		kafkaConfig.Consumer.BackOffStrategy = &backOffStrategy
+		kafkaConfig := &kafka.Config{
+			Brokers: []string{"localhost:29092"},
+			Consumer: kafka.ConsumerConfig{
+				GroupID:         "sample-consumer",
+				Topic:           "exception",
+				Cron:            "@every 1s",
+				Duration:        20 * time.Second,
+				BackOffStrategy: kafka.GetBackoffStrategy(kafka.LinearBackOffStrategy),
+			},
+			LogLevel: "info",
+		}
+
 		var firstConsumerFn kafka.ConsumeFn = func(message kafka.Message) error {
 			return nil
 		}

@@ -8,7 +8,6 @@ import (
 	cronsumer "github.com/Trendyol/kafka-cronsumer"
 	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 	segmentio "github.com/segmentio/kafka-go"
-	"github.com/stretchr/testify/assert"
 	"strconv"
 	"testing"
 	"time"
@@ -219,7 +218,6 @@ func Test_Should_Discard_Message_When_Retry_Count_Is_Equal_To_MaxRetrys_Value_Wi
 	defer cleanUp()
 
 	maxRetry := 2
-	backOffStrategy := kafka.LinearBackOffStrategy
 	config := &kafka.Config{
 		Brokers: []string{"localhost:9092"},
 		Consumer: kafka.ConsumerConfig{
@@ -228,7 +226,7 @@ func Test_Should_Discard_Message_When_Retry_Count_Is_Equal_To_MaxRetrys_Value_Wi
 			Cron:            "*/1 * * * *",
 			Duration:        10 * time.Second,
 			MaxRetry:        maxRetry,
-			BackOffStrategy: &backOffStrategy,
+			BackOffStrategy: kafka.GetBackoffStrategy(kafka.LinearBackOffStrategy),
 		},
 		LogLevel: "info",
 	}
@@ -282,11 +280,12 @@ func Test_Should_Discard_Message_When_Retry_Count_Is_Equal_To_MaxRetrys_Value_Wi
 	var expectedOffset int64 = 3
 	conditionFunc := func() bool {
 		lastOffset, _ := conn.ReadLastOffset()
-		fmt.Println("lastOffset", lastOffset)
 		return lastOffset == expectedOffset
 	}
 
-	assert.Equal(t, 3, retryAttemptCount)
+	if retryAttemptCount != 3 {
+		t.Fatalf("Retry attemp count must be 3")
+	}
 	assertEventually(t, conditionFunc, 30*time.Second, time.Second)
 }
 
@@ -297,7 +296,6 @@ func Test_Should_Discard_Message_When_Retry_Count_Is_Equal_To_MaxRetrys_Value_Wi
 	defer cleanUp()
 
 	maxRetry := 3
-	backOffStrategy := kafka.ExponentialBackOffStrategy
 	config := &kafka.Config{
 		Brokers: []string{"localhost:9092"},
 		Consumer: kafka.ConsumerConfig{
@@ -306,7 +304,7 @@ func Test_Should_Discard_Message_When_Retry_Count_Is_Equal_To_MaxRetrys_Value_Wi
 			Cron:            "*/1 * * * *",
 			Duration:        10 * time.Second,
 			MaxRetry:        maxRetry,
-			BackOffStrategy: &backOffStrategy,
+			BackOffStrategy: kafka.GetBackoffStrategy(kafka.ExponentialBackOffStrategy),
 		},
 		LogLevel: "info",
 	}
@@ -379,11 +377,12 @@ func Test_Should_Discard_Message_When_Retry_Count_Is_Equal_To_MaxRetrys_Value_Wi
 	var expectedOffset int64 = 7
 	conditionFunc := func() bool {
 		lastOffset, _ := conn.ReadLastOffset()
-		fmt.Println("lastOffset", lastOffset)
 		return lastOffset == expectedOffset
 	}
 
-	assert.Equal(t, 8, retryAttemptCount)
+	if retryAttemptCount != 8 {
+		t.Fatalf("Retry attemp count must be 8")
+	}
 	assertEventually(t, conditionFunc, 30*time.Second, time.Second)
 }
 
