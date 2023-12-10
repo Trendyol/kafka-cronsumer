@@ -33,9 +33,9 @@ func FromHeaders(sh []segmentio.Header) []kafka.Header {
 	return r
 }
 
-func CreateErrHeader(consumeErr error) kafka.Header {
+func createErrHeader(consumeErr error) kafka.Header {
 	return kafka.Header{
-		Key:   "X-ErrMessage",
+		Key:   MessageErrHeaderKey,
 		Value: []byte(consumeErr.Error()),
 	}
 }

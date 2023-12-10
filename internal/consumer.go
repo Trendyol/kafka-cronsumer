@@ -9,7 +9,7 @@ import (
 )
 
 type Consumer interface {
-	ReadMessage(ctx context.Context) (*MessageWrapper, error)
+	ReadMessage(ctx context.Context) (*segmentio.Message, error)
 	Stop()
 }
 
@@ -53,7 +53,7 @@ func newConsumer(kafkaConfig *kafka.Config) *kafkaConsumer {
 	}
 }
 
-func (k kafkaConsumer) ReadMessage(ctx context.Context) (*MessageWrapper, error) {
+func (k kafkaConsumer) ReadMessage(ctx context.Context) (*segmentio.Message, error) {
 	msg, err := k.consumer.ReadMessage(ctx)
 	if err != nil {
 		if isContextCancelled(err) {
@@ -63,7 +63,7 @@ func (k kafkaConsumer) ReadMessage(ctx context.Context) (*MessageWrapper, error)
 		return nil, err
 	}
 
-	return NewMessageWrapper(msg), nil
+	return &msg, nil
 }
 
 func isContextCancelled(err error) bool {

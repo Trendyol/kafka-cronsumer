@@ -26,10 +26,12 @@ func Test_NewMessageWrapper(t *testing.T) {
 		WriterData: "1",
 		Time:       time.Now(),
 	}
+
 	// When
-	actual := NewMessageWrapper(expected)
+	actual := NewMessageWrapper(expected, FixedBackOffStrategy)
 	actualHeader := actual.Headers[0]
 	expectedHeader := expected.Headers[0]
+
 	// Then
 	if actual.Topic != expected.Topic {
 		t.Errorf("Expected: %s, Actual: %s", expected.Topic, actual.Topic)
@@ -37,7 +39,6 @@ func Test_NewMessageWrapper(t *testing.T) {
 	if actual.Partition != expected.Partition {
 		t.Errorf("Expected: %d, Actual: %d", expected.Partition, actual.Partition)
 	}
-
 	if actual.Offset != expected.Offset {
 		t.Errorf("Expected: %d, Actual: %d", expected.Offset, actual.Offset)
 	}

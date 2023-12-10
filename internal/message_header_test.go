@@ -197,10 +197,10 @@ func TestMessage_CreateErrHeader(t *testing.T) {
 	e := errors.New("err")
 
 	// When
-	h := CreateErrHeader(e)
+	h := createErrHeader(e)
 
 	// Then
-	if h.Key != "X-ErrMessage" {
+	if h.Key != MessageErrHeaderKey {
 		t.Fatalf("Header key must be equal to X-ErrMessage")
 	}
 

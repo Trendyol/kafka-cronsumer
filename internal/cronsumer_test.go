@@ -196,8 +196,8 @@ type mockConsumer struct{}
 func (c mockConsumer) Stop() {
 }
 
-func (c mockConsumer) ReadMessage(ctx context.Context) (*MessageWrapper, error) {
-	return &MessageWrapper{}, nil
+func (c mockConsumer) ReadMessage(ctx context.Context) (*segmentio.Message, error) {
+	return &segmentio.Message{}, nil
 }
 
 type mockProducer struct {

@@ -15,6 +15,7 @@ const (
 	RetryHeaderKey              = "x-retry-count"
 	RetryAttemptHeaderKey       = "x-retry-attempt-count"
 	MessageProduceTimeHeaderKey = "x-produce-time"
+	MessageErrHeaderKey         = "x-error-message"
 )
 
 type MessageWrapper struct {
@@ -24,22 +25,29 @@ type MessageWrapper struct {
 	RetryAttemptCount int
 }
 
-func NewMessageWrapper(msg segmentio.Message) *MessageWrapper {
-	return &MessageWrapper{
-		RetryCount:        getRetryCount(&msg),
-		RetryAttemptCount: getRetryAttemptCount(&msg),
-		ProduceTime:       getMessageProduceTime(&msg),
-		Message: kafka.Message{
-			Topic:         msg.Topic,
-			Partition:     msg.Partition,
-			Offset:        msg.Offset,
-			HighWaterMark: msg.HighWaterMark,
-			Key:           msg.Key,
-			Value:         msg.Value,
-			Headers:       FromHeaders(msg.Headers),
-			Time:          msg.Time,
-		},
+func NewMessageWrapper(msg segmentio.Message, strategyName string) *MessageWrapper {
+	mw := &MessageWrapper{
+		RetryCount:  getRetryCount(&msg),
+		ProduceTime: getMessageProduceTime(&msg),
 	}
+
+	// Don't add x-retry-attempt-count for fixed strategy.
+	if strategyName != kafka.FixedBackOffStrategy {
+		mw.RetryAttemptCount = getRetryAttemptCount(&msg)
+	}
+
+	mw.Message = kafka.Message{
+		Topic:         msg.Topic,
+		Partition:     msg.Partition,
+		Offset:        msg.Offset,
+		HighWaterMark: msg.HighWaterMark,
+		Key:           msg.Key,
+		Value:         msg.Value,
+		Headers:       FromHeaders(msg.Headers),
+		Time:          msg.Time,
+	}
+
+	return mw
 }
 
 func (m *MessageWrapper) To(increaseRetry bool, increaseRetryAttempt bool) segmentio.Message {
