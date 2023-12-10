@@ -48,15 +48,19 @@ func (k *kafkaCronsumer) Listen(ctx context.Context, strategyName string, cancel
 	startTime := time.Now()
 	startTimeUnixNano := startTime.UnixNano()
 
+	retryStrategy := kafka.GetBackoffStrategy(strategyName)
+
 	for {
-		msg, err := k.kafkaConsumer.ReadMessage(ctx)
+		m, err := k.kafkaConsumer.ReadMessage(ctx)
 		if err != nil {
-			k.cfg.Logger.Errorf("Message could not read, error %v", err)
+			k.cfg.Logger.Warnf("Message could not read, error %v", err)
 			return
 		}
-		if msg == nil {
+		if m == nil {
 			return
 		}
+
+		msg := NewMessageWrapper(*m, strategyName)
 
 		if msg.ProduceTime >= startTimeUnixNano {
 			(*cancelFuncWrapper)()
@@ -69,8 +73,6 @@ func (k *kafkaCronsumer) Listen(ctx context.Context, strategyName string, cancel
 
 			return
 		}
-
-		retryStrategy := kafka.GetBackoffStrategy(strategyName)
 
 		if retryStrategy.String() == kafka.FixedBackOffStrategy {
 			k.sendToMessageChannel(*msg)
@@ -105,6 +107,7 @@ func (k *kafkaCronsumer) GetMetric() *CronsumerMetric {
 func (k *kafkaCronsumer) processMessage() {
 	for msg := range k.messageChannel {
 		if err := k.consumeFn(msg.Message); err != nil {
+			msg.AddHeader(createErrHeader(err))
 			k.produce(msg)
 		}
 	}

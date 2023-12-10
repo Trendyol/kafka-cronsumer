@@ -33,6 +33,13 @@ func FromHeaders(sh []segmentio.Header) []kafka.Header {
 	return r
 }
 
+func createErrHeader(consumeErr error) kafka.Header {
+	return kafka.Header{
+		Key:   MessageErrHeaderKey,
+		Value: []byte(consumeErr.Error()),
+	}
+}
+
 func getRetryCount(message *segmentio.Message) int {
 	for i := range message.Headers {
 		if message.Headers[i].Key != RetryHeaderKey {

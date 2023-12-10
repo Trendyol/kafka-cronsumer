@@ -61,6 +61,18 @@ func (mb *MessageBuilder) WithHighWatermark(highWaterMark int64) *MessageBuilder
 	return mb
 }
 
+// AddHeader works as a idempotent function
+func (m *Message) AddHeader(header Header) {
+	for i := range m.Headers {
+		if m.Headers[i].Key == header.Key {
+			m.Headers[i].Value = header.Value
+			return
+		}
+	}
+
+	m.Headers = append(m.Headers, header)
+}
+
 func (mb *MessageBuilder) Build() Message {
 	m := Message{}
 

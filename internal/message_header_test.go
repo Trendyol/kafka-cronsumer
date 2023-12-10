@@ -2,6 +2,7 @@ package internal
 
 import (
 	"bytes"
+	"errors"
 	"strconv"
 	"testing"
 
@@ -189,4 +190,21 @@ func Test_getRetryAttempt(t *testing.T) {
 			t.Errorf("Expected: %d, Actual: %d", 1, rc)
 		}
 	})
+}
+
+func TestMessage_CreateErrHeader(t *testing.T) {
+	// Given
+	e := errors.New("err")
+
+	// When
+	h := createErrHeader(e)
+
+	// Then
+	if h.Key != MessageErrHeaderKey {
+		t.Fatalf("Header key must be equal to X-ErrMessage")
+	}
+
+	if h.Value == nil {
+		t.Fatalf("Header value must be present")
+	}
 }
