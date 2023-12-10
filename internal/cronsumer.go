@@ -105,6 +105,7 @@ func (k *kafkaCronsumer) GetMetric() *CronsumerMetric {
 func (k *kafkaCronsumer) processMessage() {
 	for msg := range k.messageChannel {
 		if err := k.consumeFn(msg.Message); err != nil {
+			msg.AddHeader(CreateErrHeader(err))
 			k.produce(msg)
 		}
 	}

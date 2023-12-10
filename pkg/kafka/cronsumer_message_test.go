@@ -129,3 +129,52 @@ func Test_WithHighWatermark(t *testing.T) {
 		t.Errorf("Expected: %d, Actual: %d", expected, *actual)
 	}
 }
+
+func TestMessage_AddHeader(t *testing.T) {
+	t.Run("When_New_Header_Comes", func(t *testing.T) {
+		// Given
+		m := Message{
+			Headers: []Header{
+				{Key: "foo", Value: []byte("fooValue")},
+			},
+		}
+
+		// When
+		m.AddHeader(Header{Key: "bar", Value: []byte("barValue")})
+
+		// Then
+		headers := m.Headers
+		if len(headers) != 2 {
+			t.Fatalf("Header length must be equal to 2")
+		}
+		if headers[1].Key != "bar" {
+			t.Fatalf("Header key must be equal to bar")
+		}
+		if !bytes.Equal(headers[1].Value, []byte("barValue")) {
+			t.Fatalf("Header value must be equal to barValue")
+		}
+	})
+	t.Run("When_Same_Header_Comes", func(t *testing.T) {
+		// Given
+		m := Message{
+			Headers: []Header{
+				{Key: "foo", Value: []byte("fooValue")},
+			},
+		}
+
+		// When
+		m.AddHeader(Header{Key: "foo", Value: []byte("barValue")})
+
+		// Then
+		headers := m.Headers
+		if len(headers) != 1 {
+			t.Fatalf("Header length must be equal to 1")
+		}
+		if headers[0].Key != "foo" {
+			t.Fatalf("Header key must be equal to foo")
+		}
+		if !bytes.Equal(headers[0].Value, []byte("barValue")) {
+			t.Fatalf("Header value must be equal to barValue")
+		}
+	})
+}
