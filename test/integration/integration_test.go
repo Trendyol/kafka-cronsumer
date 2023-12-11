@@ -15,6 +15,7 @@ import (
 
 func Test_Should_Consume_Exception_Message_Successfully(t *testing.T) {
 	// Given
+	t.Parallel()
 	topic := "exception"
 	_, cleanUp := createTopic(t, topic)
 	defer cleanUp()
@@ -59,6 +60,7 @@ func Test_Should_Consume_Exception_Message_Successfully(t *testing.T) {
 
 func Test_Should_Retry_Message_When_Error_Occurred_During_Consuming(t *testing.T) {
 	// Given
+	t.Parallel()
 	topic := "exception-oneRetry"
 	conn, cleanUp := createTopic(t, topic)
 	defer cleanUp()
@@ -104,6 +106,7 @@ func Test_Should_Retry_Message_When_Error_Occurred_During_Consuming(t *testing.T
 
 func Test_Should_Discard_Message_When_Retry_Count_Is_Equal_To_MaxRetrys_Value(t *testing.T) {
 	// Given
+	t.Parallel()
 	topic := "exception-max-retry"
 	conn, cleanUp := createTopic(t, topic)
 	defer cleanUp()
@@ -115,7 +118,7 @@ func Test_Should_Discard_Message_When_Retry_Count_Is_Equal_To_MaxRetrys_Value(t 
 			GroupID:  "sample-consumer",
 			Topic:    topic,
 			Cron:     "*/1 * * * *",
-			Duration: 20 * time.Second,
+			Duration: 10 * time.Second,
 			MaxRetry: maxRetry,
 		},
 		LogLevel: "info",
@@ -156,6 +159,7 @@ func Test_Should_Discard_Message_When_Retry_Count_Is_Equal_To_MaxRetrys_Value(t 
 
 func Test_Should_Send_DeadLetter_Topic_When_Retry_Count_Is_Equal_To_MaxRetrys_Value(t *testing.T) {
 	// Given
+	t.Parallel()
 	topic := "exception-max-retry-for-deadletter"
 	_, cleanUp := createTopic(t, topic)
 	defer cleanUp()
@@ -171,7 +175,7 @@ func Test_Should_Send_DeadLetter_Topic_When_Retry_Count_Is_Equal_To_MaxRetrys_Va
 			GroupID:         "sample-consumer",
 			Topic:           topic,
 			Cron:            "*/1 * * * *",
-			Duration:        20 * time.Second,
+			Duration:        10 * time.Second,
 			MaxRetry:        maxRetry,
 			DeadLetterTopic: deadLetterTopic,
 		},
@@ -213,6 +217,7 @@ func Test_Should_Send_DeadLetter_Topic_When_Retry_Count_Is_Equal_To_MaxRetrys_Va
 
 func Test_Should_Discard_Message_When_Retry_Count_Is_Equal_To_MaxRetrys_Value_With_Linear_BackOff_Strategy(t *testing.T) {
 	// Given
+	t.Parallel()
 	topic := "exception-max-retry-with-linear-backoff"
 	conn, cleanUp := createTopic(t, topic)
 	defer cleanUp()
@@ -291,6 +296,7 @@ func Test_Should_Discard_Message_When_Retry_Count_Is_Equal_To_MaxRetrys_Value_Wi
 
 func Test_Should_Discard_Message_When_Retry_Count_Is_Equal_To_MaxRetrys_Value_With_Exponential_BackOff_Strategy(t *testing.T) {
 	// Given
+	t.Parallel()
 	topic := "exception-max-retry-with-exponential-backoff"
 	conn, cleanUp := createTopic(t, topic)
 	defer cleanUp()
@@ -381,13 +387,14 @@ func Test_Should_Discard_Message_When_Retry_Count_Is_Equal_To_MaxRetrys_Value_Wi
 	}
 
 	if retryAttemptCount != 8 {
-		t.Fatalf("Retry attemp count must be 8")
+		t.Fatalf("Retry attempt count must be 8")
 	}
 	assertEventually(t, conditionFunc, 30*time.Second, time.Second)
 }
 
 func Test_Should_Discard_Message_When_Header_Filter_Defined(t *testing.T) {
 	// Given
+	t.Parallel()
 	topic := "exception-header-filter"
 	_, cleanUp := createTopic(t, topic)
 	defer cleanUp()
