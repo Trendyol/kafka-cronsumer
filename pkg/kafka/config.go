@@ -31,7 +31,8 @@ type Config struct {
 	// MetricPrefix is used for prometheus fq name prefix.
 	// If not provided, default metric prefix value is `kafka_cronsumer`.
 	// Currently, there are two exposed prometheus metrics. `retried_messages_total` and `discarded_messages_total`.
-	// So, if default metric prefix used, metrics names are `kafka_cronsumer_retried_messages_total_current` and `kafka_cronsumer_discarded_messages_total_current`.
+	// So, if default metric prefix used, metrics names are `kafka_cronsumer_retried_messages_total_current` and
+	// `kafka_cronsumer_discarded_messages_total_current`.
 	MetricPrefix string `yaml:"metricPrefix"`
 }
 
