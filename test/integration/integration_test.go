@@ -386,6 +386,69 @@ func Test_Should_Discard_Message_When_Retry_Count_Is_Equal_To_MaxRetrys_Value_Wi
 	assertEventually(t, conditionFunc, 30*time.Second, time.Second)
 }
 
+func Test_Should_Discard_Message_When_Header_Filter_Defined(t *testing.T) {
+	// Given
+	topic := "exception-header-filter"
+	key, value := "filter_key", "filter_value"
+	conn, cleanUp := createTopic(t, topic)
+	defer cleanUp()
+
+	maxRetry := 1
+	config := &kafka.Config{
+		Brokers: []string{"localhost:9092"},
+		Consumer: kafka.ConsumerConfig{
+			GroupID:  "sample-consumer",
+			Topic:    topic,
+			Cron:     "*/1 * * * *",
+			Duration: 20 * time.Second,
+			MaxRetry: maxRetry,
+		},
+		LogLevel: "info",
+		HeaderFilter: &kafka.HeaderFilter{
+			Key:   key,
+			Value: value,
+		},
+	}
+
+	respCh := make(chan kafka.Message)
+	var consumeFn kafka.ConsumeFn = func(message kafka.Message) error {
+		fmt.Printf("consumer > Message received. Headers: %v\n", message.Headers)
+		respCh <- message
+		return nil
+	}
+
+	c := cronsumer.New(config, consumeFn)
+	c.Start()
+
+	// When
+	producedMessages := []kafka.Message{
+		{Topic: topic, Value: []byte("some message"), Key: []byte("some key")},
+		{Topic: topic, Value: []byte("real message"), Key: []byte("some key"), Headers: []kafka.Header{{
+			Key:   key,
+			Value: []byte(value),
+		},
+		}},
+	}
+	if err := c.ProduceBatch(producedMessages); err != nil {
+		fmt.Println("Produce err", err.Error())
+	}
+
+	// Then
+	actualMessage := <-respCh
+	if string(actualMessage.Value) != "real message" {
+		t.Errorf("Expected: %s, Actual: %s", value, actualMessage.Value)
+	}
+
+	var expectedOffset int64 = 2
+	conditionFunc := func() bool {
+		lastOffset, _ := conn.ReadLastOffset()
+		fmt.Println("lastOffset", lastOffset)
+		return lastOffset == expectedOffset
+	}
+
+	assertEventually(t, conditionFunc, 30*time.Second, time.Second)
+}
+
 func getRetryCount(message kafka.Message) int {
 	for _, header := range message.Headers {
 		if header.Key == "x-retry-count" {

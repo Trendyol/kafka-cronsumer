@@ -20,13 +20,14 @@ const (
 )
 
 type Config struct {
-	Brokers  []string         `yaml:"brokers"`
-	Consumer ConsumerConfig   `yaml:"consumer"`
-	Producer ProducerConfig   `yaml:"producer"`
-	SASL     SASLConfig       `yaml:"sasl"`
-	LogLevel logger.Level     `yaml:"logLevel"`
-	Logger   logger.Interface `yaml:"-"`
-	ClientID string           `yaml:"clientId"`
+	Brokers      []string         `yaml:"brokers"`
+	Consumer     ConsumerConfig   `yaml:"consumer"`
+	Producer     ProducerConfig   `yaml:"producer"`
+	SASL         SASLConfig       `yaml:"sasl"`
+	LogLevel     logger.Level     `yaml:"logLevel"`
+	Logger       logger.Interface `yaml:"-"`
+	ClientID     string           `yaml:"clientId"`
+	HeaderFilter *HeaderFilter    `yaml:"headerFilter"`
 }
 
 type SASLConfig struct {
@@ -63,6 +64,11 @@ type ConsumerConfig struct {
 type ProducerConfig struct {
 	BatchSize    int           `yaml:"batchSize"`
 	BatchTimeout time.Duration `yaml:"batchTimeout"`
+}
+
+type HeaderFilter struct {
+	Key   string `yaml:"key"`
+	Value string `yaml:"value"`
 }
 
 func (c *Config) SetDefaults() {
