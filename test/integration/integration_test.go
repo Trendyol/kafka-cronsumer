@@ -402,12 +402,16 @@ func Test_Should_Discard_Message_When_Header_Filter_Defined(t *testing.T) {
 			Cron:     "*/1 * * * *",
 			Duration: 20 * time.Second,
 			MaxRetry: maxRetry,
+			HeaderFilterFn: func(headers []kafka.Header) bool {
+				for i := range headers {
+					if headers[i].Key == key && string(headers[i].Value) == value {
+						return false
+					}
+				}
+				return true
+			},
 		},
 		LogLevel: "info",
-		HeaderFilter: &kafka.HeaderFilter{
-			Key:   key,
-			Value: value,
-		},
 	}
 
 	respCh := make(chan kafka.Message)

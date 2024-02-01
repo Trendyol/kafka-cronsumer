@@ -20,14 +20,13 @@ const (
 )
 
 type Config struct {
-	Brokers      []string         `yaml:"brokers"`
-	Consumer     ConsumerConfig   `yaml:"consumer"`
-	Producer     ProducerConfig   `yaml:"producer"`
-	SASL         SASLConfig       `yaml:"sasl"`
-	LogLevel     logger.Level     `yaml:"logLevel"`
-	Logger       logger.Interface `yaml:"-"`
-	ClientID     string           `yaml:"clientId"`
-	HeaderFilter *HeaderFilter    `yaml:"headerFilter"`
+	Brokers  []string         `yaml:"brokers"`
+	Consumer ConsumerConfig   `yaml:"consumer"`
+	Producer ProducerConfig   `yaml:"producer"`
+	SASL     SASLConfig       `yaml:"sasl"`
+	LogLevel logger.Level     `yaml:"logLevel"`
+	Logger   logger.Interface `yaml:"-"`
+	ClientID string           `yaml:"clientId"`
 }
 
 type SASLConfig struct {
@@ -59,6 +58,7 @@ type ConsumerConfig struct {
 	Duration          time.Duration            `yaml:"duration"`
 	Cron              string                   `yaml:"cron"`
 	BackOffStrategy   BackoffStrategyInterface `yaml:"backOffStrategy"`
+	HeaderFilterFn    HeaderFilterFn           `yaml:"headerFilterFn"`
 }
 
 type ProducerConfig struct {
@@ -66,10 +66,7 @@ type ProducerConfig struct {
 	BatchTimeout time.Duration `yaml:"batchTimeout"`
 }
 
-type HeaderFilter struct {
-	Key   string `yaml:"key"`
-	Value string `yaml:"value"`
-}
+type HeaderFilterFn func(headers []Header) bool
 
 func (c *Config) SetDefaults() {
 	if c.Consumer.MaxRetry == 0 {

@@ -60,14 +60,12 @@ func (k *kafkaCronsumer) Listen(ctx context.Context, strategyName string, cancel
 			return
 		}
 
-		if k.cfg.HeaderFilter != nil {
-			if FilterMessage(m.Headers, *k.cfg.HeaderFilter) {
-				k.cfg.Logger.Warnf("msg is skipped cause of message filter. Headers: %v", m.Headers)
-				return
-			}
-		}
-
 		msg := NewMessageWrapper(*m, strategyName)
+
+		if k.cfg.Consumer.HeaderFilterFn != nil && k.cfg.Consumer.HeaderFilterFn(msg.Headers) {
+			k.cfg.Logger.Warnf("Message is not processed. Header filter applied. Headers: %v", msg.Headers)
+			return
+		}
 
 		if msg.ProduceTime >= startTimeUnixNano {
 			(*cancelFuncWrapper)()

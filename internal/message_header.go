@@ -93,12 +93,3 @@ func getMessageProduceTime(message *segmentio.Message) int64 {
 
 	return 0
 }
-
-func FilterMessage(headers []segmentio.Header, filter kafka.HeaderFilter) bool {
-	for i := range headers {
-		if headers[i].Key == filter.Key && string(headers[i].Value) == filter.Value {
-			return false
-		}
-	}
-	return true
-}
