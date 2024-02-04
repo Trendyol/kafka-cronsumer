@@ -390,7 +390,7 @@ func Test_Should_Discard_Message_When_Header_Filter_Defined(t *testing.T) {
 	// Given
 	topic := "exception-header-filter"
 	key, value := "filter_key", "filter_value"
-	conn, cleanUp := createTopic(t, topic)
+	_, cleanUp := createTopic(t, topic)
 	defer cleanUp()
 
 	maxRetry := 1
@@ -414,7 +414,8 @@ func Test_Should_Discard_Message_When_Header_Filter_Defined(t *testing.T) {
 		LogLevel: "info",
 	}
 
-	respCh := make(chan kafka.Message)
+	respCh := make(chan kafka.Message, 2)
+	defer close(respCh)
 	var consumeFn kafka.ConsumeFn = func(message kafka.Message) error {
 		fmt.Printf("consumer > Message received. Headers: %v\n", message.Headers)
 		respCh <- message
@@ -438,19 +439,16 @@ func Test_Should_Discard_Message_When_Header_Filter_Defined(t *testing.T) {
 	}
 
 	// Then
+	conditionFunc := func() bool {
+		messageCount := len(respCh)
+		return messageCount == 1
+	}
+	assertEventually(t, conditionFunc, 30*time.Second, time.Second)
+
 	actualMessage := <-respCh
 	if string(actualMessage.Value) != "real message" {
 		t.Errorf("Expected: %s, Actual: %s", value, actualMessage.Value)
 	}
-
-	var expectedOffset int64 = 2
-	conditionFunc := func() bool {
-		lastOffset, _ := conn.ReadLastOffset()
-		fmt.Println("lastOffset", lastOffset)
-		return lastOffset == expectedOffset
-	}
-
-	assertEventually(t, conditionFunc, 30*time.Second, time.Second)
 }
 
 func getRetryCount(message kafka.Message) int {

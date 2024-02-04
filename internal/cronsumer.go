@@ -63,7 +63,7 @@ func (k *kafkaCronsumer) Listen(ctx context.Context, strategyName string, cancel
 		msg := NewMessageWrapper(*m, strategyName)
 
 		if k.cfg.Consumer.HeaderFilterFn != nil && k.cfg.Consumer.HeaderFilterFn(msg.Headers) {
-			k.cfg.Logger.Warnf("Message is not processed. Header filter applied. Headers: %v", msg.Headers)
+			k.cfg.Logger.Infof("Message is not processed. Header filter applied. Headers: %v", msg.Headers)
 			return
 		}
 
