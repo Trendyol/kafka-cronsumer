@@ -18,6 +18,7 @@ type kafkaCronsumer struct {
 	metric          *CronsumerMetric
 	maxRetry        int
 	deadLetterTopic string
+	headerFilterFn  kafka.HeaderFilterFn
 
 	cfg *kafka.Config
 }
@@ -32,6 +33,7 @@ func newKafkaCronsumer(cfg *kafka.Config, c func(message kafka.Message) error) *
 		kafkaConsumer:   newConsumer(cfg),
 		kafkaProducer:   newProducer(cfg),
 		consumeFn:       c,
+		headerFilterFn:  cfg.Consumer.HeaderFilterFn,
 		metric:          &CronsumerMetric{},
 		maxRetry:        cfg.Consumer.MaxRetry,
 		deadLetterTopic: cfg.Consumer.DeadLetterTopic,
@@ -62,7 +64,7 @@ func (k *kafkaCronsumer) Listen(ctx context.Context, strategyName string, cancel
 
 		msg := NewMessageWrapper(*m, strategyName)
 
-		if k.cfg.Consumer.HeaderFilterFn != nil && k.cfg.Consumer.HeaderFilterFn(msg.Headers) {
+		if k.headerFilterFn != nil && k.headerFilterFn(msg.Headers) {
 			k.cfg.Logger.Infof("Message is not processed. Header filter applied. Headers: %v", msg.Headers)
 			return
 		}
