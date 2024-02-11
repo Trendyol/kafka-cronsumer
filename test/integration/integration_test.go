@@ -386,6 +386,60 @@ func Test_Should_Discard_Message_When_Retry_Count_Is_Equal_To_MaxRetrys_Value_Wi
 	assertEventually(t, conditionFunc, 30*time.Second, time.Second)
 }
 
+func Test_Should_Discard_Message_When_Header_Filter_Defined(t *testing.T) {
+	// Given
+	topic := "exception-header-filter"
+	_, cleanUp := createTopic(t, topic)
+	defer cleanUp()
+
+	config := &kafka.Config{
+		Brokers: []string{"localhost:9092"},
+		Consumer: kafka.ConsumerConfig{
+			GroupID:  "sample-consumer",
+			Topic:    topic,
+			Cron:     "*/1 * * * *",
+			Duration: 20 * time.Second,
+			MaxRetry: 1,
+			SkipMessageByHeaderFn: func(headers []kafka.Header) bool {
+				for i := range headers {
+					if headers[i].Key == "skipMessage" {
+						return true
+					}
+				}
+				return false
+			},
+		},
+	}
+
+	respCh := make(chan kafka.Message)
+	var consumeFn kafka.ConsumeFn = func(message kafka.Message) error {
+		fmt.Printf("consumer > Message received. Headers: %v\n", message.Headers)
+		respCh <- message
+		return nil
+	}
+
+	c := cronsumer.New(config, consumeFn)
+	c.Start()
+
+	// When
+	producedMessages := []kafka.Message{
+		{Topic: topic, Key: []byte("real message")},
+		{Topic: topic, Key: []byte("will be skipped message"), Headers: []kafka.Header{{
+			Key: "skipMessage",
+		}}},
+	}
+	if err := c.ProduceBatch(producedMessages); err != nil {
+		t.Fatalf("error producing batch %s", err)
+	}
+
+	// Then
+	actualMessage := <-respCh
+
+	if string(actualMessage.Key) != "real message" {
+		t.Errorf("Expected: %s, Actual: %s", "real message", actualMessage.Value)
+	}
+}
+
 func getRetryCount(message kafka.Message) int {
 	for _, header := range message.Headers {
 		if header.Key == "x-retry-count" {
@@ -441,7 +495,7 @@ func createTopic(t *testing.T, topicName string) (*segmentio.Conn, func()) {
 	}
 
 	cleanUp := func() {
-		if err := conn.DeleteTopics(topicName); err != nil {
+		if err = conn.DeleteTopics(topicName); err != nil {
 			fmt.Println("err deleting topic", err.Error())
 		}
 	}

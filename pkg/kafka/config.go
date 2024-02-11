@@ -40,30 +40,33 @@ type SASLConfig struct {
 }
 
 type ConsumerConfig struct {
-	ClientID          string                   `yaml:"clientId"`
-	GroupID           string                   `yaml:"groupId"`
-	Topic             string                   `yaml:"topic"`
-	DeadLetterTopic   string                   `yaml:"deadLetterTopic"`
-	MinBytes          int                      `yaml:"minBytes"`
-	MaxBytes          int                      `yaml:"maxBytes"`
-	MaxRetry          int                      `yaml:"maxRetry"`
-	MaxWait           time.Duration            `yaml:"maxWait"`
-	CommitInterval    time.Duration            `yaml:"commitInterval"`
-	HeartbeatInterval time.Duration            `yaml:"heartbeatInterval"`
-	SessionTimeout    time.Duration            `yaml:"sessionTimeout"`
-	RebalanceTimeout  time.Duration            `yaml:"rebalanceTimeout"`
-	StartOffset       Offset                   `yaml:"startOffset"`
-	RetentionTime     time.Duration            `yaml:"retentionTime"`
-	Concurrency       int                      `yaml:"concurrency"`
-	Duration          time.Duration            `yaml:"duration"`
-	Cron              string                   `yaml:"cron"`
-	BackOffStrategy   BackoffStrategyInterface `yaml:"backOffStrategy"`
+	ClientID              string                   `yaml:"clientId"`
+	GroupID               string                   `yaml:"groupId"`
+	Topic                 string                   `yaml:"topic"`
+	DeadLetterTopic       string                   `yaml:"deadLetterTopic"`
+	MinBytes              int                      `yaml:"minBytes"`
+	MaxBytes              int                      `yaml:"maxBytes"`
+	MaxRetry              int                      `yaml:"maxRetry"`
+	MaxWait               time.Duration            `yaml:"maxWait"`
+	CommitInterval        time.Duration            `yaml:"commitInterval"`
+	HeartbeatInterval     time.Duration            `yaml:"heartbeatInterval"`
+	SessionTimeout        time.Duration            `yaml:"sessionTimeout"`
+	RebalanceTimeout      time.Duration            `yaml:"rebalanceTimeout"`
+	StartOffset           Offset                   `yaml:"startOffset"`
+	RetentionTime         time.Duration            `yaml:"retentionTime"`
+	Concurrency           int                      `yaml:"concurrency"`
+	Duration              time.Duration            `yaml:"duration"`
+	Cron                  string                   `yaml:"cron"`
+	BackOffStrategy       BackoffStrategyInterface `yaml:"backOffStrategy"`
+	SkipMessageByHeaderFn SkipMessageByHeaderFn    `yaml:"skipMessageByHeaderFn"`
 }
 
 type ProducerConfig struct {
 	BatchSize    int           `yaml:"batchSize"`
 	BatchTimeout time.Duration `yaml:"batchTimeout"`
 }
+
+type SkipMessageByHeaderFn func(headers []Header) bool
 
 func (c *Config) SetDefaults() {
 	if c.Consumer.MaxRetry == 0 {

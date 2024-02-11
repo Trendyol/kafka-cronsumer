@@ -15,9 +15,10 @@ type kafkaCronsumer struct {
 
 	consumeFn func(message kafka.Message) error
 
-	metric          *CronsumerMetric
-	maxRetry        int
-	deadLetterTopic string
+	metric                *CronsumerMetric
+	maxRetry              int
+	deadLetterTopic       string
+	skipMessageByHeaderFn kafka.SkipMessageByHeaderFn
 
 	cfg *kafka.Config
 }
@@ -27,14 +28,15 @@ func newKafkaCronsumer(cfg *kafka.Config, c func(message kafka.Message) error) *
 	cfg.Validate()
 
 	return &kafkaCronsumer{
-		cfg:             cfg,
-		messageChannel:  make(chan MessageWrapper),
-		kafkaConsumer:   newConsumer(cfg),
-		kafkaProducer:   newProducer(cfg),
-		consumeFn:       c,
-		metric:          &CronsumerMetric{},
-		maxRetry:        cfg.Consumer.MaxRetry,
-		deadLetterTopic: cfg.Consumer.DeadLetterTopic,
+		cfg:                   cfg,
+		messageChannel:        make(chan MessageWrapper),
+		kafkaConsumer:         newConsumer(cfg),
+		kafkaProducer:         newProducer(cfg),
+		consumeFn:             c,
+		skipMessageByHeaderFn: cfg.Consumer.SkipMessageByHeaderFn,
+		metric:                &CronsumerMetric{},
+		maxRetry:              cfg.Consumer.MaxRetry,
+		deadLetterTopic:       cfg.Consumer.DeadLetterTopic,
 	}
 }
 
@@ -61,6 +63,11 @@ func (k *kafkaCronsumer) Listen(ctx context.Context, strategyName string, cancel
 		}
 
 		msg := NewMessageWrapper(*m, strategyName)
+
+		if k.skipMessageByHeaderFn != nil && k.skipMessageByHeaderFn(msg.Headers) {
+			k.cfg.Logger.Infof("Message is not processed. Header filter applied. Headers: %v", msg.Headers)
+			continue
+		}
 
 		if msg.ProduceTime >= startTimeUnixNano {
 			(*cancelFuncWrapper)()
