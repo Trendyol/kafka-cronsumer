@@ -399,6 +399,7 @@ func Test_Should_Discard_Message_When_Header_Filter_Defined(t *testing.T) {
 			Topic:    topic,
 			Cron:     "*/1 * * * *",
 			Duration: 20 * time.Second,
+			MaxRetry: 1,
 			SkipMessageByHeaderFn: func(headers []kafka.Header) bool {
 				for i := range headers {
 					if headers[i].Key == "skipMessage" {
@@ -494,7 +495,7 @@ func createTopic(t *testing.T, topicName string) (*segmentio.Conn, func()) {
 	}
 
 	cleanUp := func() {
-		if err := conn.DeleteTopics(topicName); err != nil {
+		if err = conn.DeleteTopics(topicName); err != nil {
 			fmt.Println("err deleting topic", err.Error())
 		}
 	}
