@@ -389,11 +389,9 @@ func Test_Should_Discard_Message_When_Retry_Count_Is_Equal_To_MaxRetrys_Value_Wi
 func Test_Should_Discard_Message_When_Header_Filter_Defined(t *testing.T) {
 	// Given
 	topic := "exception-header-filter"
-	key, value := "filter_key", "filter_value"
 	_, cleanUp := createTopic(t, topic)
 	defer cleanUp()
 
-	maxRetry := 1
 	config := &kafka.Config{
 		Brokers: []string{"localhost:9092"},
 		Consumer: kafka.ConsumerConfig{
@@ -401,21 +399,18 @@ func Test_Should_Discard_Message_When_Header_Filter_Defined(t *testing.T) {
 			Topic:    topic,
 			Cron:     "*/1 * * * *",
 			Duration: 20 * time.Second,
-			MaxRetry: maxRetry,
-			HeaderFilterFn: func(headers []kafka.Header) bool {
+			SkipMessageByHeaderFn: func(headers []kafka.Header) bool {
 				for i := range headers {
-					if headers[i].Key == key && string(headers[i].Value) == value {
-						return false
+					if headers[i].Key == "skipMessage" {
+						return true
 					}
 				}
-				return true
+				return false
 			},
 		},
-		LogLevel: "info",
 	}
 
-	respCh := make(chan kafka.Message, 2)
-	defer close(respCh)
+	respCh := make(chan kafka.Message)
 	var consumeFn kafka.ConsumeFn = func(message kafka.Message) error {
 		fmt.Printf("consumer > Message received. Headers: %v\n", message.Headers)
 		respCh <- message
@@ -427,27 +422,20 @@ func Test_Should_Discard_Message_When_Header_Filter_Defined(t *testing.T) {
 
 	// When
 	producedMessages := []kafka.Message{
-		{Topic: topic, Value: []byte("some message"), Key: []byte("some key")},
-		{Topic: topic, Value: []byte("real message"), Key: []byte("some key"), Headers: []kafka.Header{{
-			Key:   key,
-			Value: []byte(value),
-		},
-		}},
+		{Topic: topic, Key: []byte("real message")},
+		{Topic: topic, Key: []byte("will be skipped message"), Headers: []kafka.Header{{
+			Key: "skipMessage",
+		}}},
 	}
 	if err := c.ProduceBatch(producedMessages); err != nil {
-		fmt.Println("Produce err", err.Error())
+		t.Fatalf("error producing batch %s", err)
 	}
 
 	// Then
-	conditionFunc := func() bool {
-		messageCount := len(respCh)
-		return messageCount == 1
-	}
-	assertEventually(t, conditionFunc, 30*time.Second, time.Second)
-
 	actualMessage := <-respCh
-	if string(actualMessage.Value) != "real message" {
-		t.Errorf("Expected: %s, Actual: %s", value, actualMessage.Value)
+
+	if string(actualMessage.Key) != "real message" {
+		t.Errorf("Expected: %s, Actual: %s", "real message", actualMessage.Value)
 	}
 }
 

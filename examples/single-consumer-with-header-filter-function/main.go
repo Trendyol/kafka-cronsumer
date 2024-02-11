@@ -7,25 +7,15 @@ import (
 	"time"
 )
 
-func SampleHeaderFilterFn(headers []kafka.Header) bool {
-	for i, header := range headers {
-		if header.Key == "key" && string(headers[i].Value) == "value" {
-			// Will consume message if the required condition is met
-			return false
-		}
-	}
-	return true
-}
-
 func main() {
 	config := &kafka.Config{
 		Brokers: []string{"localhost:29092"},
 		Consumer: kafka.ConsumerConfig{
-			GroupID:        "sample-consumer",
-			Topic:          "exception",
-			Cron:           "*/1 * * * *",
-			Duration:       20 * time.Second,
-			HeaderFilterFn: SampleHeaderFilterFn,
+			GroupID:               "sample-consumer",
+			Topic:                 "exception",
+			Cron:                  "*/1 * * * *",
+			Duration:              20 * time.Second,
+			SkipMessageByHeaderFn: SkipMessageByHeaderFn,
 		},
 		LogLevel: "info",
 	}
@@ -37,4 +27,14 @@ func main() {
 
 	c := cronsumer.New(config, consumeFn)
 	c.Run()
+}
+
+func SkipMessageByHeaderFn(headers []kafka.Header) bool {
+	for _, header := range headers {
+		if header.Key == "skipMessage" {
+			// If a kafka message comes with `skipMessage` header key, it will be skipped!
+			return true
+		}
+	}
+	return false
 }
