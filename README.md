@@ -148,7 +148,7 @@ func StartAPI(cfg kafka.Config, metricCollectors ...prometheus.Collector) {
 | `consumer.rebalanceTimeout`      | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.39#ReaderConfig.RebalanceTimeout)  | 30s      |                          |
 | `consumer.startOffset`           | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.39#ReaderConfig.StartOffset)       | earliest |                          |
 | `consumer.retentionTime`         | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.39#ReaderConfig.RetentionTime)     | 24h      |                          |
-| `consumer.SkipMessageByHeaderFn` | Function to filter messages based on headers, return true if you want to skip the message          | nil      |                          |
+| `consumer.skipMessageByHeaderFn` | Function to filter messages based on headers, return true if you want to skip the message          | nil      |                          |
 | `producer.clientId`              | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.39#Transport)                      |          |                          |
 | `producer.batchSize`             | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.39#Writer.BatchSize)               | 100      |                          |
 | `producer.batchTimeout`          | [see doc](https://pkg.go.dev/github.com/segmentio/kafka-go@v0.4.39#Writer.BatchTimeout)            | 1s       |                          |

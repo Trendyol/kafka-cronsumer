@@ -58,7 +58,7 @@ type ConsumerConfig struct {
 	Duration              time.Duration            `yaml:"duration"`
 	Cron                  string                   `yaml:"cron"`
 	BackOffStrategy       BackoffStrategyInterface `yaml:"backOffStrategy"`
-	SkipMessageByHeaderFn SkipMessageByHeaderFn    `yaml:"headerFilterFn"`
+	SkipMessageByHeaderFn SkipMessageByHeaderFn    `yaml:"skipMessageByHeaderFn"`
 }
 
 type ProducerConfig struct {
