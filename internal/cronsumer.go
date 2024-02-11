@@ -66,7 +66,7 @@ func (k *kafkaCronsumer) Listen(ctx context.Context, strategyName string, cancel
 
 		if k.skipMessageByHeaderFn != nil && k.skipMessageByHeaderFn(msg.Headers) {
 			k.cfg.Logger.Infof("Message is not processed. Header filter applied. Headers: %v", msg.Headers)
-			return
+			continue
 		}
 
 		if msg.ProduceTime >= startTimeUnixNano {
