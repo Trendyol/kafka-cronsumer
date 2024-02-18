@@ -29,5 +29,5 @@ func main() {
 
 	c := cronsumer.New(config, consumeFn)
 	StartAPI(*config, c.GetMetricCollectors()...)
-	c.Start()
+	c.Run()
 }

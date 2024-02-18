@@ -7,7 +7,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-const port = 8080
+const port = 8090
 
 func StartAPI(cfg kafka.Config, metricCollectors ...prometheus.Collector) {
 	f := fiber.New(
