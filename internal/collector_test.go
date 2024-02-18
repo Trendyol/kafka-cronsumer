@@ -1,9 +1,10 @@
 package internal
 
 import (
-	"github.com/prometheus/client_golang/prometheus"
 	"reflect"
 	"testing"
+
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 func Test_NewCollector(t *testing.T) {
