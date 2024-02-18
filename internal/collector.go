@@ -9,18 +9,22 @@ type Collector struct {
 	totalDiscardedMessagesCounter *prometheus.Desc
 }
 
-func NewCollector(cronsumerMetric *CronsumerMetric) *Collector {
+func NewCollector(metricPrefix string, cronsumerMetric *CronsumerMetric) *Collector {
+	if metricPrefix == "" {
+		metricPrefix = Name
+	}
+
 	return &Collector{
 		cronsumerMetric: cronsumerMetric,
 
 		totalRetriedMessagesCounter: prometheus.NewDesc(
-			prometheus.BuildFQName(Name, "retried_messages_total", "current"),
+			prometheus.BuildFQName(metricPrefix, "retried_messages_total", "current"),
 			"Total number of retried messages.",
 			[]string{},
 			nil,
 		),
 		totalDiscardedMessagesCounter: prometheus.NewDesc(
-			prometheus.BuildFQName(Name, "discarded_messages_total", "current"),
+			prometheus.BuildFQName(metricPrefix, "discarded_messages_total", "current"),
 			"Total number of discarded messages.",
 			[]string{},
 			nil,

@@ -28,7 +28,7 @@ func NewCronsumer(cfg *kafka.Config, fn kafka.ConsumeFn) kafka.Cronsumer {
 		cron:             gocron.New(),
 		consumer:         c,
 		cfg:              cfg,
-		metricCollectors: []prometheus.Collector{NewCollector(c.metric)},
+		metricCollectors: []prometheus.Collector{NewCollector(cfg.MetricPrefix, c.metric)},
 	}
 }
 

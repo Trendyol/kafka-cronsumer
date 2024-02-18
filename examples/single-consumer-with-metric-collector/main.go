@@ -10,7 +10,8 @@ import (
 
 func main() {
 	config := &kafka.Config{
-		Brokers: []string{"localhost:29092"},
+		MetricPrefix: "custom_prefix",
+		Brokers:      []string{"localhost:29092"},
 		Consumer: kafka.ConsumerConfig{
 			GroupID:     "sample-consumer-with-metric-collector",
 			StartOffset: kafka.OffsetLatest,
