@@ -55,7 +55,7 @@ func (k *kafkaCronsumer) Listen(ctx context.Context, strategyName string, cancel
 	for {
 		m, err := k.kafkaConsumer.ReadMessage(ctx)
 		if err != nil {
-			k.cfg.Logger.Warnf("Message could not read, error %v", err)
+			k.cfg.Logger.Warnf("Message from %s could not read, error %s", k.cfg.Consumer.Topic, err.Error())
 			return
 		}
 		if m == nil {
@@ -65,7 +65,7 @@ func (k *kafkaCronsumer) Listen(ctx context.Context, strategyName string, cancel
 		msg := NewMessageWrapper(*m, strategyName)
 
 		if k.skipMessageByHeaderFn != nil && k.skipMessageByHeaderFn(msg.Headers) {
-			k.cfg.Logger.Infof("Message is not processed. Header filter applied. Headers: %v", msg.Headers)
+			k.cfg.Logger.Infof("Message from %s is not processed. Header filter applied. Headers: %v", k.cfg.Consumer.Topic, msg.Headers)
 			continue
 		}
 
@@ -75,7 +75,7 @@ func (k *kafkaCronsumer) Listen(ctx context.Context, strategyName string, cancel
 			k.cfg.Logger.Info("Next iteration message has been detected, resending the message to exception")
 
 			if err = k.kafkaProducer.ProduceWithRetryOption(*msg, false, false); err != nil {
-				k.cfg.Logger.Errorf("Error sending next iteration KafkaMessage: %v", err)
+				k.cfg.Logger.Errorf("Error %s sending next iteration KafkaMessage: %#v", err.Error(), *msg)
 			}
 
 			return
@@ -93,7 +93,7 @@ func (k *kafkaCronsumer) Listen(ctx context.Context, strategyName string, cancel
 			)
 
 			if err = k.kafkaProducer.ProduceWithRetryOption(*msg, false, true); err != nil {
-				k.cfg.Logger.Errorf("Error sending next iteration KafkaMessage: %v", err)
+				k.cfg.Logger.Errorf("Error %s sending next iteration KafkaMessage: %#v", err.Error(), *msg)
 			}
 		} else {
 			k.sendToMessageChannel(*msg)
@@ -135,12 +135,12 @@ func (k *kafkaCronsumer) recoverMessage(msg MessageWrapper) {
 
 func (k *kafkaCronsumer) produce(msg MessageWrapper) {
 	if msg.IsGteMaxRetryCount(k.maxRetry) {
-		k.cfg.Logger.Infof("Message exceeds to retry limit %d. KafkaMessage: %s", k.maxRetry, msg.Value)
+		k.cfg.Logger.Infof("Message from %s exceeds to retry limit %d. KafkaMessage: %s", k.cfg.Consumer.Topic, k.maxRetry, msg.Value)
 
 		if k.isDeadLetterTopicFeatureEnabled() {
 			msg.RouteMessageToTopic(k.deadLetterTopic)
 			if err := k.kafkaProducer.ProduceWithRetryOption(msg, true, false); err != nil {
-				k.cfg.Logger.Errorf("Error sending KafkaMessage to dead letter topic %v", err)
+				k.cfg.Logger.Errorf("Error %s sending KafkaMessage to dead letter topic. KafkaMessage: %s", err.Error(), string(msg.Value))
 			}
 		}
 
@@ -150,7 +150,7 @@ func (k *kafkaCronsumer) produce(msg MessageWrapper) {
 	}
 
 	if err := k.kafkaProducer.ProduceWithRetryOption(msg, true, false); err != nil {
-		k.cfg.Logger.Errorf("Error sending KafkaMessage to topic %v", err)
+		k.cfg.Logger.Errorf("Error %s sending KafkaMessage %s to the topic %s", err.Error(), string(msg.Value), k.cfg.Consumer.Topic)
 	} else {
 		k.metric.TotalRetriedMessagesCounter++
 	}

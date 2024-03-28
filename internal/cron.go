@@ -73,7 +73,7 @@ func (s *cronsumer) setup() {
 
 		ctx, cancel := context.WithCancel(context.Background())
 		cancelFuncWrapper := func() {
-			s.cfg.Logger.Debug("Consuming " + cfg.Topic + " paused!")
+			s.cfg.Logger.Debug("Consuming " + cfg.Topic + " paused at " + time.Now().String())
 			cancel()
 		}
 
