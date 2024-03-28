@@ -20,9 +20,13 @@ type kafkaProducer struct {
 }
 
 func newProducer(kafkaConfig *kafka.Config) Producer {
+	if kafkaConfig.Producer.Balancer == nil {
+		kafkaConfig.Producer.Balancer = &segmentio.LeastBytes{}
+	}
+
 	producer := &segmentio.Writer{
 		Addr:                   segmentio.TCP(kafkaConfig.Brokers...),
-		Balancer:               &segmentio.LeastBytes{},
+		Balancer:               kafkaConfig.Producer.Balancer,
 		BatchTimeout:           kafkaConfig.Producer.BatchTimeout,
 		BatchSize:              kafkaConfig.Producer.BatchSize,
 		AllowAutoTopicCreation: true,
