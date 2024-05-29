@@ -25,7 +25,7 @@ func newProducer(kafkaConfig *kafka.Config) Producer {
 	}
 
 	producer := &segmentio.Writer{
-		Addr:                   segmentio.TCP(kafkaConfig.Brokers...),
+		Addr:                   segmentio.TCP(kafkaConfig.Producer.Brokers...),
 		Balancer:               kafkaConfig.Producer.Balancer,
 		BatchTimeout:           kafkaConfig.Producer.BatchTimeout,
 		BatchSize:              kafkaConfig.Producer.BatchSize,
