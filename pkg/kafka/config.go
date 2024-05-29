@@ -69,6 +69,7 @@ type ConsumerConfig struct {
 }
 
 type ProducerConfig struct {
+	Brokers      []string           `yaml:"brokers"`
 	BatchSize    int                `yaml:"batchSize"`
 	BatchTimeout time.Duration      `yaml:"batchTimeout"`
 	Balancer     segmentio.Balancer `yaml:"balancer"`
