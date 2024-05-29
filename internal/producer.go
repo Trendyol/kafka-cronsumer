@@ -24,6 +24,10 @@ func newProducer(kafkaConfig *kafka.Config) Producer {
 		kafkaConfig.Producer.Balancer = &segmentio.LeastBytes{}
 	}
 
+	if len(kafkaConfig.Producer.Brokers) == 0 {
+		kafkaConfig.Producer.Brokers = kafkaConfig.Brokers
+	}
+
 	producer := &segmentio.Writer{
 		Addr:                   segmentio.TCP(kafkaConfig.Producer.Brokers...),
 		Balancer:               kafkaConfig.Producer.Balancer,
