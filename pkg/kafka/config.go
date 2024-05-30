@@ -1,6 +1,7 @@
 package kafka
 
 import (
+	"net"
 	"strconv"
 	"time"
 
@@ -36,6 +37,14 @@ type Config struct {
 	MetricPrefix string `yaml:"metricPrefix"`
 }
 
+func (c *Config) GetBrokerAddr() net.Addr {
+	if len(c.Producer.Brokers) == 0 {
+		c.Producer.Brokers = c.Brokers
+	}
+
+	return segmentio.TCP(c.Producer.Brokers...)
+}
+
 type SASLConfig struct {
 	Enabled            bool   `yaml:"enabled"`
 	AuthType           string `yaml:"authType"` // plain or scram
@@ -69,6 +78,7 @@ type ConsumerConfig struct {
 }
 
 type ProducerConfig struct {
+	Brokers      []string           `yaml:"brokers"`
 	BatchSize    int                `yaml:"batchSize"`
 	BatchTimeout time.Duration      `yaml:"batchTimeout"`
 	Balancer     segmentio.Balancer `yaml:"balancer"`
