@@ -2,7 +2,6 @@ package internal
 
 import (
 	"context"
-
 	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 	segmentio "github.com/segmentio/kafka-go"
 )
@@ -24,12 +23,8 @@ func newProducer(kafkaConfig *kafka.Config) Producer {
 		kafkaConfig.Producer.Balancer = &segmentio.LeastBytes{}
 	}
 
-	if len(kafkaConfig.Producer.Brokers) == 0 {
-		kafkaConfig.Producer.Brokers = kafkaConfig.Brokers
-	}
-
 	producer := &segmentio.Writer{
-		Addr:                   segmentio.TCP(kafkaConfig.Producer.Brokers...),
+		Addr:                   kafkaConfig.GetBrokerAddr(),
 		Balancer:               kafkaConfig.Producer.Balancer,
 		BatchTimeout:           kafkaConfig.Producer.BatchTimeout,
 		BatchSize:              kafkaConfig.Producer.BatchSize,

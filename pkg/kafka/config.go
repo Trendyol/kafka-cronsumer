@@ -1,6 +1,7 @@
 package kafka
 
 import (
+	"net"
 	"strconv"
 	"time"
 
@@ -34,6 +35,14 @@ type Config struct {
 	// So, if default metric prefix used, metrics names are `kafka_cronsumer_retried_messages_total_current` and
 	// `kafka_cronsumer_discarded_messages_total_current`.
 	MetricPrefix string `yaml:"metricPrefix"`
+}
+
+func (c *Config) GetBrokerAddr() net.Addr {
+	if len(c.Producer.Brokers) == 0 {
+		c.Producer.Brokers = c.Brokers
+	}
+
+	return segmentio.TCP(c.Producer.Brokers...)
 }
 
 type SASLConfig struct {

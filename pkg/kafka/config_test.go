@@ -243,3 +243,38 @@ func TestToStringOffset(t *testing.T) {
 		})
 	}
 }
+
+func TestConfig_GetBrokerAddr(t *testing.T) {
+	t.Run("Should_Return_Default_Broker_Addr_When_Producer_Broker_Not_Given", func(t *testing.T) {
+		// Given
+		kafkaConfig := &Config{
+			Brokers:  []string{"127.0.0.1:9092"},
+			Producer: ProducerConfig{},
+		}
+
+		// When
+		result := kafkaConfig.GetBrokerAddr()
+
+		// Then
+		if result.String() != "127.0.0.1:9092" {
+			t.Errorf("Expected: 127.0.0.1:9092, Actual: %+v", result.String())
+		}
+	})
+	t.Run("Should_Return_Producer_Broker_Addr_When_Its_Given", func(t *testing.T) {
+		// Given
+		kafkaConfig := &Config{
+			Brokers: []string{"127.0.0.1:9092"},
+			Producer: ProducerConfig{
+				Brokers: []string{"127.0.0.2:9092"},
+			},
+		}
+
+		// When
+		result := kafkaConfig.GetBrokerAddr()
+
+		// Then
+		if result.String() != "127.0.0.2:9092" {
+			t.Errorf("Expected: 127.0.0.2:9092, Actual: %+v", result.String())
+		}
+	})
+}
