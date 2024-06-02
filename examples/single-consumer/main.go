@@ -12,7 +12,7 @@ func main() {
 		Brokers: []string{"localhost:29092"},
 		Consumer: kafka.ConsumerConfig{
 			GroupID:  "sample-consumer",
-			Topic:    "exception",
+			Topic:    "exception-not-exist",
 			Cron:     "*/1 * * * *",
 			Duration: 20 * time.Second,
 		},

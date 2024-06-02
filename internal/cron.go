@@ -21,7 +21,6 @@ type cronsumer struct {
 }
 
 func NewCronsumer(cfg *kafka.Config, fn kafka.ConsumeFn) kafka.Cronsumer {
-	cfg.Logger = logger.New(cfg.LogLevel)
 	c := newKafkaCronsumer(cfg, fn)
 
 	return &cronsumer{
