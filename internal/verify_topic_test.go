@@ -3,9 +3,10 @@ package internal
 import (
 	"context"
 	"errors"
+	"testing"
+
 	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 	segmentio "github.com/segmentio/kafka-go"
-	"testing"
 )
 
 type mockKafkaClientWrapper struct {

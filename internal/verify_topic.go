@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"fmt"
+
 	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 	segmentio "github.com/segmentio/kafka-go"
 )
