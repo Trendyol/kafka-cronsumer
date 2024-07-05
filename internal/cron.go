@@ -87,5 +87,7 @@ func (s *cronsumer) startConsume(cfg kafka.ConsumerConfig) {
 
 	go s.consumer.Listen(ctx, cfg.BackOffStrategy.String(), &cancelFuncWrapper)
 
-	time.AfterFunc(cfg.Duration, cancelFuncWrapper)
+	if !cfg.DisableExceptionCron {
+		time.AfterFunc(cfg.Duration, cancelFuncWrapper)
+	}
 }
