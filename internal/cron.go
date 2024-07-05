@@ -67,17 +67,25 @@ func (s *cronsumer) setup() {
 
 	s.consumer.SetupConcurrentWorkers(cfg.Concurrency)
 
-	_, _ = s.cron.AddFunc(cfg.Cron, func() {
-		s.cfg.Logger.Debug("Consuming " + cfg.Topic + " started at time: " + time.Now().String())
+	if s.cfg.Consumer.DisableExceptionCron {
+		s.startConsume(cfg)
+	} else {
+		_, _ = s.cron.AddFunc(cfg.Cron, func() {
+			s.startConsume(cfg)
+		})
+	}
+}
 
-		ctx, cancel := context.WithCancel(context.Background())
-		cancelFuncWrapper := func() {
-			s.cfg.Logger.Debug("Consuming " + cfg.Topic + " paused at " + time.Now().String())
-			cancel()
-		}
+func (s *cronsumer) startConsume(cfg kafka.ConsumerConfig) {
+	s.cfg.Logger.Debug("Consuming " + cfg.Topic + " started at time: " + time.Now().String())
 
-		go s.consumer.Listen(ctx, cfg.BackOffStrategy.String(), &cancelFuncWrapper)
+	ctx, cancel := context.WithCancel(context.Background())
+	cancelFuncWrapper := func() {
+		s.cfg.Logger.Debug("Consuming " + cfg.Topic + " paused at " + time.Now().String())
+		cancel()
+	}
 
-		time.AfterFunc(cfg.Duration, cancelFuncWrapper)
-	})
+	go s.consumer.Listen(ctx, cfg.BackOffStrategy.String(), &cancelFuncWrapper)
+
+	time.AfterFunc(cfg.Duration, cancelFuncWrapper)
 }

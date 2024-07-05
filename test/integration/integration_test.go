@@ -58,6 +58,51 @@ func Test_Should_Consume_Exception_Message_Successfully(t *testing.T) {
 	}
 }
 
+func Test_Should_Consume_Exception_Message_Immediately_Successfully(t *testing.T) {
+	// Given
+	t.Parallel()
+	topic := "exception"
+	_, cleanUp := createTopic(t, topic)
+	defer cleanUp()
+
+	config := &kafka.Config{
+		Brokers: []string{"localhost:9092"},
+		Consumer: kafka.ConsumerConfig{
+			GroupID:              "sample-consumer",
+			Topic:                topic,
+			Duration:             20 * time.Second, // no cron expression defined
+			DisableExceptionCron: true,
+		},
+		LogLevel: "info",
+	}
+
+	waitMessageCh := make(chan kafka.Message)
+
+	var consumeFn kafka.ConsumeFn = func(message kafka.Message) error {
+		fmt.Printf("consumer > Message received: %s\n", string(message.Value))
+		waitMessageCh <- message
+		return nil
+	}
+
+	c := cronsumer.New(config, consumeFn)
+	c.Start()
+
+	// When
+	expectedMessage := kafka.Message{Topic: topic, Value: []byte("some message"), Key: []byte("some key")}
+	if err := c.Produce(expectedMessage); err != nil {
+		fmt.Println("Produce err", err.Error())
+	}
+
+	// Then
+	actualMessage := <-waitMessageCh
+	if !bytes.Equal(actualMessage.Value, expectedMessage.Value) {
+		t.Errorf("Expected: %s, Actual: %s", expectedMessage.Value, actualMessage.Value)
+	}
+	if !bytes.Equal(actualMessage.Key, expectedMessage.Key) {
+		t.Errorf("Expected: %s, Actual: %s", expectedMessage.Key, actualMessage.Key)
+	}
+}
+
 func Test_Should_Retry_Message_When_Error_Occurred_During_Consuming(t *testing.T) {
 	// Given
 	t.Parallel()

@@ -11,10 +11,11 @@ func main() {
 	config := &kafka.Config{
 		Brokers: []string{"localhost:29092"},
 		Consumer: kafka.ConsumerConfig{
-			GroupID:  "sample-consumer",
-			Topic:    "exception-not-exist",
-			Cron:     "*/1 * * * *",
-			Duration: 20 * time.Second,
+			GroupID:              "sample-consumer",
+			Topic:                "exception-not-exist",
+			Cron:                 "*/1 * * * *",
+			Duration:             20 * time.Second,
+			DisableExceptionCron: true,
 		},
 		LogLevel: "info",
 	}

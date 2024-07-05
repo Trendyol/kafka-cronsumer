@@ -76,6 +76,7 @@ type ConsumerConfig struct {
 	BackOffStrategy       BackoffStrategyInterface `yaml:"backOffStrategy"`
 	SkipMessageByHeaderFn SkipMessageByHeaderFn    `yaml:"skipMessageByHeaderFn"`
 	VerifyTopicOnStartup  bool                     `yaml:"verifyTopicOnStartup"`
+	DisableExceptionCron  bool                     `yaml:"disableExceptionCron"`
 }
 
 type ProducerConfig struct {
@@ -136,7 +137,7 @@ func (c *Config) Validate() {
 	if c.Consumer.Topic == "" {
 		panic("you have to set topic")
 	}
-	if c.Consumer.Cron == "" {
+	if !c.Consumer.DisableExceptionCron && c.Consumer.Cron == "" {
 		panic("you have to set cron expression")
 	}
 	if c.Consumer.Duration == 0 {
