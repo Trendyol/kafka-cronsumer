@@ -1,10 +1,25 @@
 package kafka
 
-import "time"
+import (
+	"fmt"
+	"strings"
+	"time"
+)
 
 type Header struct {
 	Key   string
 	Value []byte
+}
+
+type Headers []Header
+
+// Pretty  Writes every header key and value, it is useful for debugging purpose
+func (hs Headers) Pretty() string {
+	headerStrings := make([]string, len(hs))
+	for i := range hs {
+		headerStrings[i] = fmt.Sprintf("%s: %s", hs[i].Key, string(hs[i].Value))
+	}
+	return strings.Join(headerStrings, ", ")
 }
 
 type Message struct {
@@ -14,7 +29,7 @@ type Message struct {
 	HighWaterMark int64
 	Key           []byte
 	Value         []byte
-	Headers       []Header
+	Headers       Headers
 	Time          time.Time
 }
 
@@ -22,7 +37,7 @@ type MessageBuilder struct {
 	topic         *string
 	key           []byte
 	value         []byte
-	headers       []Header
+	headers       Headers
 	partition     *int
 	highWaterMark *int64
 }
