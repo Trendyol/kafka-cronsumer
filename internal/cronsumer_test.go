@@ -28,7 +28,7 @@ func Test_Produce_Max_Retry_Count_Reach(t *testing.T) {
 	var firstConsumerFn kafka.ConsumeFn = func(message kafka.Message) error {
 		return nil
 	}
-	c := &kafkaCronsumer{
+	c := &cronsumer{
 		cfg:             kafkaConfig,
 		messageChannel:  make(chan MessageWrapper),
 		kafkaConsumer:   mockConsumer{},
@@ -63,7 +63,7 @@ func Test_Produce_Max_Retry_Count_Reach_Dead_Letter_Topic_Feature_Enabled(t *tes
 	var firstConsumerFn kafka.ConsumeFn = func(message kafka.Message) error {
 		return nil
 	}
-	c := &kafkaCronsumer{
+	c := &cronsumer{
 		cfg: &kafka.Config{
 			Logger: logger.New("info"),
 		},
@@ -112,7 +112,7 @@ func Test_Produce_With_Retry(t *testing.T) {
 		return nil
 	}
 	producer := newMockProducer()
-	c := &kafkaCronsumer{
+	c := &cronsumer{
 		cfg:             kafkaConfig,
 		messageChannel:  make(chan MessageWrapper),
 		kafkaConsumer:   mockConsumer{},
@@ -159,7 +159,7 @@ func Test_Recover_Message(t *testing.T) {
 		return nil
 	}
 	producer := newMockProducer()
-	c := &kafkaCronsumer{
+	c := &cronsumer{
 		cfg:             kafkaConfig,
 		messageChannel:  make(chan MessageWrapper),
 		kafkaConsumer:   mockConsumer{},
