@@ -55,7 +55,8 @@ func (k *kafkaCronsumer) Listen(ctx context.Context, strategyName string, cancel
 	for {
 		m, err := k.kafkaConsumer.ReadMessage(ctx)
 		if err != nil {
-			k.cfg.Logger.Warnf("Message from %s could not read, error %s", k.cfg.Consumer.Topic, err.Error())
+			//nolint:lll
+			k.cfg.Logger.Warnf("Message from %s could not read with consumer group %s, error %s", k.cfg.Consumer.Topic, k.cfg.Consumer.GroupID, err.Error())
 			return
 		}
 		if m == nil {
