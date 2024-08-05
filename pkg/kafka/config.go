@@ -139,9 +139,6 @@ func (c *Config) Validate() {
 	if c.Consumer.Cron == "" {
 		panic("you have to set cron expression")
 	}
-	if c.Consumer.Duration == 0 {
-		panic("you have to set panic duration")
-	}
 	if !isValidBackOffStrategy(c.Consumer.BackOffStrategy) {
 		panic("you have to set valid backoff strategy")
 	}
