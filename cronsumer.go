@@ -29,5 +29,5 @@ func New(cfg *kafka.Config, c kafka.ConsumeFn) kafka.Cronsumer {
 		cfg.Logger.Infof("Topic [%s] verified successfully!", cfg.Consumer.Topic)
 	}
 
-	return internal.NewCronsumer(cfg, c)
+	return internal.NewCronsumerClient(cfg, c)
 }
