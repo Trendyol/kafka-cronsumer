@@ -20,6 +20,8 @@ const (
 	FixedBackOffStrategy       = "fixed"
 )
 
+var NonStopWork time.Duration = 0
+
 type Config struct {
 	Brokers  []string         `yaml:"brokers"`
 	Consumer ConsumerConfig   `yaml:"consumer"`

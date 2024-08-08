@@ -70,10 +70,10 @@ func (s *cronsumerClient) setup() {
 	_, _ = s.cron.AddFunc(cfg.Cron, func() {
 		cancelFuncWrapper := s.startListen(cfg)
 
-		if cfg.Duration != time.Duration(0) {
-			time.AfterFunc(cfg.Duration, cancelFuncWrapper)
-		} else {
+		if cfg.Duration == kafka.NonStopWork {
 			s.cfg.Logger.Debug("Duration for exception consume set as zero.")
+		} else {
+			time.AfterFunc(cfg.Duration, cancelFuncWrapper)
 		}
 	})
 }
