@@ -20,6 +20,7 @@ const (
 	FixedBackOffStrategy       = "fixed"
 )
 
+//nolint:all
 var NonStopWork time.Duration = 0
 
 type Config struct {
