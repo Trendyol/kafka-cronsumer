@@ -450,7 +450,7 @@ func Test_Should_Discard_Message_When_Header_Filter_Defined(t *testing.T) {
 func Test_Should_Consume_Exception_Message_Successfully_When_Duration_Zero(t *testing.T) {
 	// Given
 	t.Parallel()
-	topic := "exception"
+	topic := "exception-no-duration"
 	_, cleanUp := createTopic(t, topic)
 	defer cleanUp()
 
