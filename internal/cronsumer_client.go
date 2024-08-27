@@ -20,7 +20,7 @@ type cronsumerClient struct {
 	metricCollectors []prometheus.Collector
 }
 
-func NewCronsumerClient(cfg *kafka.Config, fn kafka.ConsumeFn) kafka.Cronsumer {
+func NewCronsumer(cfg *kafka.Config, fn kafka.ConsumeFn) kafka.Cronsumer {
 	c := newCronsumer(cfg, fn)
 
 	return &cronsumerClient{
@@ -66,12 +66,18 @@ func (s *cronsumerClient) setup() {
 	cfg := s.cfg.Consumer
 
 	s.consumer.SetupConcurrentWorkers(cfg.Concurrency)
+	schedule, err := gocron.ParseStandard(cfg.Cron)
+	if err != nil {
+		panic("Cron parse error: " + err.Error())
+	}
 
 	_, _ = s.cron.AddFunc(cfg.Cron, func() {
 		cancelFuncWrapper := s.startListen(cfg)
-
 		if cfg.Duration == kafka.NonStopWork {
-			s.cfg.Logger.Debug("Duration for exception consume set as zero.")
+			now := time.Now()
+			nextRun := schedule.Next(now)
+			duration := nextRun.Sub(now)
+			time.AfterFunc(duration, cancelFuncWrapper)
 		} else {
 			time.AfterFunc(cfg.Duration, cancelFuncWrapper)
 		}

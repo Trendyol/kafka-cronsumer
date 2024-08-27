@@ -28,7 +28,7 @@ func Test_GetMetricsCollector(t *testing.T) {
 		}
 
 		// When
-		c := NewCronsumerClient(kafkaConfig, firstConsumerFn)
+		c := NewCronsumer(kafkaConfig, firstConsumerFn)
 
 		c.Start()
 
@@ -57,7 +57,7 @@ func Test_GetMetricsCollector(t *testing.T) {
 		}
 
 		// When
-		c := NewCronsumerClient(kafkaConfig, firstConsumerFn)
+		c := NewCronsumer(kafkaConfig, firstConsumerFn)
 
 		c.Start()
 
@@ -86,7 +86,7 @@ func Test_GetMetricsCollector(t *testing.T) {
 		}
 
 		// When
-		c := NewCronsumerClient(kafkaConfig, firstConsumerFn)
+		c := NewCronsumer(kafkaConfig, firstConsumerFn)
 
 		c.Start()
 
