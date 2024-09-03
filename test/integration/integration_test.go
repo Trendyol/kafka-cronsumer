@@ -447,6 +447,48 @@ func Test_Should_Discard_Message_When_Header_Filter_Defined(t *testing.T) {
 	}
 }
 
+func Test_Should_Consume_Exception_Message_Successfully_When_Duration_Zero(t *testing.T) {
+	// Given
+	t.Parallel()
+	topic := "exception-no-duration"
+	_, cleanUp := createTopic(t, topic)
+	defer cleanUp()
+
+	config := &kafka.Config{
+		Brokers: []string{"localhost:9092"},
+		Consumer: kafka.ConsumerConfig{
+			GroupID:  "sample-consumer",
+			Topic:    topic,
+			Cron:     "*/1 * * * *",
+			Duration: kafka.NonStopWork, // duration set as 0
+		},
+		LogLevel: "info",
+	}
+
+	waitMessageCh := make(chan kafka.Message)
+
+	var consumeFn kafka.ConsumeFn = func(message kafka.Message) error {
+		fmt.Printf("consumer > Message received: %s\n", string(message.Value))
+		waitMessageCh <- message
+		return nil
+	}
+
+	c := cronsumer.New(config, consumeFn)
+	c.Start()
+
+	// When
+	expectedMessage := kafka.Message{Topic: topic, Value: []byte("some message")}
+	if err := c.Produce(expectedMessage); err != nil {
+		fmt.Println("Produce err", err.Error())
+	}
+
+	// Then
+	actualMessage := <-waitMessageCh
+	if !bytes.Equal(actualMessage.Value, expectedMessage.Value) {
+		t.Errorf("Expected: %s, Actual: %s", expectedMessage.Value, actualMessage.Value)
+	}
+}
+
 func getRetryCount(message kafka.Message) int {
 	for _, header := range message.Headers {
 		if header.Key == "x-retry-count" {

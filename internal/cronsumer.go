@@ -7,7 +7,7 @@ import (
 	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 )
 
-type kafkaCronsumer struct {
+type cronsumer struct {
 	messageChannel chan MessageWrapper
 
 	kafkaConsumer Consumer
@@ -23,11 +23,11 @@ type kafkaCronsumer struct {
 	cfg *kafka.Config
 }
 
-func newKafkaCronsumer(cfg *kafka.Config, c func(message kafka.Message) error) *kafkaCronsumer {
+func newCronsumer(cfg *kafka.Config, c func(message kafka.Message) error) *cronsumer {
 	cfg.SetDefaults()
 	cfg.Validate()
 
-	return &kafkaCronsumer{
+	return &cronsumer{
 		cfg:                   cfg,
 		messageChannel:        make(chan MessageWrapper),
 		kafkaConsumer:         newConsumer(cfg),
@@ -40,13 +40,13 @@ func newKafkaCronsumer(cfg *kafka.Config, c func(message kafka.Message) error) *
 	}
 }
 
-func (k *kafkaCronsumer) SetupConcurrentWorkers(concurrency int) {
+func (k *cronsumer) SetupConcurrentWorkers(concurrency int) {
 	for i := 0; i < concurrency; i++ {
 		go k.processMessage()
 	}
 }
 
-func (k *kafkaCronsumer) Listen(ctx context.Context, strategyName string, cancelFuncWrapper *func()) {
+func (k *cronsumer) Listen(ctx context.Context, strategyName string, cancelFuncWrapper *func()) {
 	startTime := time.Now()
 	startTimeUnixNano := startTime.UnixNano()
 
@@ -102,17 +102,17 @@ func (k *kafkaCronsumer) Listen(ctx context.Context, strategyName string, cancel
 	}
 }
 
-func (k *kafkaCronsumer) Stop() {
+func (k *cronsumer) Stop() {
 	close(k.messageChannel)
 	k.kafkaConsumer.Stop()
 	k.kafkaProducer.Close()
 }
 
-func (k *kafkaCronsumer) GetMetric() *CronsumerMetric {
+func (k *cronsumer) GetMetric() *CronsumerMetric {
 	return k.metric
 }
 
-func (k *kafkaCronsumer) processMessage() {
+func (k *cronsumer) processMessage() {
 	for msg := range k.messageChannel {
 		if err := k.consumeFn(msg.Message); err != nil {
 			msg.AddHeader(createErrHeader(err))
@@ -121,12 +121,12 @@ func (k *kafkaCronsumer) processMessage() {
 	}
 }
 
-func (k *kafkaCronsumer) sendToMessageChannel(msg MessageWrapper) {
+func (k *cronsumer) sendToMessageChannel(msg MessageWrapper) {
 	defer k.recoverMessage(msg)
 	k.messageChannel <- msg
 }
 
-func (k *kafkaCronsumer) recoverMessage(msg MessageWrapper) {
+func (k *cronsumer) recoverMessage(msg MessageWrapper) {
 	// sending MessageWrapper to closed channel panic could be occurred cause of concurrency for exception topic listeners
 	if r := recover(); r != nil {
 		k.cfg.Logger.Warnf("Recovered MessageWrapper: %s", string(msg.Value))
@@ -134,7 +134,7 @@ func (k *kafkaCronsumer) recoverMessage(msg MessageWrapper) {
 	}
 }
 
-func (k *kafkaCronsumer) produce(msg MessageWrapper) {
+func (k *cronsumer) produce(msg MessageWrapper) {
 	if msg.IsGteMaxRetryCount(k.maxRetry) {
 		k.cfg.Logger.Infof("Message from %s exceeds to retry limit %d. KafkaMessage: %s", k.cfg.Consumer.Topic, k.maxRetry, msg.Value)
 
@@ -157,6 +157,6 @@ func (k *kafkaCronsumer) produce(msg MessageWrapper) {
 	}
 }
 
-func (k *kafkaCronsumer) isDeadLetterTopicFeatureEnabled() bool {
+func (k *cronsumer) isDeadLetterTopicFeatureEnabled() bool {
 	return k.deadLetterTopic != ""
 }
