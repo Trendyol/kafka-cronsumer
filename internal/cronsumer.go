@@ -73,7 +73,7 @@ func (k *cronsumer) Listen(ctx context.Context, strategyName string, cancelFuncW
 		if msg.ProduceTime >= startTimeUnixNano {
 			(*cancelFuncWrapper)()
 
-			k.cfg.Logger.Info("Next iteration message has been detected, resending the message to exception")
+			k.cfg.Logger.Infof("Next iteration message from topic %s has been detected, resending the message to exception", msg.Topic)
 
 			if err = k.kafkaProducer.ProduceWithRetryOption(*msg, false, false); err != nil {
 				k.cfg.Logger.Errorf("Error %s sending next iteration KafkaMessage: %#v", err.Error(), *msg)
@@ -136,7 +136,7 @@ func (k *cronsumer) recoverMessage(msg MessageWrapper) {
 
 func (k *cronsumer) produce(msg MessageWrapper) {
 	if msg.IsGteMaxRetryCount(k.maxRetry) {
-		k.cfg.Logger.Infof("Message from %s exceeds to retry limit %d. KafkaMessage: %s", k.cfg.Consumer.Topic, k.maxRetry, msg.Value)
+		k.cfg.Logger.Infof("Message from %s exceeds to retry limit %d. KafkaMessage: %s, Headers=%v", k.cfg.Consumer.Topic, k.maxRetry, msg.Value, msg.Headers.Pretty())
 
 		if k.isDeadLetterTopicFeatureEnabled() {
 			msg.RouteMessageToTopic(k.deadLetterTopic)
