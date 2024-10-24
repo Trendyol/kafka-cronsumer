@@ -38,6 +38,7 @@ func TestConfig_SetDefaults(t *testing.T) {
 					RebalanceTimeout:  30 * time.Second,
 					RetentionTime:     24 * time.Hour,
 					BackOffStrategy:   GetBackoffStrategy(FixedBackOffStrategy),
+					QueueCapacity:     100,
 				},
 				Producer: ProducerConfig{
 					BatchSize:    100,

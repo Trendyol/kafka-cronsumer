@@ -32,6 +32,7 @@ func newConsumer(kafkaConfig *kafka.Config) *kafkaConsumer {
 		RebalanceTimeout:  kafkaConfig.Consumer.RebalanceTimeout,
 		StartOffset:       kafkaConfig.Consumer.StartOffset.Value(),
 		RetentionTime:     kafkaConfig.Consumer.RetentionTime,
+		QueueCapacity:     kafkaConfig.Consumer.QueueCapacity,
 	}
 
 	readerConfig.Dialer = &segmentio.Dialer{
