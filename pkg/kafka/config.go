@@ -79,6 +79,7 @@ type ConsumerConfig struct {
 	BackOffStrategy       BackoffStrategyInterface `yaml:"backOffStrategy"`
 	SkipMessageByHeaderFn SkipMessageByHeaderFn    `yaml:"skipMessageByHeaderFn"`
 	VerifyTopicOnStartup  bool                     `yaml:"verifyTopicOnStartup"`
+	QueueCapacity         int                      `yaml:"queueCapacity"`
 }
 
 type ProducerConfig struct {
@@ -123,6 +124,9 @@ func (c *Config) SetDefaults() {
 	}
 	if c.Consumer.BackOffStrategy == nil {
 		c.Consumer.BackOffStrategy = GetBackoffStrategy(FixedBackOffStrategy)
+	}
+	if c.Consumer.QueueCapacity == 0 {
+		c.Consumer.QueueCapacity = 100
 	}
 	if c.Producer.BatchSize == 0 {
 		c.Producer.BatchSize = 100
