@@ -78,7 +78,6 @@ type ConsumerConfig struct {
 	Cron                  string                   `yaml:"cron"`
 	BackOffStrategy       BackoffStrategyInterface `yaml:"backOffStrategy"`
 	SkipMessageByHeaderFn SkipMessageByHeaderFn    `yaml:"skipMessageByHeaderFn"`
-	VerifyTopicOnStartup  bool                     `yaml:"verifyTopicOnStartup"`
 	QueueCapacity         int                      `yaml:"queueCapacity"`
 }
 
