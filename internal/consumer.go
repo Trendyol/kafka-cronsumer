@@ -40,7 +40,7 @@ func newConsumer(kafkaConfig *kafka.Config) *kafkaConsumer {
 	}
 
 	if kafkaConfig.SASL.Enabled {
-		readerConfig.Dialer.TLS = NewTLSConfig(kafkaConfig.SASL)
+		readerConfig.Dialer.TLS = NewTLSConfig(kafkaConfig)
 		readerConfig.Dialer.SASLMechanism = Mechanism(kafkaConfig.SASL)
 
 		if kafkaConfig.SASL.Rack != "" {

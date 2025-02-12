@@ -29,7 +29,7 @@ func NewKafkaClient(cfg *kafka.Config) (kafkaClient, error) {
 	}
 
 	if cfg.SASL.Enabled {
-		transport.TLS = NewTLSConfig(cfg.SASL)
+		transport.TLS = NewTLSConfig(cfg)
 		transport.SASL = Mechanism(cfg.SASL)
 	}
 

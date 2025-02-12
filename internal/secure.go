@@ -11,20 +11,24 @@ import (
 	"github.com/segmentio/kafka-go/sasl/scram"
 )
 
-func NewTLSConfig(sasl kafka.SASLConfig) *tls.Config {
-	rootCA, err := os.ReadFile(sasl.RootCAPath)
+func NewTLSConfig(cfg *kafka.Config) *tls.Config {
+	rootCA, err := os.ReadFile(cfg.SASL.RootCAPath)
 	if err != nil {
-		panic("Error while reading Root CA file: " + sasl.RootCAPath + " error: " + err.Error())
-	}
-
-	interCA, err := os.ReadFile(sasl.IntermediateCAPath)
-	if err != nil {
-		panic("Error while reading Intermediate CA file: " + sasl.IntermediateCAPath + " error: " + err.Error())
+		panic("Error while reading Root CA file: " + cfg.SASL.RootCAPath + " error: " + err.Error())
 	}
 
 	caCertPool := x509.NewCertPool()
-	caCertPool.AppendCertsFromPEM(rootCA)
-	caCertPool.AppendCertsFromPEM(interCA)
+	if ok := caCertPool.AppendCertsFromPEM(rootCA); !ok {
+		panic("failed to append Root CA certificates from file: " + cfg.SASL.RootCAPath)
+	}
+
+	interCA, err := os.ReadFile(cfg.SASL.IntermediateCAPath)
+	if err != nil {
+		cfg.Logger.Warnf("Unable to read Intermediate CA file: %s, error: %v", cfg.SASL.IntermediateCAPath, err)
+		cfg.Logger.Info("Intermediate CA will be skipped.")
+	} else if ok := caCertPool.AppendCertsFromPEM(interCA); !ok {
+		cfg.Logger.Warnf("Failed to append Intermediate CA certificates from file: %s", cfg.SASL.IntermediateCAPath)
+	}
 
 	return &tls.Config{
 		RootCAs:    caCertPool,
