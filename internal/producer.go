@@ -37,7 +37,7 @@ func newProducer(kafkaConfig *kafka.Config) Producer {
 	}
 
 	if kafkaConfig.SASL.Enabled {
-		transport.TLS = NewTLSConfig(kafkaConfig.SASL)
+		transport.TLS = NewTLSConfig(kafkaConfig)
 		transport.SASL = Mechanism(kafkaConfig.SASL)
 	}
 
