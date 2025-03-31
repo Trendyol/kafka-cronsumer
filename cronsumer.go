@@ -13,21 +13,21 @@ import (
 // ConsumeFn describes how to consume messages from specified topic.
 func New(cfg *kafka.Config, c kafka.ConsumeFn) kafka.Cronsumer {
 	cfg.Logger = logger.New(cfg.LogLevel)
-
-	if cfg.Consumer.VerifyTopicOnStartup {
-		kclient, err := internal.NewKafkaClient(cfg)
-		if err != nil {
-			panic("panic when initializing kafka client for verify topic error: " + err.Error())
-		}
-		exist, err := internal.VerifyTopics(kclient, cfg.Consumer.Topic)
-		if err != nil {
-			panic("panic " + err.Error())
-		}
-		if !exist {
-			panic("topic: " + cfg.Consumer.Topic + " does not exist, please check cluster authority etc.")
-		}
-		cfg.Logger.Infof("Topic [%s] verified successfully!", cfg.Consumer.Topic)
-	}
-
+	verifyTopicOnStartup(cfg)
+	cfg.Logger.Infof("Topic [%s] verified successfully!", cfg.Consumer.Topic)
 	return internal.NewCronsumer(cfg, c)
+}
+
+func verifyTopicOnStartup(cfg *kafka.Config) {
+	kclient, err := internal.NewKafkaClient(cfg)
+	if err != nil {
+		panic("panic when initializing kafka client for verify topic error: " + err.Error())
+	}
+	exist, err := internal.VerifyTopics(kclient, cfg.Consumer.Topic)
+	if err != nil {
+		panic("panic " + err.Error())
+	}
+	if !exist {
+		panic("topic: " + cfg.Consumer.Topic + " does not exist, please check cluster authority etc.")
+	}
 }
