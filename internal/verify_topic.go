@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 	segmentio "github.com/segmentio/kafka-go"
@@ -26,6 +27,7 @@ func NewKafkaClient(cfg *kafka.Config) (kafkaClient, error) {
 
 	transport := &segmentio.Transport{
 		MetadataTopics: []string{cfg.Consumer.Topic},
+		DialTimeout:    30 * time.Second,
 	}
 
 	if cfg.SASL.Enabled {
@@ -42,7 +44,10 @@ func (c *client) GetClient() *segmentio.Client {
 }
 
 func VerifyTopics(client kafkaClient, topics ...string) (bool, error) {
-	metadata, err := client.Metadata(context.Background(), &segmentio.MetadataRequest{
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	metadata, err := client.Metadata(ctx, &segmentio.MetadataRequest{
 		Topics: topics,
 	})
 	if err != nil {
