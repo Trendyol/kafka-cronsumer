@@ -51,7 +51,7 @@ func VerifyTopics(client kafkaClient, topics ...string) (bool, error) {
 		Topics: topics,
 	})
 	if err != nil {
-		return false, fmt.Errorf("error when during verifyTopics metadata request %w", err)
+		return false, fmt.Errorf("error when during verifyTopics metadata request %w for topic %s", err, topics)
 	}
 	return checkTopicsWithinMetadata(metadata, topics)
 }

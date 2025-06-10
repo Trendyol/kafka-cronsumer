@@ -25,7 +25,7 @@ func verifyTopicOnStartup(cfg *kafka.Config) {
 	}
 	exist, err := internal.VerifyTopics(kclient, cfg.Consumer.Topic)
 	if err != nil {
-		panic("panic " + err.Error())
+		panic("panic " + err.Error() + " for topic " + cfg.Consumer.Topic)
 	}
 	if !exist {
 		panic("topic: " + cfg.Consumer.Topic + " does not exist, please check cluster authority etc.")
