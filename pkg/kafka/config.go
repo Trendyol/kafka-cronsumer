@@ -8,6 +8,7 @@ import (
 	segmentio "github.com/segmentio/kafka-go"
 
 	"github.com/Trendyol/kafka-cronsumer/pkg/logger"
+	gocron "github.com/robfig/cron/v3"
 )
 
 type Offset string
@@ -147,6 +148,21 @@ func (c *Config) Validate() {
 	}
 	if !isValidBackOffStrategy(c.Consumer.BackOffStrategy) {
 		panic("you have to set valid backoff strategy")
+	}
+	if c.Consumer.Duration != NonStopWork {
+		schedule, err := gocron.ParseStandard(c.Consumer.Cron)
+		if err != nil {
+			panic("Cron parse error: " + err.Error())
+		}
+		now := time.Now()
+		nextRun := schedule.Next(now)
+		cronInterval := schedule.Next(nextRun).Sub(nextRun)
+		if c.Consumer.Duration >= cronInterval {
+			if c.Logger != nil {
+				c.Logger.Warn("Consumer duration is greater than cron interval. It is set to NonStopWork (0) automatically.")
+			}
+			c.Consumer.Duration = NonStopWork
+		}
 	}
 }
 
