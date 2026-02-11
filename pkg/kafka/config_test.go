@@ -68,8 +68,8 @@ func TestConfig_SetDefaults(t *testing.T) {
 			if !reflect.DeepEqual(tt.expected.Producer, k.Producer) {
 				t.Errorf("Expected: %+v, Actual: %+v", tt.expected.Producer, k.Producer)
 			}
-			if !reflect.DeepEqual(tt.expected.Logger, k.Logger) {
-				t.Errorf("Expected: %+v, Actual: %+v", tt.expected.Logger, k.Logger)
+			if k.Logger == nil {
+				t.Errorf("Expected Logger to be initialized, but got nil")
 			}
 			if !reflect.DeepEqual(tt.expected.LogLevel, k.LogLevel) {
 				t.Errorf("Expected: %+v, Actual: %+v", tt.expected.LogLevel, k.LogLevel)

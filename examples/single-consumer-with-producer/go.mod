@@ -1,6 +1,6 @@
 module single-consumer-with-producer
 
-go 1.19
+go 1.24
 
 replace github.com/Trendyol/kafka-cronsumer => ../..
 

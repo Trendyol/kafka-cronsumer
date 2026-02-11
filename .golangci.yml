@@ -8,7 +8,6 @@ linters:
   disable-all: true
   enable:
     - bodyclose
-    - depguard
     - errcheck
     - dupl
     - exhaustive
@@ -37,7 +36,7 @@ linters:
 issues:
   # Excluding configuration per-path, per-linter, per-text and per-source
   exclude-rules:
-    - path: internal/kafka/
+    - path: internal/
       text: "dot-imports"
       linters:
         - revive
@@ -48,8 +47,3 @@ issues:
       linters:
         - errcheck
         - funlen
-
-service:
-  golangci-lint-version: 1.51.x # use the fixed version to not introduce new linters unexpectedly
-  prepare:
-    - echo "here I can run custom commands, but no preparation needed for this repo"

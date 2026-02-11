@@ -92,6 +92,9 @@ type ProducerConfig struct {
 type SkipMessageByHeaderFn func(headers []Header) bool
 
 func (c *Config) SetDefaults() {
+	if c.Logger == nil {
+		c.Logger = logger.New(c.LogLevel)
+	}
 	if c.Consumer.MaxRetry == 0 {
 		c.Consumer.MaxRetry = 3
 	}

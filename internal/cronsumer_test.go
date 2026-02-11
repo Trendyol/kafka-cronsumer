@@ -25,7 +25,7 @@ func Test_Produce_Max_Retry_Count_Reach(t *testing.T) {
 		Logger:   logger.New("info"),
 	}
 
-	var firstConsumerFn kafka.ConsumeFn = func(message kafka.Message) error {
+	var firstConsumerFn kafka.ConsumeFn = func(_ kafka.Message) error {
 		return nil
 	}
 	c := &cronsumer{
@@ -60,7 +60,7 @@ func Test_Produce_Max_Retry_Count_Reach(t *testing.T) {
 func Test_Produce_Max_Retry_Count_Reach_Dead_Letter_Topic_Feature_Enabled(t *testing.T) {
 	// Given
 
-	var firstConsumerFn kafka.ConsumeFn = func(message kafka.Message) error {
+	var firstConsumerFn kafka.ConsumeFn = func(_ kafka.Message) error {
 		return nil
 	}
 	c := &cronsumer{
@@ -108,7 +108,7 @@ func Test_Produce_With_Retry(t *testing.T) {
 		Logger:   logger.New("info"),
 	}
 
-	var firstConsumerFn kafka.ConsumeFn = func(message kafka.Message) error {
+	var firstConsumerFn kafka.ConsumeFn = func(_ kafka.Message) error {
 		return nil
 	}
 	producer := newMockProducer()
@@ -155,7 +155,7 @@ func Test_Recover_Message(t *testing.T) {
 		Logger:   logger.New("info"),
 	}
 
-	var firstConsumerFn kafka.ConsumeFn = func(message kafka.Message) error {
+	var firstConsumerFn kafka.ConsumeFn = func(_ kafka.Message) error {
 		return nil
 	}
 	producer := newMockProducer()
@@ -196,7 +196,7 @@ type mockConsumer struct{}
 func (c mockConsumer) Stop() {
 }
 
-func (c mockConsumer) ReadMessage(ctx context.Context) (*segmentio.Message, error) {
+func (c mockConsumer) ReadMessage(_ context.Context) (*segmentio.Message, error) {
 	return &segmentio.Message{}, nil
 }
 
@@ -220,15 +220,15 @@ func newMockProducer() mockProducer {
 	}
 }
 
-func (k *mockProducer) ProduceWithRetryOption(message MessageWrapper, increaseRetry bool, increaseRetryAttempt bool) error {
+func (k *mockProducer) ProduceWithRetryOption(_ MessageWrapper, _ bool, _ bool) error {
 	return nil
 }
 
-func (k *mockProducer) Produce(m kafka.Message) error {
+func (k *mockProducer) Produce(_ kafka.Message) error {
 	return nil
 }
 
-func (k *mockProducer) ProduceBatch(messages []kafka.Message) error {
+func (k *mockProducer) ProduceBatch(_ []kafka.Message) error {
 	return nil
 }
 
