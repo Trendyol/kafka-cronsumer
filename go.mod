@@ -5,7 +5,7 @@ go 1.24
 require (
 	github.com/prometheus/client_golang v1.16.0
 	github.com/robfig/cron/v3 v3.0.1
-	github.com/segmentio/kafka-go v0.4.47
+	github.com/segmentio/kafka-go v0.4.51
 	go.uber.org/zap v1.24.0
 )
 
@@ -27,7 +27,7 @@ require (
 	go.uber.org/goleak v1.1.12 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	golang.org/x/sys v0.8.0 // indirect
-	golang.org/x/text v0.7.0 // indirect
+	golang.org/x/text v0.23.0 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
 )
 
