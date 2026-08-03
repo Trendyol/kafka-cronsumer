@@ -83,10 +83,11 @@ type ConsumerConfig struct {
 }
 
 type ProducerConfig struct {
-	Brokers      []string           `yaml:"brokers"`
-	BatchSize    int                `yaml:"batchSize"`
-	BatchTimeout time.Duration      `yaml:"batchTimeout"`
-	Balancer     segmentio.Balancer `yaml:"balancer"`
+	Brokers      []string               `yaml:"brokers"`
+	BatchSize    int                    `yaml:"batchSize"`
+	BatchTimeout time.Duration          `yaml:"batchTimeout"`
+	Balancer     segmentio.Balancer     `yaml:"balancer"`
+	RequiredAcks segmentio.RequiredAcks `yaml:"requiredAcks"`
 }
 
 type SkipMessageByHeaderFn func(headers []Header) bool
