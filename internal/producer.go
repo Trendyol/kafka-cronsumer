@@ -29,6 +29,8 @@ func newProducer(kafkaConfig *kafka.Config) Producer {
 		Balancer:               kafkaConfig.Producer.Balancer,
 		BatchTimeout:           kafkaConfig.Producer.BatchTimeout,
 		BatchSize:              kafkaConfig.Producer.BatchSize,
+		RequiredAcks:           kafkaConfig.Producer.RequiredAcks,
+		Compression:            kafkaConfig.Producer.Compression,
 		AllowAutoTopicCreation: true,
 	}
 
