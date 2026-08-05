@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"math"
 
 	"github.com/Trendyol/kafka-cronsumer/pkg/kafka"
 	segmentio "github.com/segmentio/kafka-go"
@@ -14,8 +15,13 @@ type Producer interface {
 	Close()
 }
 
+type messageWriter interface {
+	WriteMessages(ctx context.Context, msgs ...segmentio.Message) error
+	Close() error
+}
+
 type kafkaProducer struct {
-	w   *segmentio.Writer
+	w   messageWriter
 	cfg *kafka.Config
 }
 
@@ -25,10 +31,14 @@ func newProducer(kafkaConfig *kafka.Config) Producer {
 	}
 
 	producer := &segmentio.Writer{
-		Addr:                   kafkaConfig.GetBrokerAddr(),
-		Balancer:               kafkaConfig.Producer.Balancer,
-		BatchTimeout:           kafkaConfig.Producer.BatchTimeout,
-		BatchSize:              kafkaConfig.Producer.BatchSize,
+		Addr:         kafkaConfig.GetBrokerAddr(),
+		Balancer:     kafkaConfig.Producer.Balancer,
+		BatchTimeout: kafkaConfig.Producer.BatchTimeout,
+		BatchSize:    kafkaConfig.Producer.BatchSize,
+		// kafka-go checks BatchBytes before compression. ProducerConfig.BatchBytes
+		// controls app-level chunking, so keep writer batching from rejecting
+		// compressible payloads before Kafka can validate the compressed request.
+		BatchBytes:             math.MaxInt,
 		RequiredAcks:           kafkaConfig.Producer.RequiredAcks,
 		Compression:            kafkaConfig.Producer.Compression,
 		AllowAutoTopicCreation: true,
@@ -56,29 +66,62 @@ func (k *kafkaProducer) ProduceWithRetryOption(message MessageWrapper, increaseR
 }
 
 func (k *kafkaProducer) Produce(m kafka.Message) error {
-	return k.w.WriteMessages(context.Background(), segmentio.Message{
+	return k.w.WriteMessages(context.Background(), toSegmentioMessage(m))
+}
+
+func (k *kafkaProducer) ProduceBatch(messages []kafka.Message) error {
+	if k.cfg.Producer.BatchBytes <= 0 {
+		segmentioMessages := make([]segmentio.Message, 0, len(messages))
+		for i := range messages {
+			segmentioMessages = append(segmentioMessages, toSegmentioMessage(messages[i]))
+		}
+		return k.w.WriteMessages(context.Background(), segmentioMessages...)
+	}
+
+	var chunk []segmentio.Message
+	var chunkSize int64
+	for i := range messages {
+		messageSize := approximateMessageSize(messages[i])
+		segmentioMessage := toSegmentioMessage(messages[i])
+
+		if len(chunk) > 0 && chunkSize+messageSize > k.cfg.Producer.BatchBytes {
+			if err := k.w.WriteMessages(context.Background(), chunk...); err != nil {
+				return err
+			}
+			chunk = nil
+			chunkSize = 0
+		}
+
+		chunk = append(chunk, segmentioMessage)
+		chunkSize += messageSize
+	}
+
+	if len(chunk) > 0 {
+		return k.w.WriteMessages(context.Background(), chunk...)
+	}
+
+	return k.w.WriteMessages(context.Background())
+}
+
+func toSegmentioMessage(m kafka.Message) segmentio.Message {
+	return segmentio.Message{
 		Topic:         m.Topic,
 		Partition:     m.Partition,
 		HighWaterMark: m.HighWaterMark,
 		Key:           m.Key,
 		Value:         m.Value,
 		Headers:       ToHeaders(m.Headers),
-	})
+	}
 }
 
-func (k *kafkaProducer) ProduceBatch(messages []kafka.Message) error {
-	segmentioMessages := make([]segmentio.Message, 0, len(messages))
-	for i := range messages {
-		segmentioMessages = append(segmentioMessages, segmentio.Message{
-			Topic:         messages[i].Topic,
-			Partition:     messages[i].Partition,
-			HighWaterMark: messages[i].HighWaterMark,
-			Key:           messages[i].Key,
-			Value:         messages[i].Value,
-			Headers:       ToHeaders(messages[i].Headers),
-		})
+func approximateMessageSize(message kafka.Message) int64 {
+	const recordOverhead = 64
+
+	size := int64(recordOverhead + len(message.Key) + len(message.Value))
+	for i := range message.Headers {
+		size += int64(len(message.Headers[i].Key) + len(message.Headers[i].Value))
 	}
-	return k.w.WriteMessages(context.Background(), segmentioMessages...)
+	return size
 }
 
 func (k *kafkaProducer) Close() {

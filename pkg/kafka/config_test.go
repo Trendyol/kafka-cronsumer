@@ -42,6 +42,7 @@ func TestConfig_SetDefaults(t *testing.T) {
 				},
 				Producer: ProducerConfig{
 					BatchSize:    100,
+					BatchBytes:   0,
 					BatchTimeout: time.Second,
 				},
 			},
