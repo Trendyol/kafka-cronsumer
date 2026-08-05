@@ -68,8 +68,8 @@ func TestConfig_SetDefaults(t *testing.T) {
 			if !reflect.DeepEqual(tt.expected.Producer, k.Producer) {
 				t.Errorf("Expected: %+v, Actual: %+v", tt.expected.Producer, k.Producer)
 			}
-			if !reflect.DeepEqual(tt.expected.Logger, k.Logger) {
-				t.Errorf("Expected: %+v, Actual: %+v", tt.expected.Logger, k.Logger)
+			if k.Logger == nil {
+				t.Errorf("Expected Logger to be initialized, but got nil")
 			}
 			if !reflect.DeepEqual(tt.expected.LogLevel, k.LogLevel) {
 				t.Errorf("Expected: %+v, Actual: %+v", tt.expected.LogLevel, k.LogLevel)
@@ -127,7 +127,7 @@ func TestConfig_Validate(t *testing.T) {
 				Consumer: ConsumerConfig{
 					GroupID:         "groupId",
 					Topic:           "topic",
-					Cron:            "cron",
+					Cron:            "*/1 * * * *",
 					BackOffStrategy: GetBackoffStrategy(FixedBackOffStrategy),
 				},
 			},
@@ -138,7 +138,7 @@ func TestConfig_Validate(t *testing.T) {
 				Consumer: ConsumerConfig{
 					GroupID:         "groupId",
 					Topic:           "topic",
-					Cron:            "cron",
+					Cron:            "*/1 * * * *",
 					Duration:        time.Second,
 					BackOffStrategy: GetBackoffStrategy(FixedBackOffStrategy),
 				},
@@ -166,6 +166,24 @@ func TestConfig_Validate(t *testing.T) {
 
 			k.Validate()
 		})
+	}
+}
+
+func TestConfig_Validate_And_Fix_Duration(t *testing.T) {
+	k := &Config{
+		Consumer: ConsumerConfig{
+			GroupID:         "groupId",
+			Topic:           "topic",
+			Cron:            "*/1 * * * *",
+			Duration:        2 * time.Minute,
+			BackOffStrategy: GetBackoffStrategy(FixedBackOffStrategy),
+		},
+	}
+
+	k.Validate()
+
+	if k.Consumer.Duration != NonStopWork {
+		t.Errorf("Expected duration to be NonStopWork (0), but got %v", k.Consumer.Duration)
 	}
 }
 

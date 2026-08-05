@@ -23,7 +23,7 @@ func Test_GetMetricsCollector(t *testing.T) {
 			LogLevel: "info",
 		}
 
-		var firstConsumerFn kafka.ConsumeFn = func(message kafka.Message) error {
+		var firstConsumerFn kafka.ConsumeFn = func(_ kafka.Message) error {
 			return nil
 		}
 
@@ -52,7 +52,7 @@ func Test_GetMetricsCollector(t *testing.T) {
 			LogLevel: "info",
 		}
 
-		var firstConsumerFn kafka.ConsumeFn = func(message kafka.Message) error {
+		var firstConsumerFn kafka.ConsumeFn = func(_ kafka.Message) error {
 			return nil
 		}
 
@@ -81,7 +81,7 @@ func Test_GetMetricsCollector(t *testing.T) {
 			LogLevel: "info",
 		}
 
-		var firstConsumerFn kafka.ConsumeFn = func(message kafka.Message) error {
+		var firstConsumerFn kafka.ConsumeFn = func(_ kafka.Message) error {
 			return nil
 		}
 

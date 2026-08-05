@@ -9,48 +9,49 @@ import (
 
 func TestNewProducer(t *testing.T) {
 	t.Run("Should_Pass_RequiredAcks_To_Writer", func(t *testing.T) {
-		// Given
 		cfg := &kafka.Config{
-			Brokers: []string{"broker-1.test.com"},
+			Brokers: []string{"localhost:9092"},
 			Producer: kafka.ProducerConfig{
+				BatchSize:    1,
 				RequiredAcks: segmentio.RequireAll,
 			},
 		}
 
-		// When
-		p := newProducer(cfg)
+		p := newProducer(cfg).(*kafkaProducer)
 
-		// Then
-		producer, ok := p.(*kafkaProducer)
-		if !ok {
-			t.Fatalf("expected *kafkaProducer, got %T", p)
+		if p.w.RequiredAcks != segmentio.RequireAll {
+			t.Errorf("expected RequiredAcks RequireAll, got %v", p.w.RequiredAcks)
+		}
+	})
+
+	t.Run("Should_Default_RequiredAcks_To_RequireNone_When_Unset", func(t *testing.T) {
+		cfg := &kafka.Config{
+			Brokers: []string{"localhost:9092"},
+			Producer: kafka.ProducerConfig{
+				BatchSize: 1,
+			},
 		}
 
-		if producer.w.RequiredAcks != segmentio.RequireAll {
-			t.Errorf("expected RequiredAcks RequireAll, got %v", producer.w.RequiredAcks)
+		p := newProducer(cfg).(*kafkaProducer)
+
+		if p.w.RequiredAcks != segmentio.RequireNone {
+			t.Errorf("expected RequiredAcks RequireNone, got %v", p.w.RequiredAcks)
 		}
 	})
 
 	t.Run("Should_Pass_Compression_To_Writer", func(t *testing.T) {
-		// Given
 		cfg := &kafka.Config{
-			Brokers: []string{"broker-1.test.com"},
+			Brokers: []string{"localhost:9092"},
 			Producer: kafka.ProducerConfig{
+				BatchSize:   1,
 				Compression: segmentio.Gzip,
 			},
 		}
 
-		// When
-		p := newProducer(cfg)
+		p := newProducer(cfg).(*kafkaProducer)
 
-		// Then
-		producer, ok := p.(*kafkaProducer)
-		if !ok {
-			t.Fatalf("expected *kafkaProducer, got %T", p)
-		}
-
-		if producer.w.Compression != segmentio.Gzip {
-			t.Errorf("expected Compression gzip, got %s", producer.w.Compression)
+		if p.w.Compression != segmentio.Gzip {
+			t.Errorf("expected Compression gzip, got %s", p.w.Compression)
 		}
 	})
 }
