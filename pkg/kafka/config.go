@@ -88,6 +88,7 @@ type ProducerConfig struct {
 	BatchTimeout time.Duration          `yaml:"batchTimeout"`
 	Balancer     segmentio.Balancer     `yaml:"balancer"`
 	RequiredAcks segmentio.RequiredAcks `yaml:"requiredAcks"`
+	Compression  segmentio.Compression  `yaml:"compression"`
 }
 
 type SkipMessageByHeaderFn func(headers []Header) bool
