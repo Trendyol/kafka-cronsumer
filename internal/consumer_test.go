@@ -56,7 +56,6 @@ func Test_ReadMessage_Should_Commit_And_Return_Fetched_Message_When_Context_Canc
 
 	// When
 	msg, err := k.ReadMessage(ctx)
-
 	// Then the fetched record must not be discarded
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
