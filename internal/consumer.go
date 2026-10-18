@@ -13,8 +13,14 @@ type Consumer interface {
 	Stop()
 }
 
+type segmentReader interface {
+	FetchMessage(ctx context.Context) (segmentio.Message, error)
+	CommitMessages(ctx context.Context, msgs ...segmentio.Message) error
+	Close() error
+}
+
 type kafkaConsumer struct {
-	consumer *segmentio.Reader
+	consumer segmentReader
 	cfg      *kafka.Config
 }
 
@@ -55,12 +61,16 @@ func newConsumer(kafkaConfig *kafka.Config) *kafkaConsumer {
 }
 
 func (k kafkaConsumer) ReadMessage(ctx context.Context) (*segmentio.Message, error) {
-	msg, err := k.consumer.ReadMessage(ctx)
+	msg, err := k.consumer.FetchMessage(ctx)
 	if err != nil {
 		if isContextCancelled(err) {
 			k.cfg.Logger.Debug("kafka-go context is cancelled")
 			return nil, nil
 		}
+		return nil, err
+	}
+
+	if err := k.consumer.CommitMessages(context.WithoutCancel(ctx), msg); err != nil {
 		return nil, err
 	}
 
