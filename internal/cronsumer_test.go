@@ -184,3 +184,76 @@ func (k *mockProducer) ProduceBatch(_ []kafka.Message) error {
 
 func (k *mockProducer) Close() {
 }
+
+func TestStopRacesWithBlockedSend(_ *testing.T) {
+	c := &cronsumer{
+		cfg:            &kafka.Config{Logger: logger.New("error")},
+		messageChannel: make(chan MessageWrapper),
+		kafkaConsumer:  mockConsumer{},
+		kafkaProducer:  &mockProducer{},
+		metric:         &CronsumerMetric{},
+		maxRetry:       1,
+	}
+	c.shutdownCtx, c.shutdownCancel = context.WithCancel(context.Background())
+	c.sendCond.L = &c.sendMu
+
+	started, done := make(chan struct{}), make(chan struct{})
+	go func() {
+		defer close(done)
+		close(started)
+		c.sendToMessageChannel(MessageWrapper{
+			Message: kafka.Message{Topic: "retry", Value: []byte("test")},
+		})
+	}()
+	<-started
+	time.Sleep(20 * time.Millisecond)
+	c.Stop()
+	<-done
+}
+
+type trackingMockProducer struct {
+	mockProducer
+	produceCalls int
+	closeCalls   int
+}
+
+func (k *trackingMockProducer) ProduceWithRetryOption(_ MessageWrapper, _ bool, _ bool) error {
+	k.produceCalls++
+	return nil
+}
+
+func (k *trackingMockProducer) Close() {
+	k.closeCalls++
+}
+
+func TestStopProducesBeforeProducerCloseOnShutdownSend(t *testing.T) {
+	producer := &trackingMockProducer{}
+	c := &cronsumer{
+		cfg:            &kafka.Config{Logger: logger.New("error")},
+		messageChannel: make(chan MessageWrapper),
+		kafkaConsumer:  mockConsumer{},
+		kafkaProducer:  producer,
+		metric:         &CronsumerMetric{},
+		maxRetry:       3,
+	}
+	c.shutdownCtx, c.shutdownCancel = context.WithCancel(context.Background())
+	c.sendCond.L = &c.sendMu
+
+	started := make(chan struct{})
+	go func() {
+		close(started)
+		c.sendToMessageChannel(MessageWrapper{
+			Message: kafka.Message{Topic: "retry", Value: []byte("test")},
+		})
+	}()
+	<-started
+	time.Sleep(20 * time.Millisecond)
+	c.Stop()
+
+	if producer.produceCalls != 1 {
+		t.Fatalf("expected produce before close, produceCalls=%d", producer.produceCalls)
+	}
+	if producer.closeCalls != 1 {
+		t.Fatalf("expected producer close once, closeCalls=%d", producer.closeCalls)
+	}
+}
