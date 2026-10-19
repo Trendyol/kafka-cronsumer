@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"errors"
 	"reflect"
 	"sync"
 	"testing"
@@ -275,34 +276,122 @@ func TestStopProducesBeforeProducerCloseOnShutdownSend(t *testing.T) {
 }
 
 type blockingConsumer struct {
-	entered chan struct{}
-	once    sync.Once
+	entered        chan struct{}
+	observedCancel chan struct{}
+	release        chan struct{}
+	msg            *segmentio.Message
+	once           sync.Once
 }
 
 func (b *blockingConsumer) Stop() {}
 
 func (b *blockingConsumer) ReadMessage(ctx context.Context) (*segmentio.Message, error) {
-	b.once.Do(func() { close(b.entered) })
+	var first bool
+	b.once.Do(func() {
+		first = true
+		close(b.entered)
+	})
+	if !first {
+		<-ctx.Done()
+		return nil, nil
+	}
 	<-ctx.Done()
-	return nil, nil
+	close(b.observedCancel)
+	<-b.release
+	return b.msg, nil
+}
+
+func TestStopWaitsForActiveWorkerBeforeProducerClose(t *testing.T) {
+	producer := &trackingMockProducer{}
+	handlerEntered := make(chan struct{})
+	releaseHandler := make(chan struct{})
+
+	c := &cronsumer{
+		cfg: &kafka.Config{
+			Consumer: kafka.ConsumerConfig{Topic: "exception"},
+			Logger:   logger.New("error"),
+		},
+		messageChannel: make(chan MessageWrapper),
+		kafkaConsumer:  mockConsumer{},
+		kafkaProducer:  producer,
+		consumeFn: func(_ kafka.Message) error {
+			close(handlerEntered)
+			<-releaseHandler
+			return errors.New("handler error")
+		},
+		metric:   &CronsumerMetric{},
+		maxRetry: 3,
+	}
+	c.shutdownCtx, c.shutdownCancel = context.WithCancel(context.Background())
+	c.sendCond.L = &c.sendMu
+	c.SetupConcurrentWorkers(1)
+
+	c.sendToMessageChannel(MessageWrapper{
+		Message: kafka.Message{Topic: "exception", Value: []byte("test")},
+	})
+	<-handlerEntered
+
+	stopped := make(chan struct{})
+	go func() {
+		c.Stop()
+		close(stopped)
+	}()
+
+	select {
+	case <-stopped:
+		t.Fatal("Stop finished before active worker was released")
+	case <-time.After(30 * time.Millisecond):
+	}
+
+	close(releaseHandler)
+	select {
+	case <-stopped:
+	case <-time.After(2 * time.Second):
+		t.Fatal("Stop did not finish after worker release")
+	}
+
+	got := producer.snapshot()
+	want := []string{"produce:inc", "close"}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("expected %v, got %v", want, got)
+	}
 }
 
 func TestClientStopJoinsBlockedListener(t *testing.T) {
 	cfg := &kafka.Config{
 		Brokers: []string{"localhost:9092"},
 		Consumer: kafka.ConsumerConfig{
-			GroupID:  "sample-consumer",
-			Topic:    "exception",
-			Cron:     "@every 1s",
-			Duration: 20 * time.Second,
+			GroupID:         "sample-consumer",
+			Topic:           "exception",
+			DeadLetterTopic: "dlq",
+			MaxRetry:        3,
+			Cron:            "@every 1s",
+			Duration:        20 * time.Second,
 		},
 		LogLevel: "error",
 		Logger:   logger.New("error"),
 	}
 	var consumeFn kafka.ConsumeFn = func(_ kafka.Message) error { return nil }
 	client := NewCronsumer(cfg, consumeFn).(*cronsumerClient)
+
 	entered := make(chan struct{})
-	client.consumer.kafkaConsumer = &blockingConsumer{entered: entered}
+	observedCancel := make(chan struct{})
+	release := make(chan struct{})
+	producer := &trackingMockProducer{}
+
+	client.consumer.kafkaProducer = producer
+	client.consumer.kafkaConsumer = &blockingConsumer{
+		entered:        entered,
+		observedCancel: observedCancel,
+		release:        release,
+		msg: &segmentio.Message{
+			Topic: "exception",
+			Value: []byte("pending-at-max-retry"),
+			Headers: []segmentio.Header{
+				{Key: RetryHeaderKey, Value: []byte("3")},
+			},
+		},
+	}
 
 	client.Start()
 	select {
@@ -316,10 +405,33 @@ func TestClientStopJoinsBlockedListener(t *testing.T) {
 		client.Stop()
 		close(stopped)
 	}()
+
+	select {
+	case <-observedCancel:
+	case <-time.After(2 * time.Second):
+		t.Fatal("listener did not observe cancellation")
+	}
+
+	select {
+	case <-stopped:
+		t.Fatal("Stop finished before listener returned")
+	case <-time.After(30 * time.Millisecond):
+	}
+
+	close(release)
 	select {
 	case <-stopped:
 	case <-time.After(5 * time.Second):
-		t.Fatal("Stop did not return")
+		t.Fatal("Stop did not return after listener release")
+	}
+
+	got := producer.snapshot()
+	want := []string{"produce:noinc", "close"}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("expected %v, got %v", want, got)
+	}
+	if client.consumer.metric.TotalDiscardedMessagesCounter != 0 {
+		t.Fatalf("expected 0 discarded messages, got %d", client.consumer.metric.TotalDiscardedMessagesCounter)
 	}
 }
 
