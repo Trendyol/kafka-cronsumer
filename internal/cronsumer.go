@@ -169,6 +169,11 @@ func (k *cronsumer) processMessage() {
 
 func (k *cronsumer) sendToMessageChannel(msg MessageWrapper) {
 	k.sendMu.Lock()
+	if k.shutdownCtx.Err() != nil {
+		k.sendMu.Unlock()
+		k.republishUnchanged(msg)
+		return
+	}
 	k.inFlightSends++
 	k.sendMu.Unlock()
 
@@ -185,6 +190,12 @@ func (k *cronsumer) sendToMessageChannel(msg MessageWrapper) {
 	case k.messageChannel <- msg:
 	case <-k.shutdownCtx.Done():
 		k.produce(msg)
+	}
+}
+
+func (k *cronsumer) republishUnchanged(msg MessageWrapper) {
+	if err := k.kafkaProducer.ProduceWithRetryOption(msg, false, false); err != nil {
+		k.cfg.Logger.Errorf("Error %s re-publishing message on shutdown: %#v", err.Error(), msg)
 	}
 }
 
