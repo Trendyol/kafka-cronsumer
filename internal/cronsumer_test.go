@@ -141,56 +141,6 @@ func Test_Produce_With_Retry(t *testing.T) {
 	}
 }
 
-func Test_Recover_Message(t *testing.T) {
-	// Given
-	kafkaConfig := &kafka.Config{
-		Brokers: []string{"localhost:29092"},
-		Consumer: kafka.ConsumerConfig{
-			GroupID:  "sample-consumer",
-			Topic:    "exception",
-			Cron:     "@every 1s",
-			Duration: 20 * time.Second,
-		},
-		LogLevel: "info",
-		Logger:   logger.New("info"),
-	}
-
-	var firstConsumerFn kafka.ConsumeFn = func(_ kafka.Message) error {
-		return nil
-	}
-	producer := newMockProducer()
-	c := &cronsumer{
-		cfg:             kafkaConfig,
-		messageChannel:  make(chan MessageWrapper),
-		kafkaConsumer:   mockConsumer{},
-		kafkaProducer:   &producer,
-		consumeFn:       firstConsumerFn,
-		metric:          &CronsumerMetric{},
-		maxRetry:        3,
-		deadLetterTopic: kafkaConfig.Consumer.DeadLetterTopic,
-	}
-	m := MessageWrapper{
-		Message: kafka.Message{
-			Headers: []kafka.Header{
-				{Key: RetryHeaderKey, Value: []byte("1")},
-			},
-			Topic: "exception",
-		},
-		RetryCount: 1,
-	}
-
-	// When
-	c.recoverMessage(m)
-
-	// Then
-	if !reflect.DeepEqual(c.metric.TotalDiscardedMessagesCounter, int64(0)) {
-		t.Errorf("Expected: %+v, Actual: %+v", c.metric.TotalDiscardedMessagesCounter, int64(0))
-	}
-	if !reflect.DeepEqual(c.metric.TotalRetriedMessagesCounter, int64(0)) {
-		t.Errorf("Expected: %+v, Actual: %+v", c.metric.TotalRetriedMessagesCounter, int64(0))
-	}
-}
-
 type mockConsumer struct{}
 
 func (c mockConsumer) Stop() {
