@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"reflect"
+	"sync"
 	"testing"
 	"time"
 
@@ -185,7 +186,7 @@ func (k *mockProducer) ProduceBatch(_ []kafka.Message) error {
 func (k *mockProducer) Close() {
 }
 
-func TestStopRacesWithBlockedSend(_ *testing.T) {
+func TestStopRacesWithBlockedSend(t *testing.T) {
 	c := &cronsumer{
 		cfg:            &kafka.Config{Logger: logger.New("error")},
 		messageChannel: make(chan MessageWrapper),
@@ -197,33 +198,54 @@ func TestStopRacesWithBlockedSend(_ *testing.T) {
 	c.shutdownCtx, c.shutdownCancel = context.WithCancel(context.Background())
 	c.sendCond.L = &c.sendMu
 
-	started, done := make(chan struct{}), make(chan struct{})
+	done := make(chan struct{})
 	go func() {
 		defer close(done)
-		close(started)
 		c.sendToMessageChannel(MessageWrapper{
 			Message: kafka.Message{Topic: "retry", Value: []byte("test")},
 		})
 	}()
-	<-started
-	time.Sleep(20 * time.Millisecond)
+	waitForInFlightSend(t, c)
 	c.Stop()
-	<-done
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		t.Fatal("sender did not finish")
+	}
 }
 
 type trackingMockProducer struct {
 	mockProducer
-	produceCalls int
-	closeCalls   int
+	mu     sync.Mutex
+	events []string
 }
 
-func (k *trackingMockProducer) ProduceWithRetryOption(_ MessageWrapper, _ bool, _ bool) error {
-	k.produceCalls++
+func (k *trackingMockProducer) ProduceWithRetryOption(_ MessageWrapper, increaseRetry bool, increaseRetryAttempt bool) error {
+	k.mu.Lock()
+	defer k.mu.Unlock()
+	switch {
+	case increaseRetry:
+		k.events = append(k.events, "produce:inc")
+	case increaseRetryAttempt:
+		k.events = append(k.events, "produce:attempt")
+	default:
+		k.events = append(k.events, "produce:noinc")
+	}
 	return nil
 }
 
 func (k *trackingMockProducer) Close() {
-	k.closeCalls++
+	k.mu.Lock()
+	defer k.mu.Unlock()
+	k.events = append(k.events, "close")
+}
+
+func (k *trackingMockProducer) snapshot() []string {
+	k.mu.Lock()
+	defer k.mu.Unlock()
+	out := make([]string, len(k.events))
+	copy(out, k.events)
+	return out
 }
 
 func TestStopProducesBeforeProducerCloseOnShutdownSend(t *testing.T) {
@@ -239,21 +261,81 @@ func TestStopProducesBeforeProducerCloseOnShutdownSend(t *testing.T) {
 	c.shutdownCtx, c.shutdownCancel = context.WithCancel(context.Background())
 	c.sendCond.L = &c.sendMu
 
-	started := make(chan struct{})
-	go func() {
-		close(started)
-		c.sendToMessageChannel(MessageWrapper{
-			Message: kafka.Message{Topic: "retry", Value: []byte("test")},
-		})
-	}()
-	<-started
-	time.Sleep(20 * time.Millisecond)
+	go c.sendToMessageChannel(MessageWrapper{
+		Message: kafka.Message{Topic: "retry", Value: []byte("test")},
+	})
+	waitForInFlightSend(t, c)
 	c.Stop()
 
-	if producer.produceCalls != 1 {
-		t.Fatalf("expected produce before close, produceCalls=%d", producer.produceCalls)
+	got := producer.snapshot()
+	want := []string{"produce:noinc", "close"}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("expected %v, got %v", want, got)
 	}
-	if producer.closeCalls != 1 {
-		t.Fatalf("expected producer close once, closeCalls=%d", producer.closeCalls)
+}
+
+type blockingConsumer struct {
+	entered chan struct{}
+	once    sync.Once
+}
+
+func (b *blockingConsumer) Stop() {}
+
+func (b *blockingConsumer) ReadMessage(ctx context.Context) (*segmentio.Message, error) {
+	b.once.Do(func() { close(b.entered) })
+	<-ctx.Done()
+	return nil, nil
+}
+
+func TestClientStopJoinsBlockedListener(t *testing.T) {
+	cfg := &kafka.Config{
+		Brokers: []string{"localhost:9092"},
+		Consumer: kafka.ConsumerConfig{
+			GroupID:  "sample-consumer",
+			Topic:    "exception",
+			Cron:     "@every 1s",
+			Duration: 20 * time.Second,
+		},
+		LogLevel: "error",
+		Logger:   logger.New("error"),
+	}
+	var consumeFn kafka.ConsumeFn = func(_ kafka.Message) error { return nil }
+	client := NewCronsumer(cfg, consumeFn).(*cronsumerClient)
+	entered := make(chan struct{})
+	client.consumer.kafkaConsumer = &blockingConsumer{entered: entered}
+
+	client.Start()
+	select {
+	case <-entered:
+	case <-time.After(3 * time.Second):
+		t.Fatal("listener did not start")
+	}
+
+	stopped := make(chan struct{})
+	go func() {
+		client.Stop()
+		close(stopped)
+	}()
+	select {
+	case <-stopped:
+	case <-time.After(5 * time.Second):
+		t.Fatal("Stop did not return")
+	}
+}
+
+func waitForInFlightSend(t *testing.T, c *cronsumer) {
+	t.Helper()
+	deadline := time.Now().Add(2 * time.Second)
+	for {
+		c.sendMu.Lock()
+		n := c.inFlightSends
+		c.sendMu.Unlock()
+		if n == 1 {
+			return
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("sender did not enter handoff")
+		}
+		time.Sleep(time.Millisecond)
 	}
 }
