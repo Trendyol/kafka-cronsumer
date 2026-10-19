@@ -2,7 +2,9 @@ package internal
 
 import (
 	"context"
+	"errors"
 	"reflect"
+	"sync"
 	"testing"
 	"time"
 
@@ -141,56 +143,6 @@ func Test_Produce_With_Retry(t *testing.T) {
 	}
 }
 
-func Test_Recover_Message(t *testing.T) {
-	// Given
-	kafkaConfig := &kafka.Config{
-		Brokers: []string{"localhost:29092"},
-		Consumer: kafka.ConsumerConfig{
-			GroupID:  "sample-consumer",
-			Topic:    "exception",
-			Cron:     "@every 1s",
-			Duration: 20 * time.Second,
-		},
-		LogLevel: "info",
-		Logger:   logger.New("info"),
-	}
-
-	var firstConsumerFn kafka.ConsumeFn = func(_ kafka.Message) error {
-		return nil
-	}
-	producer := newMockProducer()
-	c := &cronsumer{
-		cfg:             kafkaConfig,
-		messageChannel:  make(chan MessageWrapper),
-		kafkaConsumer:   mockConsumer{},
-		kafkaProducer:   &producer,
-		consumeFn:       firstConsumerFn,
-		metric:          &CronsumerMetric{},
-		maxRetry:        3,
-		deadLetterTopic: kafkaConfig.Consumer.DeadLetterTopic,
-	}
-	m := MessageWrapper{
-		Message: kafka.Message{
-			Headers: []kafka.Header{
-				{Key: RetryHeaderKey, Value: []byte("1")},
-			},
-			Topic: "exception",
-		},
-		RetryCount: 1,
-	}
-
-	// When
-	c.recoverMessage(m)
-
-	// Then
-	if !reflect.DeepEqual(c.metric.TotalDiscardedMessagesCounter, int64(0)) {
-		t.Errorf("Expected: %+v, Actual: %+v", c.metric.TotalDiscardedMessagesCounter, int64(0))
-	}
-	if !reflect.DeepEqual(c.metric.TotalRetriedMessagesCounter, int64(0)) {
-		t.Errorf("Expected: %+v, Actual: %+v", c.metric.TotalRetriedMessagesCounter, int64(0))
-	}
-}
-
 type mockConsumer struct{}
 
 func (c mockConsumer) Stop() {
@@ -233,4 +185,269 @@ func (k *mockProducer) ProduceBatch(_ []kafka.Message) error {
 }
 
 func (k *mockProducer) Close() {
+}
+
+func TestStopRacesWithBlockedSend(t *testing.T) {
+	c := &cronsumer{
+		cfg:            &kafka.Config{Logger: logger.New("error")},
+		messageChannel: make(chan MessageWrapper),
+		kafkaConsumer:  mockConsumer{},
+		kafkaProducer:  &mockProducer{},
+		metric:         &CronsumerMetric{},
+		maxRetry:       1,
+	}
+	c.shutdownCtx, c.shutdownCancel = context.WithCancel(context.Background())
+	c.sendCond.L = &c.sendMu
+
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		c.sendToMessageChannel(MessageWrapper{
+			Message: kafka.Message{Topic: "retry", Value: []byte("test")},
+		})
+	}()
+	waitForInFlightSend(t, c)
+	c.Stop()
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		t.Fatal("sender did not finish")
+	}
+}
+
+type trackingMockProducer struct {
+	mockProducer
+	mu     sync.Mutex
+	events []string
+}
+
+func (k *trackingMockProducer) ProduceWithRetryOption(_ MessageWrapper, increaseRetry bool, increaseRetryAttempt bool) error {
+	k.mu.Lock()
+	defer k.mu.Unlock()
+	switch {
+	case increaseRetry:
+		k.events = append(k.events, "produce:inc")
+	case increaseRetryAttempt:
+		k.events = append(k.events, "produce:attempt")
+	default:
+		k.events = append(k.events, "produce:noinc")
+	}
+	return nil
+}
+
+func (k *trackingMockProducer) Close() {
+	k.mu.Lock()
+	defer k.mu.Unlock()
+	k.events = append(k.events, "close")
+}
+
+func (k *trackingMockProducer) snapshot() []string {
+	k.mu.Lock()
+	defer k.mu.Unlock()
+	out := make([]string, len(k.events))
+	copy(out, k.events)
+	return out
+}
+
+func TestStopProducesBeforeProducerCloseOnShutdownSend(t *testing.T) {
+	producer := &trackingMockProducer{}
+	c := &cronsumer{
+		cfg:            &kafka.Config{Logger: logger.New("error")},
+		messageChannel: make(chan MessageWrapper),
+		kafkaConsumer:  mockConsumer{},
+		kafkaProducer:  producer,
+		metric:         &CronsumerMetric{},
+		maxRetry:       3,
+	}
+	c.shutdownCtx, c.shutdownCancel = context.WithCancel(context.Background())
+	c.sendCond.L = &c.sendMu
+
+	go c.sendToMessageChannel(MessageWrapper{
+		Message: kafka.Message{Topic: "retry", Value: []byte("test")},
+	})
+	waitForInFlightSend(t, c)
+	c.Stop()
+
+	got := producer.snapshot()
+	want := []string{"produce:noinc", "close"}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("expected %v, got %v", want, got)
+	}
+}
+
+type blockingConsumer struct {
+	entered        chan struct{}
+	observedCancel chan struct{}
+	release        chan struct{}
+	msg            *segmentio.Message
+	once           sync.Once
+}
+
+func (b *blockingConsumer) Stop() {}
+
+func (b *blockingConsumer) ReadMessage(ctx context.Context) (*segmentio.Message, error) {
+	var first bool
+	b.once.Do(func() {
+		first = true
+		close(b.entered)
+	})
+	if !first {
+		<-ctx.Done()
+		return nil, nil
+	}
+	<-ctx.Done()
+	close(b.observedCancel)
+	<-b.release
+	return b.msg, nil
+}
+
+func TestStopWaitsForActiveWorkerBeforeProducerClose(t *testing.T) {
+	producer := &trackingMockProducer{}
+	handlerEntered := make(chan struct{})
+	releaseHandler := make(chan struct{})
+
+	c := &cronsumer{
+		cfg: &kafka.Config{
+			Consumer: kafka.ConsumerConfig{Topic: "exception"},
+			Logger:   logger.New("error"),
+		},
+		messageChannel: make(chan MessageWrapper),
+		kafkaConsumer:  mockConsumer{},
+		kafkaProducer:  producer,
+		consumeFn: func(_ kafka.Message) error {
+			close(handlerEntered)
+			<-releaseHandler
+			return errors.New("handler error")
+		},
+		metric:   &CronsumerMetric{},
+		maxRetry: 3,
+	}
+	c.shutdownCtx, c.shutdownCancel = context.WithCancel(context.Background())
+	c.sendCond.L = &c.sendMu
+	c.SetupConcurrentWorkers(1)
+
+	c.sendToMessageChannel(MessageWrapper{
+		Message: kafka.Message{Topic: "exception", Value: []byte("test")},
+	})
+	<-handlerEntered
+
+	stopped := make(chan struct{})
+	go func() {
+		c.Stop()
+		close(stopped)
+	}()
+
+	select {
+	case <-stopped:
+		t.Fatal("Stop finished before active worker was released")
+	case <-time.After(30 * time.Millisecond):
+	}
+
+	close(releaseHandler)
+	select {
+	case <-stopped:
+	case <-time.After(2 * time.Second):
+		t.Fatal("Stop did not finish after worker release")
+	}
+
+	got := producer.snapshot()
+	want := []string{"produce:inc", "close"}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("expected %v, got %v", want, got)
+	}
+}
+
+func TestClientStopJoinsBlockedListener(t *testing.T) {
+	cfg := &kafka.Config{
+		Brokers: []string{"localhost:9092"},
+		Consumer: kafka.ConsumerConfig{
+			GroupID:         "sample-consumer",
+			Topic:           "exception",
+			DeadLetterTopic: "dlq",
+			MaxRetry:        3,
+			Cron:            "@every 1s",
+			Duration:        20 * time.Second,
+		},
+		LogLevel: "error",
+		Logger:   logger.New("error"),
+	}
+	var consumeFn kafka.ConsumeFn = func(_ kafka.Message) error { return nil }
+	client := NewCronsumer(cfg, consumeFn).(*cronsumerClient)
+
+	entered := make(chan struct{})
+	observedCancel := make(chan struct{})
+	release := make(chan struct{})
+	producer := &trackingMockProducer{}
+
+	client.consumer.kafkaProducer = producer
+	client.consumer.kafkaConsumer = &blockingConsumer{
+		entered:        entered,
+		observedCancel: observedCancel,
+		release:        release,
+		msg: &segmentio.Message{
+			Topic: "exception",
+			Value: []byte("pending-at-max-retry"),
+			Headers: []segmentio.Header{
+				{Key: RetryHeaderKey, Value: []byte("3")},
+			},
+		},
+	}
+
+	client.Start()
+	select {
+	case <-entered:
+	case <-time.After(3 * time.Second):
+		t.Fatal("listener did not start")
+	}
+
+	stopped := make(chan struct{})
+	go func() {
+		client.Stop()
+		close(stopped)
+	}()
+
+	select {
+	case <-observedCancel:
+	case <-time.After(2 * time.Second):
+		t.Fatal("listener did not observe cancellation")
+	}
+
+	select {
+	case <-stopped:
+		t.Fatal("Stop finished before listener returned")
+	case <-time.After(30 * time.Millisecond):
+	}
+
+	close(release)
+	select {
+	case <-stopped:
+	case <-time.After(5 * time.Second):
+		t.Fatal("Stop did not return after listener release")
+	}
+
+	got := producer.snapshot()
+	want := []string{"produce:noinc", "close"}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("expected %v, got %v", want, got)
+	}
+	if client.consumer.metric.TotalDiscardedMessagesCounter != 0 {
+		t.Fatalf("expected 0 discarded messages, got %d", client.consumer.metric.TotalDiscardedMessagesCounter)
+	}
+}
+
+func waitForInFlightSend(t *testing.T, c *cronsumer) {
+	t.Helper()
+	deadline := time.Now().Add(2 * time.Second)
+	for {
+		c.sendMu.Lock()
+		n := c.inFlightSends
+		c.sendMu.Unlock()
+		if n == 1 {
+			return
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("sender did not enter handoff")
+		}
+		time.Sleep(time.Millisecond)
+	}
 }

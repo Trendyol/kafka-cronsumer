@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -18,6 +19,10 @@ type cronsumerClient struct {
 	cron             *gocron.Cron
 	consumer         *cronsumer
 	metricCollectors []prometheus.Collector
+
+	mu         sync.Mutex
+	stopped    bool
+	listenerWg sync.WaitGroup
 }
 
 func NewCronsumer(cfg *kafka.Config, fn kafka.ConsumeFn) kafka.Cronsumer {
@@ -46,7 +51,13 @@ func (s *cronsumerClient) Run() {
 }
 
 func (s *cronsumerClient) Stop() {
-	s.cron.Stop()
+	s.mu.Lock()
+	s.stopped = true
+	s.mu.Unlock()
+
+	<-s.cron.Stop().Done()
+	s.consumer.beginShutdown()
+	s.listenerWg.Wait()
 	s.consumer.Stop()
 }
 
@@ -85,14 +96,26 @@ func (s *cronsumerClient) setup() {
 }
 
 func (s *cronsumerClient) startListen(cfg kafka.ConsumerConfig) func() {
+	s.mu.Lock()
+	if s.stopped {
+		s.mu.Unlock()
+		return func() {}
+	}
+	s.mu.Unlock()
+
 	s.cfg.Logger.Debug("Consuming " + cfg.Topic + " started at time: " + time.Now().String())
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(s.consumer.shutdownContext())
 	cancelFuncWrapper := func() {
 		s.cfg.Logger.Debug("Consuming " + cfg.Topic + " paused at " + time.Now().String())
 		cancel()
 	}
 
-	go s.consumer.Listen(ctx, cfg.BackOffStrategy.String(), &cancelFuncWrapper)
+	s.listenerWg.Add(1)
+	go func() {
+		defer s.listenerWg.Done()
+		s.consumer.Listen(ctx, cfg.BackOffStrategy.String(), &cancelFuncWrapper)
+	}()
+
 	return cancelFuncWrapper
 }
