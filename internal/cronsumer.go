@@ -189,7 +189,7 @@ func (k *cronsumer) sendToMessageChannel(msg MessageWrapper) {
 	select {
 	case k.messageChannel <- msg:
 	case <-k.shutdownCtx.Done():
-		k.produce(msg)
+		k.republishUnchanged(msg)
 	}
 }
 
